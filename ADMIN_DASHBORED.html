@@ -3920,9 +3920,9 @@
                             </div>
                             <div style="display:flex;gap:10px;min-height:340px;">
                                 <div id="adminConvList" style="width:36%;min-width:160px;border:1px solid #2a3142;border-radius:8px;background:#0a0d14;overflow:auto;max-height:520px;"></div>
-                                <div style="flex:1;display:flex;flex-direction:column;border:1px solid #2a3142;border-radius:8px;background:#0a0d14;max-height:520px;min-height:0;overflow:hidden;">
-                                    <div id="adminThreadHeader" style="padding:8px 10px;border-bottom:1px solid #2a3142;font-size:12px;color:#8b94a8;">Select a conversation</div>
-                                    <div id="adminThread" style="flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;padding:8px 10px;font-size:13px;line-height:1.4;min-height:0;"></div>
+                                <div style="flex:1;display:flex;flex-direction:column;border:1px solid #2a3142;border-radius:8px;background:#0a0d14;max-height:520px;overflow:hidden;">
+                                    <div id="adminThreadHeader" style="padding:8px 10px;border-bottom:1px solid #2a3142;font-size:12px;color:#8b94a8;flex-shrink:0;">Select a conversation</div>
+                                    <div id="adminThread" style="flex:1 1 0%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 10px;font-size:13px;line-height:1.4;"></div>
                                     <div id="adminReplyRow" style="display:none;padding:8px;border-top:1px solid #2a3142;gap:6px;">
                                         <input type="text" id="adminReplyInput" class="input" placeholder="Type your reply… (Enter to send)" style="flex:1;">
                                         <button class="btn" style="background:#19c37d;color:#000;" onclick="adminInboxSendReply()">Send</button>
@@ -12939,7 +12939,7 @@
 #achPanelHead .ach-title{flex:1;font-weight:700;font-size:14px;color:#19c37d;}
 .ach-hbtn{background:transparent;border:1px solid #2a3142;border-radius:6px;color:#8b94a8;cursor:pointer;font-size:12px;padding:6px 10px;min-height:32px;}
 .ach-hbtn:hover{background:#1a1f2b;color:#fff;}
-#achBody{flex:1;display:flex;overflow:hidden;min-height:0;}
+#achBody{flex:1;display:flex;overflow:hidden;}
 /* Conversation list */
 #achList{width:270px;min-width:220px;border-right:1px solid #2a3142;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
 #achListTop{padding:8px 10px;border-bottom:1px solid #1a1f2b;flex-shrink:0;}
@@ -12955,9 +12955,9 @@
 .ach-conv .ac-last{font-size:11px;color:#8b94a8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .ach-conv .ac-unread{background:#ff4757;color:#fff;font-size:10px;font-weight:700;border-radius:999px;padding:1px 5px;min-width:14px;text-align:center;display:inline-block;margin-left:4px;vertical-align:middle;}
 /* Thread pane */
-#achThread{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+#achThread{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 #achThreadBlank{flex:1;display:flex;align-items:center;justify-content:center;color:#3b4460;font-size:13px;}
-#achThreadWrap{flex:1;display:none;flex-direction:column;overflow:hidden;min-height:0;}
+#achThreadWrap{flex:1;display:none;flex-direction:column;overflow:hidden;}
 #achThreadWrap.visible{display:flex;}
 #achThreadHead{padding:9px 13px;border-bottom:1px solid #2a3142;display:flex;align-items:center;gap:8px;background:#10141d;flex-shrink:0;}
 #achThreadHead .at-name{font-weight:700;font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -12971,7 +12971,7 @@
 .an-btn{border:none;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;font-weight:600;}
 #achNickSaveBtn{background:#19c37d;color:#000;}
 #achNickCancelBtn{background:#1a1f2b;color:#8b94a8;}
-#achMessages{flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;padding:10px 13px;background:#0a0d14;min-height:0;height:0;overscroll-behavior:contain;touch-action:pan-y;}
+#achMessages{flex:1 1 0%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 13px;background:#0a0d14;position:relative;}
 #achMessages .am{margin:5px 0;display:flex;flex-direction:column;}
 #achMessages .am.mine{align-items:flex-end;}
 #achMessages .am.theirs{align-items:flex-start;}
@@ -13009,9 +13009,8 @@
   #achList{width:100%;border-right:none;}
   #achThread{display:none;}
   #achBody.thread-open #achList{display:none;}
-  #achBody.thread-open #achThread{display:flex;flex:1;min-height:0;max-height:100%;}
+  #achBody.thread-open #achThread{display:flex;}
   #achBackBtn{display:inline-flex !important;}
-  #achMessages{flex:1;min-height:0;max-height:none;}
 }
 #achBackBtn{display:none;}
 </style>

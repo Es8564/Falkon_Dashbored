@@ -9606,11 +9606,11 @@
   #falconChatLauncher.has-unread .badge{display:inline-block;}
   #falconChatPanel{position:fixed;right:18px;bottom:18px;z-index:99999;width:360px;max-width:calc(100vw - 24px);height:520px;max-height:calc(100vh - 40px);background:#0e1117;border:1px solid #2a3142;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.50);display:none;flex-direction:column;overflow:hidden;font:13px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#e6e8ec;}
   #falconChatPanel.open{display:flex;}
-  #falconChatHead{padding:10px 12px;background:linear-gradient(180deg,#1a2030,#10141d);border-bottom:1px solid #2a3142;display:flex;align-items:center;gap:8px;}
+  #falconChatHead{padding:10px 12px;background:linear-gradient(180deg,#1a2030,#10141d);border-bottom:1px solid #2a3142;display:flex;align-items:center;gap:8px;flex-shrink:0;}
   #falconChatHead .title{flex:1;font-weight:700;font-size:13px;color:#19c37d;}
   #falconChatHead .ico-btn{background:transparent;border:none;color:#8b94a8;cursor:pointer;font-size:14px;padding:4px 6px;border-radius:4px;}
   #falconChatHead .ico-btn:hover{background:#1a1f2b;color:#fff;}
-  #falconChatBody{flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;padding:10px 12px;background:#0a0d14;min-height:0;height:0;overscroll-behavior:contain;touch-action:pan-y;}
+  #falconChatBody{flex:1 1 0%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 12px;background:#0a0d14;position:relative;}
   #falconChatBody .msg{margin:4px 0;display:flex;}
   #falconChatBody .msg.mine{justify-content:flex-end;}
   #falconChatBody .bubble{max-width:80%;padding:7px 10px;border-radius:10px;word-break:break-word;white-space:pre-wrap;}
@@ -9620,13 +9620,13 @@
   #falconChatBody .bcast{margin:8px 0;padding:8px 10px;background:rgba(255,176,32,0.10);border:1px solid rgba(255,176,32,0.40);border-radius:8px;}
   #falconChatBody .bcast .who{font-size:11px;font-weight:700;color:#ffd58a;}
   #falconChatBody .bcast .body{margin-top:3px;color:#e6e8ec;white-space:pre-wrap;word-break:break-word;}
-  #falconChatRow{display:flex;gap:6px;padding:8px;border-top:1px solid #2a3142;background:#0e1117;}
+  #falconChatRow{display:flex;gap:6px;padding:8px;border-top:1px solid #2a3142;background:#0e1117;flex-shrink:0;}
   #falconChatRow input{flex:1;background:#0a0d14;color:#e6e8ec;border:1px solid #2a3142;border-radius:8px;padding:8px 10px;font-size:13px;outline:none;}
   #falconChatRow input:focus{border-color:#19c37d;}
   #falconChatRow button{background:#19c37d;color:#000;font-weight:700;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;}
   #falconChatRow button:disabled{opacity:0.5;cursor:not-allowed;}
-  #falconChatStatus{padding:4px 12px;font-size:11px;color:#8b94a8;border-top:1px solid #2a3142;background:#0a0d14;}
-  #falconChatNickRow{display:flex;align-items:center;gap:6px;padding:7px 10px;border-bottom:1px solid #2a3142;background:#0e1117;}
+  #falconChatStatus{padding:4px 12px;font-size:11px;color:#8b94a8;border-top:1px solid #2a3142;background:#0a0d14;flex-shrink:0;}
+  #falconChatNickRow{display:flex;align-items:center;gap:6px;padding:7px 10px;border-bottom:1px solid #2a3142;background:#0e1117;flex-shrink:0;}
   #falconChatNickRow .nick-lbl{font-size:11px;color:#8b94a8;white-space:nowrap;flex-shrink:0;}
   #falconChatNick{flex:1;min-width:0;background:#0a0d14;color:#e6e8ec;border:1px solid #2a3142;border-radius:6px;padding:5px 8px;font-size:12px;outline:none;}
   #falconChatNick:focus{border-color:#19c37d;}
