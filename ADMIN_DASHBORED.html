@@ -13088,7 +13088,8 @@
     selectedTk: '',
     pollTimer: null,
     threadTimer: null,
-    totalUnread: 0
+    totalUnread: 0,
+    _lastMsgCount: -1
   };
 
   function achCfg() {
@@ -13212,6 +13213,7 @@
   // ── Thread view ───────────────────────────────────────────────────
   function achSelectConv(tk) {
     ach.selectedTk = tk;
+    ach._lastMsgCount = -1; // Force re-render on conversation switch
     $('achBody').classList.add('thread-open');
     $('achThreadBlank').style.display = 'none';
     $('achThreadWrap').classList.add('visible');
@@ -13234,6 +13236,13 @@
       $('achThreadName').textContent  = nick;
       $('achThreadLogin').textContent = loginLabel;
       if ($('achNickInput') && !$('achNickInput').value) $('achNickInput').value = conv.nickname || '';
+      // Skip re-render if message count unchanged (prevents scroll disruption)
+      var newMsgCount = (data.thread || []).length + (data.broadcasts || []).length;
+      if (silent && ach._lastMsgCount === newMsgCount) {
+        // No new messages — don't touch the DOM
+        return;
+      }
+      ach._lastMsgCount = newMsgCount;
       achRenderThread(data.thread || [], data.broadcasts || [], silent);
       // Mark read
       try { await achFetch('chat_mark_read', { side: 'admin', token_key: tk }); } catch (_) {}
