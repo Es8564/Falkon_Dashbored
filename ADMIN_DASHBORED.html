@@ -12939,7 +12939,7 @@
 #achPanelHead .ach-title{flex:1;font-weight:700;font-size:14px;color:#19c37d;}
 .ach-hbtn{background:transparent;border:1px solid #2a3142;border-radius:6px;color:#8b94a8;cursor:pointer;font-size:12px;padding:6px 10px;min-height:32px;}
 .ach-hbtn:hover{background:#1a1f2b;color:#fff;}
-#achBody{flex:1;display:flex;overflow:hidden;}
+#achBody{flex:1;display:flex;overflow:hidden;min-height:0;}
 /* Conversation list */
 #achList{width:270px;min-width:220px;border-right:1px solid #2a3142;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
 #achListTop{padding:8px 10px;border-bottom:1px solid #1a1f2b;flex-shrink:0;}
@@ -12955,9 +12955,9 @@
 .ach-conv .ac-last{font-size:11px;color:#8b94a8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .ach-conv .ac-unread{background:#ff4757;color:#fff;font-size:10px;font-weight:700;border-radius:999px;padding:1px 5px;min-width:14px;text-align:center;display:inline-block;margin-left:4px;vertical-align:middle;}
 /* Thread pane */
-#achThread{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#achThread{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
 #achThreadBlank{flex:1;display:flex;align-items:center;justify-content:center;color:#3b4460;font-size:13px;}
-#achThreadWrap{flex:1;display:none;flex-direction:column;overflow:hidden;}
+#achThreadWrap{flex:1;display:none;flex-direction:column;overflow:hidden;min-height:0;}
 #achThreadWrap.visible{display:flex;}
 #achThreadHead{padding:9px 13px;border-bottom:1px solid #2a3142;display:flex;align-items:center;gap:8px;background:#10141d;flex-shrink:0;}
 #achThreadHead .at-name{font-weight:700;font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -12971,7 +12971,7 @@
 .an-btn{border:none;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;font-weight:600;}
 #achNickSaveBtn{background:#19c37d;color:#000;}
 #achNickCancelBtn{background:#1a1f2b;color:#8b94a8;}
-#achMessages{flex:1 1 0%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 13px;background:#0a0d14;position:relative;}
+#achMessages{flex:1 1 0%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 13px;background:#0a0d14;min-height:0;}
 #achMessages .am{margin:5px 0;display:flex;flex-direction:column;}
 #achMessages .am.mine{align-items:flex-end;}
 #achMessages .am.theirs{align-items:flex-start;}
