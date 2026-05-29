@@ -12971,7 +12971,7 @@
 .an-btn{border:none;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;font-weight:600;}
 #achNickSaveBtn{background:#19c37d;color:#000;}
 #achNickCancelBtn{background:#1a1f2b;color:#8b94a8;}
-#achMessages{flex:1 1 0%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 13px;background:#0a0d14;min-height:0;}
+#achMessages{flex:1 1 0%;overflow-y:scroll;-webkit-overflow-scrolling:touch;padding:10px 13px;background:#0a0d14;min-height:0;overscroll-behavior:contain;touch-action:pan-y;-ms-touch-action:pan-y;}
 #achMessages .am{margin:5px 0;display:flex;flex-direction:column;}
 #achMessages .am.mine{align-items:flex-end;}
 #achMessages .am.theirs{align-items:flex-start;}
@@ -13555,6 +13555,23 @@
   // Background polling for badge (even when panel closed)
   achStartPolling();
   achLoadInbox();
+
+  // CRITICAL: Force touch scrolling inside admin messages area
+  (function () {
+    var msgBox = $('achMessages');
+    if (!msgBox) return;
+    msgBox.addEventListener('touchstart', function (e) {
+      this._touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+    msgBox.addEventListener('touchmove', function (e) {
+      var dy = this._touchStartY - e.touches[0].clientY;
+      var atTop = this.scrollTop <= 0 && dy < 0;
+      var atBottom = (this.scrollTop + this.clientHeight >= this.scrollHeight) && dy > 0;
+      if (!atTop && !atBottom) {
+        e.stopPropagation();
+      }
+    }, { passive: true });
+  })();
 
   // ── Draggable Inbox button — pointer-event based, works on mouse + touch ──
   // Persists position to localStorage so it survives page reloads.

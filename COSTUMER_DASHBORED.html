@@ -9604,13 +9604,13 @@
   #falconChatLauncher:hover{transform:translateY(-1px);}
   #falconChatLauncher .badge{display:none;background:#ff4757;color:#fff;font-weight:700;border-radius:999px;padding:2px 7px;font-size:11px;min-width:18px;text-align:center;}
   #falconChatLauncher.has-unread .badge{display:inline-block;}
-  #falconChatPanel{position:fixed;right:8px;bottom:8px;left:8px;top:auto;z-index:99999;height:70vh;max-height:560px;background:#0e1117;border:1px solid #2a3142;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.50);display:none;flex-direction:column;overflow:hidden;font:13px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#e6e8ec;}
+  #falconChatPanel{position:fixed;right:8px;bottom:8px;left:8px;z-index:99999;height:420px;background:#0e1117;border:1px solid #2a3142;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.50);display:none;flex-direction:column;overflow:hidden;font:13px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#e6e8ec;}
   #falconChatPanel.open{display:flex;}
   #falconChatHead{padding:10px 12px;background:linear-gradient(180deg,#1a2030,#10141d);border-bottom:1px solid #2a3142;display:flex;align-items:center;gap:8px;flex-shrink:0;}
   #falconChatHead .title{flex:1;font-weight:700;font-size:13px;color:#19c37d;}
   #falconChatHead .ico-btn{background:transparent;border:none;color:#8b94a8;cursor:pointer;font-size:14px;padding:4px 6px;border-radius:4px;}
   #falconChatHead .ico-btn:hover{background:#1a1f2b;color:#fff;}
-  #falconChatBody{flex:1 1 0%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 12px;background:#0a0d14;min-height:0;}
+  #falconChatBody{overflow-y:scroll;-webkit-overflow-scrolling:touch;padding:10px 12px;background:#0a0d14;flex:1 1 auto;min-height:0;overscroll-behavior:contain;touch-action:pan-y;-ms-touch-action:pan-y;}
   #falconChatBody .msg{margin:4px 0;display:flex;}
   #falconChatBody .msg.mine{justify-content:flex-end;}
   #falconChatBody .bubble{max-width:80%;padding:7px 10px;border-radius:10px;word-break:break-word;white-space:pre-wrap;}
@@ -10077,7 +10077,40 @@
     st.polling = setInterval(poll, st.open ? 3000 : 15000);
   }
 
+  // Dynamic panel height — iOS doesn't respect vh/fixed height reliably
+  function _setChatPanelHeight() {
+    var panel = $('falconChatPanel');
+    if (!panel) return;
+    var vh = window.innerHeight || document.documentElement.clientHeight || 600;
+    var h = Math.min(Math.max(vh - 80, 300), 560);
+    panel.style.height = h + 'px';
+  }
+
+  // CRITICAL: Force touch scrolling inside chat body
+  // Mobile WebViews often let the parent page intercept touch events,
+  // preventing inner scrollable divs from scrolling. This handler
+  // stops propagation so the chat body gets the scroll.
+  (function () {
+    var chatBody = $('falconChatBody');
+    if (!chatBody) return;
+    chatBody.addEventListener('touchstart', function (e) {
+      // Allow the scroll to happen inside this element
+      this._touchStartY = e.touches[0].clientY;
+      this._scrollTopAtStart = this.scrollTop;
+    }, { passive: true });
+    chatBody.addEventListener('touchmove', function (e) {
+      var dy = this._touchStartY - e.touches[0].clientY;
+      var atTop = this.scrollTop <= 0 && dy < 0;
+      var atBottom = (this.scrollTop + this.clientHeight >= this.scrollHeight) && dy > 0;
+      // Only prevent default if NOT at boundary (prevents pull-to-refresh / page scroll)
+      if (!atTop && !atBottom) {
+        e.stopPropagation();
+      }
+    }, { passive: true });
+  })();
+
   $('falconChatLauncher').addEventListener('click', function () {
+    _setChatPanelHeight();
     $('falconChatPanel').classList.add('open');
     $('falconChatLauncher').style.display = 'none';
     st.open = true;
@@ -10092,6 +10125,9 @@
     st.open = false;
     startPolling();
   });
+  // Recalculate on resize/orientation change
+  window.addEventListener('resize', _setChatPanelHeight);
+
   $('falconChatMute').addEventListener('click', function () {
     st.muted = !st.muted;
     localStorage.setItem('falcon_chat_muted', st.muted ? '1' : '0');
