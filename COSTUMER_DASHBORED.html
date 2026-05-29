@@ -603,6 +603,10 @@
             font-family: inherit;
             transition: all 0.2s;
             outline: none;
+            -webkit-user-select: text;
+            user-select: text;
+            cursor: text;
+            -webkit-tap-highlight-color: transparent;
         }
         .input:focus       { border-color: #00d9ff; box-shadow: 0 0 0 3px rgba(0,217,255,0.1); }
         .input::placeholder { color: rgba(255,255,255,0.2); }
@@ -9606,7 +9610,7 @@
   #falconChatHead .title{flex:1;font-weight:700;font-size:13px;color:#19c37d;}
   #falconChatHead .ico-btn{background:transparent;border:none;color:#8b94a8;cursor:pointer;font-size:14px;padding:4px 6px;border-radius:4px;}
   #falconChatHead .ico-btn:hover{background:#1a1f2b;color:#fff;}
-  #falconChatBody{flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;padding:10px 12px;background:#0a0d14;min-height:0;}
+  #falconChatBody{flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;padding:10px 12px;background:#0a0d14;min-height:0;height:0;overscroll-behavior:contain;touch-action:pan-y;}
   #falconChatBody .msg{margin:4px 0;display:flex;}
   #falconChatBody .msg.mine{justify-content:flex-end;}
   #falconChatBody .bubble{max-width:80%;padding:7px 10px;border-radius:10px;word-break:break-word;white-space:pre-wrap;}
@@ -10322,6 +10326,45 @@
   .pwd-eye:focus  { outline: 1px solid #5fb3ff; opacity: 1; }
   .pwd-eye[aria-pressed="true"] { color: #5fb3ff; opacity: 1; }
 </style>
+<!-- iOS in-app browser compatibility fix -->
+<script>
+(function () {
+  // iOS Safari in-app WebView sometimes doesn't fire 'click' on buttons
+  // inside overflow:hidden flex containers. This fix ensures all interactive
+  // elements respond to touch on iOS.
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (!isIOS) return;
+
+  // Fix 1: Ensure all inputs are focusable on tap
+  document.addEventListener('touchend', function (e) {
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) {
+      // Small delay to let iOS process the touch, then focus
+      setTimeout(function () { t.focus(); }, 10);
+    }
+  }, { passive: true });
+
+  // Fix 2: Ensure buttons with onclick fire on touchend
+  document.addEventListener('touchend', function (e) {
+    var t = e.target;
+    // Walk up to find the nearest button or clickable element
+    var btn = t.closest ? t.closest('button, .btn, [onclick]') : null;
+    if (!btn) return;
+    // Only fire if the touch didn't move (not a scroll)
+    if (btn.getAttribute('data-ios-touched')) return;
+    btn.setAttribute('data-ios-touched', '1');
+    setTimeout(function () { btn.removeAttribute('data-ios-touched'); }, 400);
+    // Trigger click if the element has onclick or is a button
+    setTimeout(function () { btn.click(); }, 50);
+  }, { passive: true });
+
+  // Fix 3: Add cursor:pointer to all buttons (iOS needs this hint)
+  var style = document.createElement('style');
+  style.textContent = 'button,.btn,[onclick]{cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,0.05);}input,textarea,select{-webkit-user-select:text;user-select:text;}';
+  document.head.appendChild(style);
+})();
+</script>
 <script>
 (function () {
   function attachPwdToggle(input) {
@@ -10346,7 +10389,7 @@
     btn.title = 'Show / hide';
     btn.textContent = '👁';
     btn.addEventListener('mousedown', function (e) { e.preventDefault(); }); // don't blur input
-    btn.addEventListener('click', function () {
+    function _togglePwd() {
       var shown = input.type === 'text';
       if (shown) {
         input.type = 'password';
@@ -10359,6 +10402,12 @@
         btn.setAttribute('aria-pressed', 'true');
         btn.setAttribute('aria-label', 'Hide value');
       }
+    }
+    btn.addEventListener('click', _togglePwd);
+    // iOS in-app browser fix: touchend fires when click doesn't
+    btn.addEventListener('touchend', function (e) {
+      e.preventDefault();
+      _togglePwd();
     });
     wrap.appendChild(btn);
   }

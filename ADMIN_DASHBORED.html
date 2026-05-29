@@ -700,6 +700,10 @@
             font-family: inherit;
             transition: all 0.2s;
             outline: none;
+            -webkit-user-select: text;
+            user-select: text;
+            cursor: text;
+            -webkit-tap-highlight-color: transparent;
         }
         .input:focus       { border-color: #00d9ff; box-shadow: 0 0 0 3px rgba(0,217,255,0.1); }
         .input::placeholder { color: rgba(255,255,255,0.2); }
@@ -12797,6 +12801,32 @@
   .pwd-eye:focus  { outline: 1px solid #5fb3ff; opacity: 1; }
   .pwd-eye[aria-pressed="true"] { color: #5fb3ff; opacity: 1; }
 </style>
+<!-- iOS in-app browser compatibility fix -->
+<script>
+(function () {
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (!isIOS) return;
+  document.addEventListener('touchend', function (e) {
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) {
+      setTimeout(function () { t.focus(); }, 10);
+    }
+  }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    var t = e.target;
+    var btn = t.closest ? t.closest('button, .btn, [onclick]') : null;
+    if (!btn) return;
+    if (btn.getAttribute('data-ios-touched')) return;
+    btn.setAttribute('data-ios-touched', '1');
+    setTimeout(function () { btn.removeAttribute('data-ios-touched'); }, 400);
+    setTimeout(function () { btn.click(); }, 50);
+  }, { passive: true });
+  var style = document.createElement('style');
+  style.textContent = 'button,.btn,[onclick]{cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,0.05);}input,textarea,select{-webkit-user-select:text;user-select:text;}';
+  document.head.appendChild(style);
+})();
+</script>
 <script>
 (function () {
   function attachPwdToggle(input) {
@@ -12820,7 +12850,7 @@
     btn.title = 'Show / hide';
     btn.textContent = '👁';
     btn.addEventListener('mousedown', function (e) { e.preventDefault(); });
-    btn.addEventListener('click', function () {
+    function _togglePwd() {
       var shown = input.type === 'text';
       if (shown) {
         input.type = 'password';
@@ -12833,6 +12863,11 @@
         btn.setAttribute('aria-pressed', 'true');
         btn.setAttribute('aria-label', 'Hide value');
       }
+    }
+    btn.addEventListener('click', _togglePwd);
+    btn.addEventListener('touchend', function (e) {
+      e.preventDefault();
+      _togglePwd();
     });
     wrap.appendChild(btn);
   }
@@ -12936,7 +12971,7 @@
 .an-btn{border:none;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;font-weight:600;}
 #achNickSaveBtn{background:#19c37d;color:#000;}
 #achNickCancelBtn{background:#1a1f2b;color:#8b94a8;}
-#achMessages{flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;padding:10px 13px;background:#0a0d14;min-height:0;}
+#achMessages{flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;padding:10px 13px;background:#0a0d14;min-height:0;height:0;overscroll-behavior:contain;touch-action:pan-y;}
 #achMessages .am{margin:5px 0;display:flex;flex-direction:column;}
 #achMessages .am.mine{align-items:flex-end;}
 #achMessages .am.theirs{align-items:flex-start;}
@@ -12974,8 +13009,9 @@
   #achList{width:100%;border-right:none;}
   #achThread{display:none;}
   #achBody.thread-open #achList{display:none;}
-  #achBody.thread-open #achThread{display:flex;}
+  #achBody.thread-open #achThread{display:flex;flex:1;min-height:0;max-height:100%;}
   #achBackBtn{display:inline-flex !important;}
+  #achMessages{flex:1;min-height:0;max-height:none;}
 }
 #achBackBtn{display:none;}
 </style>
