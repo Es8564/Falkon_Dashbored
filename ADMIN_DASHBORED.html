@@ -13253,7 +13253,10 @@
 
   function achRenderThread(msgs, bcasts, silent) {
     var box = $('achMessages'); if (!box) return;
-    var nearBottom = (box.scrollHeight - box.scrollTop - box.clientHeight) < 100;
+    // Check if user is near the bottom BEFORE clearing content
+    var wasAtBottom = (box.scrollHeight - box.scrollTop - box.clientHeight) < 100;
+    var prevScrollTop = box.scrollTop;
+    var prevScrollHeight = box.scrollHeight;
     box.innerHTML = '';
     var all = [];
     msgs.forEach(function (m) { all.push({ type: 'priv', t: Date.parse(m.created_at) || 0, m: m }); });
@@ -13293,7 +13296,15 @@
       }
       box.appendChild(el);
     });
-    if (!silent || nearBottom) box.scrollTop = box.scrollHeight;
+    if (!silent || wasAtBottom) {
+      // User was at bottom (or this is a fresh open) → scroll to bottom
+      box.scrollTop = box.scrollHeight;
+    } else {
+      // User was scrolled up reading history → preserve their position
+      var newScrollHeight = box.scrollHeight;
+      var heightDiff = newScrollHeight - prevScrollHeight;
+      box.scrollTop = prevScrollTop + (heightDiff > 0 ? heightDiff : 0);
+    }
     // Lazy-load images after render
     setTimeout(_achLoadImages, 50);
   }
