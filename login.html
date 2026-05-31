@@ -93,7 +93,7 @@ async function doLogin() {
 
     try {
         var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
-        var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbyOWnyD4oNPJeSQ7srd8i1WN3JOgUOMq7crgEweklAzFSz6nVwWCvyQSvxP5RsjpFHK/exec';
+        var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbzL3TeMaURw1ly_oVKc6-Wm2bcDytIIZKD9VOEIGgR0YLDbucjh3jT5QUsy1c2mgQ1n/exec';
 
         var params = { command: 'auth_login', email: email, password: password };
         var data = null;
@@ -142,7 +142,7 @@ async function doForgotPassword() {
     _showStatus('Sending reset code…', '#8b94a8');
 
     try {
-        var url = 'https://script.google.com/macros/s/AKfycbyOWnyD4oNPJeSQ7srd8i1WN3JOgUOMq7crgEweklAzFSz6nVwWCvyQSvxP5RsjpFHK/exec';
+        var url = 'https://script.google.com/macros/s/AKfycbzL3TeMaURw1ly_oVKc6-Wm2bcDytIIZKD9VOEIGgR0YLDbucjh3jT5QUsy1c2mgQ1n/exec';
         var params = { command: 'auth_forgot_password', email: email };
         var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
         try { await fetch(url + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors' }); } catch (_) {}

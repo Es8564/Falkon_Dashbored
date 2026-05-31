@@ -187,7 +187,7 @@ async function _sendVerificationCode(email) {
     _regOtpCode = String(Math.floor(100000 + Math.random() * 900000));
 
     try {
-        var url = 'https://script.google.com/macros/s/AKfycbyOWnyD4oNPJeSQ7srd8i1WN3JOgUOMq7crgEweklAzFSz6nVwWCvyQSvxP5RsjpFHK/exec';
+        var url = 'https://script.google.com/macros/s/AKfycbzL3TeMaURw1ly_oVKc6-Wm2bcDytIIZKD9VOEIGgR0YLDbucjh3jT5QUsy1c2mgQ1n/exec';
         var params = { command: 'auth_send_otp', email: _regData.email, otp: _regOtpCode, name: _regData.name };
         var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
         try {
@@ -219,7 +219,7 @@ async function regStep2() {
 
     // Call GAS to verify OTP and create account
     try {
-        var url = 'https://script.google.com/macros/s/AKfycbyOWnyD4oNPJeSQ7srd8i1WN3JOgUOMq7crgEweklAzFSz6nVwWCvyQSvxP5RsjpFHK/exec';
+        var url = 'https://script.google.com/macros/s/AKfycbzL3TeMaURw1ly_oVKc6-Wm2bcDytIIZKD9VOEIGgR0YLDbucjh3jT5QUsy1c2mgQ1n/exec';
         var params = {
             command: 'auth_register',
             email: _regData.email,
