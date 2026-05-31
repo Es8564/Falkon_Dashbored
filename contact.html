@@ -137,8 +137,7 @@ function submitContact() {
     // Send to GAS backend
     var cfg = {};
     try { cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch (_) {}
-    var url = (cfg.endpointUrl || '').trim();
-    if (!url) { status.style.color = '#ff6b6b'; status.textContent = 'System not configured. Please contact support@falconai.trade directly.'; return; }
+    var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbyOWnyD4oNPJeSQ7srd8i1WN3JOgUOMq7crgEweklAzFSz6nVwWCvyQSvxP5RsjpFHK/exec';
 
     var params = { command: 'contact_submit', name: name, email: email, subject: subject, message: message, source: 'web_cmd' };
     var qs = Object.keys(params).map(function(k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');

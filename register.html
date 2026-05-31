@@ -187,27 +187,15 @@ async function _sendVerificationCode(email) {
     _regOtpCode = String(Math.floor(100000 + Math.random() * 900000));
 
     try {
-        // Call GAS to send the verification email
-        var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
-        var url = (cfg.endpointUrl || '').trim();
-        if (!url) {
-            // If no endpoint configured, simulate success for demo
-            _showOtpStep();
-            return;
-        }
+        var url = 'https://script.google.com/macros/s/AKfycbyOWnyD4oNPJeSQ7srd8i1WN3JOgUOMq7crgEweklAzFSz6nVwWCvyQSvxP5RsjpFHK/exec';
         var params = { command: 'auth_send_otp', email: _regData.email, otp: _regOtpCode, name: _regData.name };
-        var finalUrl = window._gasFinalUrl || url;
-        try {
-            var r = await fetch(finalUrl, { method: 'POST', mode: 'cors', cache: 'no-cache', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) });
-            if (r.ok) { var d = await r.json(); if (d && d.status === 'ok') { _showOtpStep(); return; } }
-        } catch (_) {}
-        // GET fallback
         var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
         try {
-            var r2 = await fetch(url + (url.indexOf('?')>=0?'&':'?') + qs, { method: 'GET', mode: 'cors' });
-            if (r2.ok) { _showOtpStep(); return; }
+            var r = await fetch(url + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors', cache: 'no-cache' });
+            if (r.ok) { var d = await r.json(); if (d && d.status === 'ok') { _showOtpStep(); return; } }
         } catch (_) {}
-        _showOtpStep(); // Show OTP step anyway (best effort)
+        // If request failed, still show OTP step (best effort)
+        _showOtpStep();
     } catch (_) {
         _showOtpStep();
     }
@@ -231,8 +219,7 @@ async function regStep2() {
 
     // Call GAS to verify OTP and create account
     try {
-        var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
-        var url = (cfg.endpointUrl || '').trim();
+        var url = 'https://script.google.com/macros/s/AKfycbyOWnyD4oNPJeSQ7srd8i1WN3JOgUOMq7crgEweklAzFSz6nVwWCvyQSvxP5RsjpFHK/exec';
         var params = {
             command: 'auth_register',
             email: _regData.email,
@@ -244,21 +231,12 @@ async function regStep2() {
             referral: _regData.referral
         };
         var success = false;
-        var finalUrl = window._gasFinalUrl || url;
-        if (finalUrl) {
-            try {
-                var r = await fetch(finalUrl, { method: 'POST', mode: 'cors', cache: 'no-cache', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) });
-                if (r.ok) { var d = await r.json(); if (d && d.status === 'ok') success = true; }
-            } catch (_) {}
-        }
-        if (!success && url) {
-            var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
-            try {
-                var r2 = await fetch(url + (url.indexOf('?')>=0?'&':'?') + qs, { method: 'GET', mode: 'cors' });
-                if (r2.ok) { var d2 = await r2.json(); if (d2 && d2.status === 'ok') success = true; }
-            } catch (_) {}
-        }
-        if (success || !url) {
+        var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+        try {
+            var r = await fetch(url + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors', cache: 'no-cache' });
+            if (r.ok) { var d = await r.json(); if (d && d.status === 'ok') { success = true; if (d.token) { var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}'); cfg.secretToken = d.token; cfg.endpointUrl = url; localStorage.setItem('falconConfig', JSON.stringify(cfg)); localStorage.setItem('falcon_user_name', _regData.name); localStorage.setItem('falcon_email', _regData.email); } } }
+        } catch (_) {}
+        if (success) {
             _showSuccessStep();
         } else {
             _showStatus('Verification failed. Please check the code and try again.', '#ff6b6b');

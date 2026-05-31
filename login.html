@@ -93,39 +93,34 @@ async function doLogin() {
 
     try {
         var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
-        var url = (cfg.endpointUrl || '').trim();
-        if (!url) { _showStatus('System not configured. Contact admin.', '#ff6b6b'); return; }
+        var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbyOWnyD4oNPJeSQ7srd8i1WN3JOgUOMq7crgEweklAzFSz6nVwWCvyQSvxP5RsjpFHK/exec';
 
         var params = { command: 'auth_login', email: email, password: password };
         var data = null;
-        var finalUrl = window._gasFinalUrl || url;
 
+        // Try GET
+        var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
         try {
-            var r = await fetch(finalUrl, { method: 'POST', mode: 'cors', cache: 'no-cache', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) });
+            var r = await fetch(url + (url.indexOf('?')>=0?'&':'?') + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors', cache: 'no-cache' });
             if (r.ok) data = await r.json();
         } catch (_) {}
-
-        if (!data) {
-            var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
-            try {
-                var r2 = await fetch(url + (url.indexOf('?')>=0?'&':'?') + qs, { method: 'GET', mode: 'cors' });
-                if (r2.ok) data = await r2.json();
-            } catch (_) {}
-        }
 
         if (data && data.status === 'ok' && data.token) {
             // Save token and user info
             cfg.secretToken = data.token;
+            if (!cfg.endpointUrl) cfg.endpointUrl = url;
             localStorage.setItem('falconConfig', JSON.stringify(cfg));
             if (data.name) localStorage.setItem('falcon_user_name', data.name);
             localStorage.setItem('falcon_email', email);
             _showStatus('✓ Login successful! Redirecting…', '#00ff88');
             setTimeout(function() { window.location.href = 'account.html'; }, 800);
+        } else if (data && data.error) {
+            _showStatus(data.error, '#ff6b6b');
         } else {
-            _showStatus(data && data.error ? data.error : 'Invalid email or password.', '#ff6b6b');
+            _showStatus('Login failed. Please check your email and password.', '#ff6b6b');
         }
     } catch (e) {
-        _showStatus('Login failed: ' + (e.message || 'unknown error'), '#ff6b6b');
+        _showStatus('Connection error. Please try again.', '#ff6b6b');
     }
 }
 
@@ -147,14 +142,10 @@ async function doForgotPassword() {
     _showStatus('Sending reset code…', '#8b94a8');
 
     try {
-        var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
-        var url = (cfg.endpointUrl || '').trim();
-        if (!url) { _showStatus('System not configured.', '#ff6b6b'); return; }
+        var url = 'https://script.google.com/macros/s/AKfycbyOWnyD4oNPJeSQ7srd8i1WN3JOgUOMq7crgEweklAzFSz6nVwWCvyQSvxP5RsjpFHK/exec';
         var params = { command: 'auth_forgot_password', email: email };
-        var finalUrl = window._gasFinalUrl || url;
-        try {
-            await fetch(finalUrl, { method: 'POST', mode: 'cors', cache: 'no-cache', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) });
-        } catch (_) {}
+        var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+        try { await fetch(url + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors' }); } catch (_) {}
         _showStatus('✓ If this email is registered, a reset code has been sent. Check your inbox.', '#00ff88');
     } catch (_) {
         _showStatus('✓ If this email is registered, a reset code has been sent.', '#00ff88');
