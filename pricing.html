@@ -98,9 +98,21 @@
             <li>Referral rewards program</li>
             <li>Knowledge base access</li>
         </ul>
-        <a href="register.html" class="btn-primary">Subscribe Now →</a>
+        <a href="account.html" class="btn-primary" id="pricingSubBtn">Subscribe Now →</a>
         <a href="contact.html" class="btn-outline">Have questions? Contact us</a>
     </div>
+</div>
+<script>
+// If user is logged in, Subscribe button goes to account page (where payment is)
+(function() {
+    var cfg = {};
+    try { cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch (_) {}
+    if (cfg.secretToken) {
+        var btn = document.getElementById('pricingSubBtn');
+        if (btn) btn.href = 'account.html';
+    }
+})();
+</script>
 
     <div class="guarantee">
         <h3>🛡️ Satisfaction Guarantee</h3>
@@ -137,5 +149,21 @@
     <p style="margin-top:16px;">© 2024–2026 Falcon AI. All rights reserved. Trading involves risk.</p>
 </footer>
 
+<script src="nav-auth.js"></script><script>
+(function(){var c=JSON.parse(localStorage.getItem('falconConfig')||'{}');var n=localStorage.getItem('falcon_user_name');if(c.secretToken&&n){var links=document.querySelectorAll('.nav-links');if(links.length){var nav=links[0];var badge=document.createElement('span');badge.style.cssText='width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;';badge.textContent=n.charAt(0).toUpperCase();badge.title=n+' (logged in)';badge.onclick=function(){window.location.href='account.html';};nav.appendChild(badge);}}})();
+// Fix Subscribe button — redirect to login if not logged in, or account if logged in
+(function(){
+  var btn = document.getElementById('pricingSubBtn');
+  if (!btn) return;
+  var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
+  if (cfg.secretToken) {
+    btn.href = 'account.html';
+    btn.textContent = 'Subscribe Now →';
+  } else {
+    btn.href = 'login.html';
+    btn.textContent = 'Login to Subscribe →';
+  }
+})();
+</script>
 </body>
 </html>
