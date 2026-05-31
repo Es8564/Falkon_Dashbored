@@ -3153,6 +3153,193 @@
                                 <div class="stat-cell"><div class="stat-value" id="statRate"    style="color:#00d9ff;">--%</div><div class="stat-label">Success Rate</div></div>
                             </div>
                         </div>
+
+                <!-- ═══ CUSTOMER SELF-SERVICE PORTAL ═══ -->
+                <div class="card">
+                    <div class="collapse-header" onclick="toggleCollapse('portal')">
+                        <div class="card-title" data-i18n="my_account">👤 My Account</div>
+                        <span class="collapse-arrow" id="portalArrow">▼</span>
+                    </div>
+                    <div class="collapse-body" id="portalBody">
+                        <div class="collapse-inner">
+                            <!-- Language Selector -->
+                            <div style="padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+                                <span data-i18n="language" style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:rgba(255,255,255,0.45);">Language</span>
+                                <select id="langSelector" class="input" style="width:auto;min-width:130px;padding:6px 10px;font-size:12px;" onchange="window._falconSetLang(this.value)">
+                                    <option value="en">🇬🇧 English</option>
+                                    <option value="fa">🇮🇷 فارسی</option>
+                                    <option value="ar">🇸🇦 العربية</option>
+                                    <option value="tr">🇹🇷 Türkçe</option>
+                                </select>
+                            </div>
+                            <!-- Email Notifications -->
+                            <div style="padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);margin-bottom:8px;">
+                                <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:rgba(255,255,255,0.45);margin-bottom:8px;">📧 Email Notifications</div>
+                                <div style="display:flex;gap:6px;align-items:center;">
+                                    <input type="email" id="portalEmailInput" class="input" placeholder="your@email.com" style="flex:1;font-size:12px;padding:7px 10px;">
+                                    <button class="btn btn-ghost btn-sm" onclick="portalSaveEmail()" id="portalEmailBtn" style="white-space:nowrap;">Save</button>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                                    <label style="font-size:11px;color:#8b94a8;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                                        <input type="checkbox" id="portalEmailToggle" onchange="portalToggleEmail()" checked style="width:16px;height:16px;">
+                                        Receive email alerts (EA offline, license expiry, new messages)
+                                    </label>
+                                </div>
+                                <div id="portalEmailStatus" style="font-size:11px;margin-top:6px;display:none;"></div>
+                            </div>
+                            <!-- Referral Program -->
+                            <div style="padding:12px;border-radius:8px;border:1px solid rgba(0,217,255,0.15);background:rgba(0,217,255,0.03);margin-bottom:8px;">
+                                <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:rgba(0,217,255,0.7);margin-bottom:8px;">🎁 Referral Program</div>
+                                <div style="font-size:12px;color:#8b94a8;margin-bottom:10px;" id="refRewardDesc">Earn £50 discount per referral!</div>
+                                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                                    <div style="flex:1;background:#0a0d14;border:1px solid #2a3142;border-radius:6px;padding:8px 10px;font-family:monospace;font-size:13px;color:#00d9ff;letter-spacing:0.05em;" id="refCodeDisplay">Loading…</div>
+                                    <button class="btn btn-ghost btn-sm" onclick="portalCopyRefCode()" style="white-space:nowrap;">📋 Copy</button>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                                    <button class="btn btn-ghost btn-sm" onclick="portalShareRefLink()" style="flex:1;">🔗 Share Referral Link</button>
+                                </div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                                    <div style="background:#0a0d14;border:1px solid #2a3142;border-radius:6px;padding:8px;text-align:center;">
+                                        <div style="font-size:18px;font-weight:800;color:#00ff88;" id="refCount">0</div>
+                                        <div style="font-size:10px;color:#5b6580;">Referrals</div>
+                                    </div>
+                                    <div style="background:#0a0d14;border:1px solid #2a3142;border-radius:6px;padding:8px;text-align:center;">
+                                        <div style="font-size:18px;font-weight:800;color:#ffc107;" id="refEarned">£0</div>
+                                        <div style="font-size:10px;color:#5b6580;">Earned</div>
+                                    </div>
+                                </div>
+                                <!-- Apply referral code -->
+                                <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:8px;margin-top:4px;">
+                                    <div style="font-size:11px;color:#5b6580;margin-bottom:6px;">Have a referral code? Enter it here:</div>
+                                    <div style="display:flex;gap:6px;">
+                                        <input type="text" id="refApplyInput" class="input" placeholder="Enter code" style="flex:1;font-size:12px;padding:7px 10px;text-transform:uppercase;">
+                                        <button class="btn btn-ghost btn-sm" onclick="portalApplyRefCode()">Apply</button>
+                                    </div>
+                                    <div id="refApplyStatus" style="font-size:11px;margin-top:6px;display:none;"></div>
+                                </div>
+                            </div>
+                            <!-- License Status -->
+                            <div id="portalLicenseBox" style="padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);margin-bottom:8px;">
+                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                                    <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:rgba(255,255,255,0.45);">License Status</span>
+                                    <span id="portalLicBadge" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:12px;background:rgba(255,255,255,0.06);color:#8b94a8;border:1px solid rgba(255,255,255,0.1);">Checking…</span>
+                                </div>
+                                <div id="portalLicDetails" style="font-size:12px;color:#8b94a8;">
+                                    <div id="portalLicAccount" style="margin-bottom:4px;">Account: —</div>
+                                    <div id="portalLicServer" style="margin-bottom:4px;">Server: —</div>
+                                    <div id="portalLicExpiry" style="margin-bottom:4px;">Expires: —</div>
+                                </div>
+                            </div>
+                            <!-- Account Info -->
+                            <div style="padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);margin-bottom:8px;">
+                                <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:rgba(255,255,255,0.45);margin-bottom:8px;">Account Information</div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:#c8d0df;">
+                                    <div><span style="color:#5b6580;">Login:</span> <span id="portalAccLogin">—</span></div>
+                                    <div><span style="color:#5b6580;">Server:</span> <span id="portalAccServer">—</span></div>
+                                    <div><span style="color:#5b6580;">EA Status:</span> <span id="portalAccEaStatus">—</span></div>
+                                    <div><span style="color:#5b6580;">Last Poll:</span> <span id="portalAccLastPoll">—</span></div>
+                                </div>
+                            </div>
+                            <!-- EA Download -->
+                            <div style="padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);margin-bottom:8px;">
+                                <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:rgba(255,255,255,0.45);margin-bottom:8px;">Downloads</div>
+                                <a id="portalDownloadLink" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(0,217,255,0.1);border:1px solid rgba(0,217,255,0.3);border-radius:8px;color:#00d9ff;font-size:12px;font-weight:600;text-decoration:none;transition:background 0.15s;">
+                                    📥 Download Falcon AI EA
+                                </a>
+                                <div id="portalDownloadNote" style="font-size:11px;color:#5b6580;margin-top:6px;">Latest version available for download.</div>
+                            </div>
+                            <!-- Data Export -->
+                            <div style="padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);margin-bottom:8px;">
+                                <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:rgba(255,255,255,0.45);margin-bottom:8px;">📦 Export My Data</div>
+                                <div style="font-size:11px;color:#5b6580;margin-bottom:8px;">Download all your data (chat history, account info, subscription) as a JSON file.</div>
+                                <button class="btn btn-ghost btn-sm" onclick="portalExportData()" id="portalExportBtn">📥 Export Data</button>
+                                <div id="portalExportStatus" style="font-size:11px;margin-top:6px;display:none;"></div>
+                            </div>
+                            <!-- Support Ticket -->
+                            <div style="padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);">
+                                <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:rgba(255,255,255,0.45);margin-bottom:8px;">Submit Support Ticket</div>
+                                <select id="portalTicketType" class="input" style="margin-bottom:8px;font-size:12px;padding:8px 10px;">
+                                    <option value="">— Select issue type —</option>
+                                    <option value="license">License / Activation Issue</option>
+                                    <option value="connection">Connection Problem</option>
+                                    <option value="trading">Trading / EA Behavior</option>
+                                    <option value="billing">Billing / Payment</option>
+                                    <option value="other">Other</option>
+                                </select>
+                                <textarea id="portalTicketMsg" class="input" placeholder="Describe your issue…" rows="3" style="width:100%;resize:vertical;font-size:12px;padding:8px 10px;margin-bottom:8px;"></textarea>
+                                <button class="btn btn-ghost btn-sm" onclick="portalSubmitTicket()" id="portalTicketBtn">📩 Submit Ticket</button>
+                                <div id="portalTicketStatus" style="font-size:11px;margin-top:6px;display:none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══ SUBSCRIPTION & PAYMENT ═══ -->
+                <div class="card">
+                    <div class="collapse-header" onclick="toggleCollapse('subscription')">
+                        <div class="card-title" data-i18n="subscription">💳 Subscription & Payment</div>
+                        <span class="collapse-arrow" id="subscriptionArrow">▼</span>
+                    </div>
+                    <div class="collapse-body" id="subscriptionBody">
+                        <div class="collapse-inner">
+                            <!-- Current Plan Status -->
+                            <div id="subStatusBox" style="padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);margin-bottom:12px;">
+                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                                    <span style="font-size:13px;font-weight:700;color:#e6edf3;">Falcon AI Pro</span>
+                                    <span id="subStatusBadge" style="font-size:10px;font-weight:700;padding:4px 10px;border-radius:12px;background:rgba(255,193,7,0.12);color:#ffc107;border:1px solid rgba(255,193,7,0.3);">Checking…</span>
+                                </div>
+                                <div style="font-size:22px;font-weight:800;color:#00d9ff;margin-bottom:4px;">£400<span style="font-size:12px;color:#5b6580;font-weight:400;">/month</span></div>
+                                <div style="font-size:11px;color:#5b6580;">Auto-renewing monthly subscription</div>
+                                <div id="subNextRenewal" style="font-size:11px;color:#8b94a8;margin-top:6px;display:none;">Next renewal: <span id="subRenewalDate">—</span></div>
+                            </div>
+                            <!-- Payment Buttons -->
+                            <div id="subPaySection">
+                                <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:rgba(255,255,255,0.45);margin-bottom:10px;">Choose Payment Method</div>
+                                <!-- Stripe Button -->
+                                <button id="subStripeBtn" onclick="subPayWithStripe()" style="width:100%;padding:12px 16px;margin-bottom:8px;border:none;border-radius:8px;background:linear-gradient(135deg,#635bff,#7c3aed);color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:filter 0.15s;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z" fill="currentColor"/></svg>
+                                    Pay with Card (Stripe)
+                                </button>
+                                <!-- PayPal Button -->
+                                <button id="subPaypalBtn" onclick="subPayWithPaypal()" style="width:100%;padding:12px 16px;margin-bottom:8px;border:none;border-radius:8px;background:#ffc439;color:#003087;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:filter 0.15s;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7.076 21.337H2.47a.641.641 0 01-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106z" fill="#003087"/><path d="M18.171 7.394c-.98 5.014-4.31 6.774-8.564 6.774H7.42c-.524 0-.968.382-1.05.9l-1.172 7.36a.533.533 0 00.526.617h3.693c.46 0 .85-.334.922-.788l.038-.196.73-4.627.047-.254a.929.929 0 01.917-.788h.578c3.745 0 6.677-1.521 7.534-5.924.358-1.84.173-3.374-.773-4.453a3.7 3.7 0 00-1.07-.821z" fill="#003087"/></svg>
+                                    Pay with PayPal
+                                </button>
+                                <div style="font-size:10px;color:#5b6580;text-align:center;margin-top:6px;">Secure payment • Cancel anytime • Instant activation after admin approval</div>
+                            </div>
+                            <!-- Payment History -->
+                            <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+                                <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:rgba(255,255,255,0.45);margin-bottom:8px;">Payment History</div>
+                                <div id="subPayHistory" style="font-size:12px;color:#8b94a8;">No payments recorded yet.</div>
+                            </div>
+                            <div id="subPayStatus" style="font-size:11px;margin-top:8px;display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══ KNOWLEDGE BASE / FAQ ═══ -->
+                <div class="card">
+                    <div class="collapse-header" onclick="toggleCollapse('knowledgeBase')">
+                        <div class="card-title">📚 Help & FAQ</div>
+                        <span class="collapse-arrow" id="knowledgeBaseArrow">▼</span>
+                    </div>
+                    <div class="collapse-body" id="knowledgeBaseBody">
+                        <div class="collapse-inner">
+                            <input type="text" id="kbSearchInput" class="input" placeholder="🔍 Search help articles…" style="margin-bottom:10px;font-size:12px;padding:8px 10px;" oninput="kbFilterArticles()">
+                            <div id="kbArticleList" style="display:flex;flex-direction:column;gap:6px;">
+                                <div style="color:#5b6580;font-size:12px;padding:8px;">Loading articles…</div>
+                            </div>
+                            <!-- Article detail view (hidden by default) -->
+                            <div id="kbArticleDetail" style="display:none;">
+                                <button class="btn btn-ghost btn-sm" onclick="kbBackToList()" style="margin-bottom:8px;">← Back to list</button>
+                                <h3 id="kbDetailTitle" style="font-size:14px;font-weight:700;color:#e6edf3;margin-bottom:8px;"></h3>
+                                <div id="kbDetailCategory" style="font-size:10px;color:#5b6580;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;"></div>
+                                <div id="kbDetailBody" style="font-size:13px;color:#c8d0df;line-height:1.6;white-space:pre-wrap;word-break:break-word;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card">
                             <div class="collapse-header" onclick="toggleCollapse('settings')">
                                 <div class="card-title">⚙ Configuration</div>
@@ -10027,6 +10214,10 @@
     if (nearBottom) body.scrollTop = body.scrollHeight;
     if (sawAdminMsg) beep('dm');
     else if (sawBcast) beep('bcast');
+    // Trigger push notification for new admin messages
+    if (typeof window._falconCheckChatNotify === 'function') {
+      window._falconCheckChatNotify(messages);
+    }
   }
 
   async function poll() {
@@ -10471,6 +10662,1128 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else { init(); }
+})();
+</script>
+
+<!-- ═══ PUSH NOTIFICATIONS MODULE ═══ -->
+<script>
+(function () {
+  'use strict';
+
+  // Request notification permission on first interaction
+  window._falconNotifyEnabled = false;
+
+  function _notifyRequest() {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'granted') {
+      window._falconNotifyEnabled = true;
+      return;
+    }
+    if (Notification.permission === 'denied') return;
+    // Ask on first user interaction (browsers block unprompted requests)
+    document.addEventListener('click', function _askOnce() {
+      Notification.requestPermission().then(function (perm) {
+        if (perm === 'granted') window._falconNotifyEnabled = true;
+      });
+      document.removeEventListener('click', _askOnce);
+    }, { once: true });
+  }
+  _notifyRequest();
+
+  // Show a browser notification
+  window._falconShowNotification = function (title, body, tag) {
+    if (!window._falconNotifyEnabled) return;
+    if (Notification.permission !== 'granted') return;
+    // Don't notify if page is visible and focused
+    if (document.visibilityState === 'visible' && document.hasFocus()) return;
+    try {
+      var n = new Notification(title || 'Falcon AI', {
+        body: body || '',
+        icon: './icon.svg',
+        tag: tag || 'falcon-' + Date.now(),
+        badge: './icon.svg',
+        vibrate: [200, 100, 200],
+        requireInteraction: false
+      });
+      n.onclick = function () {
+        window.focus();
+        n.close();
+      };
+      // Auto-close after 8 seconds
+      setTimeout(function () { try { n.close(); } catch (_) {} }, 8000);
+    } catch (_) {}
+  };
+
+  // Hook into the existing chat poll — notify on new admin messages
+  var _lastNotifiedMsgId = localStorage.getItem('falcon_last_notif_msg') || '';
+  window._falconCheckChatNotify = function (messages) {
+    if (!messages || !messages.length) return;
+    // Find newest admin message
+    for (var i = messages.length - 1; i >= 0; i--) {
+      var m = messages[i];
+      if (m.direction === 'admin_to_customer' && m.msg_id !== _lastNotifiedMsgId) {
+        _lastNotifiedMsgId = m.msg_id;
+        localStorage.setItem('falcon_last_notif_msg', m.msg_id);
+        window._falconShowNotification(
+          '💬 ' + (m.sender_name || 'Admin'),
+          m.body ? m.body.slice(0, 100) : 'New message',
+          'falcon-chat-' + m.msg_id
+        );
+        break; // Only notify for the latest unread
+      }
+    }
+  };
+
+  // Hook into EA status — notify when EA goes offline
+  var _lastEaOnline = true;
+  var _eaOfflineNotified = false;
+  window._falconCheckEaNotify = function () {
+    var s = window._falconState;
+    if (!s || !s.last_ea_poll) return;
+    var online = (Date.now() - Date.parse(s.last_ea_poll)) < 30000;
+    if (!online && _lastEaOnline && !_eaOfflineNotified) {
+      _eaOfflineNotified = true;
+      window._falconShowNotification(
+        '⚠️ EA Offline',
+        'Your Falcon AI EA has stopped responding. Check your MT5 terminal.',
+        'falcon-ea-offline'
+      );
+    }
+    if (online) {
+      _eaOfflineNotified = false;
+    }
+    _lastEaOnline = online;
+  };
+  setInterval(window._falconCheckEaNotify, 10000);
+
+  // Hook into daily target — notify when target is hit
+  var _dtsNotified = false;
+  window._falconCheckDtsNotify = function () {
+    var s = window._falconState;
+    if (!s || !s.dts) return;
+    var dts = s.dts;
+    if (dts.target_hit && !_dtsNotified) {
+      _dtsNotified = true;
+      window._falconShowNotification(
+        '🎯 Daily Target Reached!',
+        'Your profit target has been hit. EA may stop trading.',
+        'falcon-dts-hit'
+      );
+    }
+    if (!dts.target_hit) _dtsNotified = false;
+  };
+  setInterval(window._falconCheckDtsNotify, 15000);
+
+})();
+</script>
+
+<!-- ═══ MULTI-LANGUAGE (i18n) MODULE ═══ -->
+<script>
+(function () {
+  'use strict';
+
+  // Translation dictionaries
+  var _translations = {
+    en: {
+      language: 'Language',
+      my_account: '👤 My Account',
+      license_status: 'License Status',
+      checking: 'Checking…',
+      active: '✓ Active',
+      inactive: '✗ Inactive',
+      account_info: 'Account Information',
+      login: 'Login',
+      server: 'Server',
+      ea_status: 'EA Status',
+      online: '🟢 Online',
+      offline: '🔴 Offline',
+      last_poll: 'Last Poll',
+      downloads: 'Downloads',
+      download_ea: '📥 Download Falcon AI EA',
+      download_note: 'Latest version available for download.',
+      download_not_configured: 'Download link not configured. Contact admin.',
+      support_ticket: 'Submit Support Ticket',
+      select_issue: '— Select issue type —',
+      issue_license: 'License / Activation Issue',
+      issue_connection: 'Connection Problem',
+      issue_trading: 'Trading / EA Behavior',
+      issue_billing: 'Billing / Payment',
+      issue_other: 'Other',
+      describe_issue: 'Describe your issue…',
+      submit_ticket: '📩 Submit Ticket',
+      subscription: '💳 Subscription & Payment',
+      plan_name: 'Falcon AI Pro',
+      price: '£400',
+      per_month: '/month',
+      auto_renewing: 'Auto-renewing monthly subscription',
+      next_renewal: 'Next renewal',
+      choose_payment: 'Choose Payment Method',
+      pay_stripe: 'Pay with Card (Stripe)',
+      pay_paypal: 'Pay with PayPal',
+      secure_payment: 'Secure payment • Cancel anytime • Instant activation after admin approval',
+      payment_history: 'Payment History',
+      no_payments: 'No payments recorded yet.',
+      not_subscribed: 'Not Subscribed',
+      pending_approval: '⏳ Pending Approval',
+      expired: '✗ Expired',
+      configuration: '⚙ Configuration',
+      save_reconnect: 'Save & Reconnect',
+      support_chat: '💬 Support Chat',
+      type_message: 'Type a message…',
+      send: 'Send',
+      connected_live: 'Connected · live',
+      connected_idle: 'Connected · idle',
+      commands: 'Commands',
+      success: 'Success',
+      failed: 'Failed',
+      session: 'Session',
+      reconnects: 'Reconnects',
+      success_rate: 'Success Rate',
+      account: 'Account',
+      expires: 'Expires',
+      contact_admin: 'Contact admin'
+    },
+    fa: {
+      language: 'زبان',
+      my_account: '👤 حساب من',
+      license_status: 'وضعیت لایسنس',
+      checking: 'در حال بررسی…',
+      active: '✓ فعال',
+      inactive: '✗ غیرفعال',
+      account_info: 'اطلاعات حساب',
+      login: 'ورود',
+      server: 'سرور',
+      ea_status: 'وضعیت EA',
+      online: '🟢 آنلاین',
+      offline: '🔴 آفلاین',
+      last_poll: 'آخرین اتصال',
+      downloads: 'دانلودها',
+      download_ea: '📥 دانلود Falcon AI EA',
+      download_note: 'آخرین نسخه برای دانلود موجود است.',
+      download_not_configured: 'لینک دانلود تنظیم نشده. با ادمین تماس بگیرید.',
+      support_ticket: 'ارسال تیکت پشتیبانی',
+      select_issue: '— نوع مشکل را انتخاب کنید —',
+      issue_license: 'مشکل لایسنس / فعال‌سازی',
+      issue_connection: 'مشکل اتصال',
+      issue_trading: 'معامله / رفتار EA',
+      issue_billing: 'صورتحساب / پرداخت',
+      issue_other: 'سایر',
+      describe_issue: 'مشکل خود را شرح دهید…',
+      submit_ticket: '📩 ارسال تیکت',
+      subscription: '💳 اشتراک و پرداخت',
+      plan_name: 'Falcon AI Pro',
+      price: '£۴۰۰',
+      per_month: '/ماه',
+      auto_renewing: 'اشتراک ماهانه با تمدید خودکار',
+      next_renewal: 'تمدید بعدی',
+      choose_payment: 'روش پرداخت را انتخاب کنید',
+      pay_stripe: 'پرداخت با کارت (Stripe)',
+      pay_paypal: 'پرداخت با PayPal',
+      secure_payment: 'پرداخت امن • لغو در هر زمان • فعال‌سازی فوری پس از تأیید ادمین',
+      payment_history: 'تاریخچه پرداخت',
+      no_payments: 'هنوز پرداختی ثبت نشده.',
+      not_subscribed: 'اشتراک ندارید',
+      pending_approval: '⏳ در انتظار تأیید',
+      expired: '✗ منقضی شده',
+      configuration: '⚙ تنظیمات',
+      save_reconnect: 'ذخیره و اتصال مجدد',
+      support_chat: '💬 چت پشتیبانی',
+      type_message: 'پیام بنویسید…',
+      send: 'ارسال',
+      connected_live: 'متصل · زنده',
+      connected_idle: 'متصل · بیکار',
+      commands: 'دستورات',
+      success: 'موفق',
+      failed: 'ناموفق',
+      session: 'جلسه',
+      reconnects: 'اتصال مجدد',
+      success_rate: 'نرخ موفقیت',
+      account: 'حساب',
+      expires: 'انقضا',
+      contact_admin: 'با ادمین تماس بگیرید'
+    },
+    ar: {
+      language: 'اللغة',
+      my_account: '👤 حسابي',
+      license_status: 'حالة الترخيص',
+      checking: 'جاري التحقق…',
+      active: '✓ نشط',
+      inactive: '✗ غير نشط',
+      account_info: 'معلومات الحساب',
+      login: 'تسجيل الدخول',
+      server: 'الخادم',
+      ea_status: 'حالة EA',
+      online: '🟢 متصل',
+      offline: '🔴 غير متصل',
+      last_poll: 'آخر اتصال',
+      downloads: 'التنزيلات',
+      download_ea: '📥 تنزيل Falcon AI EA',
+      download_note: 'أحدث إصدار متاح للتنزيل.',
+      download_not_configured: 'رابط التنزيل غير مُعد. تواصل مع المسؤول.',
+      support_ticket: 'إرسال تذكرة دعم',
+      select_issue: '— اختر نوع المشكلة —',
+      issue_license: 'مشكلة ترخيص / تفعيل',
+      issue_connection: 'مشكلة اتصال',
+      issue_trading: 'تداول / سلوك EA',
+      issue_billing: 'فواتير / دفع',
+      issue_other: 'أخرى',
+      describe_issue: 'صف مشكلتك…',
+      submit_ticket: '📩 إرسال التذكرة',
+      subscription: '💳 الاشتراك والدفع',
+      plan_name: 'Falcon AI Pro',
+      price: '£٤٠٠',
+      per_month: '/شهر',
+      auto_renewing: 'اشتراك شهري متجدد تلقائياً',
+      next_renewal: 'التجديد القادم',
+      choose_payment: 'اختر طريقة الدفع',
+      pay_stripe: 'الدفع بالبطاقة (Stripe)',
+      pay_paypal: 'الدفع بـ PayPal',
+      secure_payment: 'دفع آمن • إلغاء في أي وقت • تفعيل فوري بعد موافقة المسؤول',
+      payment_history: 'سجل المدفوعات',
+      no_payments: 'لا توجد مدفوعات مسجلة.',
+      not_subscribed: 'غير مشترك',
+      pending_approval: '⏳ في انتظار الموافقة',
+      expired: '✗ منتهي الصلاحية',
+      configuration: '⚙ الإعدادات',
+      save_reconnect: 'حفظ وإعادة الاتصال',
+      support_chat: '💬 دردشة الدعم',
+      type_message: 'اكتب رسالة…',
+      send: 'إرسال',
+      connected_live: 'متصل · مباشر',
+      connected_idle: 'متصل · خامل',
+      commands: 'الأوامر',
+      success: 'نجاح',
+      failed: 'فشل',
+      session: 'الجلسة',
+      reconnects: 'إعادة الاتصال',
+      success_rate: 'معدل النجاح',
+      account: 'الحساب',
+      expires: 'ينتهي',
+      contact_admin: 'تواصل مع المسؤول'
+    },
+    tr: {
+      language: 'Dil',
+      my_account: '👤 Hesabım',
+      license_status: 'Lisans Durumu',
+      checking: 'Kontrol ediliyor…',
+      active: '✓ Aktif',
+      inactive: '✗ Pasif',
+      account_info: 'Hesap Bilgileri',
+      login: 'Giriş',
+      server: 'Sunucu',
+      ea_status: 'EA Durumu',
+      online: '🟢 Çevrimiçi',
+      offline: '🔴 Çevrimdışı',
+      last_poll: 'Son Bağlantı',
+      downloads: 'İndirmeler',
+      download_ea: '📥 Falcon AI EA İndir',
+      download_note: 'En son sürüm indirilebilir.',
+      download_not_configured: 'İndirme bağlantısı yapılandırılmamış. Yöneticiyle iletişime geçin.',
+      support_ticket: 'Destek Talebi Gönder',
+      select_issue: '— Sorun türünü seçin —',
+      issue_license: 'Lisans / Aktivasyon Sorunu',
+      issue_connection: 'Bağlantı Sorunu',
+      issue_trading: 'İşlem / EA Davranışı',
+      issue_billing: 'Fatura / Ödeme',
+      issue_other: 'Diğer',
+      describe_issue: 'Sorununuzu açıklayın…',
+      submit_ticket: '📩 Talep Gönder',
+      subscription: '💳 Abonelik ve Ödeme',
+      plan_name: 'Falcon AI Pro',
+      price: '£400',
+      per_month: '/ay',
+      auto_renewing: 'Otomatik yenilenen aylık abonelik',
+      next_renewal: 'Sonraki yenileme',
+      choose_payment: 'Ödeme Yöntemini Seçin',
+      pay_stripe: 'Kartla Öde (Stripe)',
+      pay_paypal: 'PayPal ile Öde',
+      secure_payment: 'Güvenli ödeme • İstediğiniz zaman iptal • Yönetici onayından sonra anında aktivasyon',
+      payment_history: 'Ödeme Geçmişi',
+      no_payments: 'Henüz ödeme kaydı yok.',
+      not_subscribed: 'Abone Değil',
+      pending_approval: '⏳ Onay Bekliyor',
+      expired: '✗ Süresi Dolmuş',
+      configuration: '⚙ Yapılandırma',
+      save_reconnect: 'Kaydet ve Yeniden Bağlan',
+      support_chat: '💬 Destek Sohbeti',
+      type_message: 'Bir mesaj yazın…',
+      send: 'Gönder',
+      connected_live: 'Bağlı · canlı',
+      connected_idle: 'Bağlı · boşta',
+      commands: 'Komutlar',
+      success: 'Başarılı',
+      failed: 'Başarısız',
+      session: 'Oturum',
+      reconnects: 'Yeniden Bağlantı',
+      success_rate: 'Başarı Oranı',
+      account: 'Hesap',
+      expires: 'Bitiş',
+      contact_admin: 'Yöneticiyle iletişime geçin'
+    }
+  };
+
+  var _currentLang = localStorage.getItem('falcon_lang') || _detectLang();
+
+  function _detectLang() {
+    var nav = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+    if (nav.startsWith('fa')) return 'fa';
+    if (nav.startsWith('ar')) return 'ar';
+    if (nav.startsWith('tr')) return 'tr';
+    return 'en';
+  }
+
+  function _t(key) {
+    var dict = _translations[_currentLang] || _translations.en;
+    return dict[key] || _translations.en[key] || key;
+  }
+
+  function _applyLang(lang) {
+    _currentLang = lang;
+    localStorage.setItem('falcon_lang', lang);
+
+    // Set RTL for Farsi and Arabic
+    var isRtl = (lang === 'fa' || lang === 'ar');
+    document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
+    document.body.style.direction = isRtl ? 'rtl' : 'ltr';
+    document.body.style.textAlign = isRtl ? 'right' : 'left';
+
+    // Update language selector
+    var sel = document.getElementById('langSelector');
+    if (sel) sel.value = lang;
+
+    // Translate elements with data-i18n attribute
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n');
+      if (key) el.textContent = _t(key);
+    });
+
+    // Translate placeholders
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n-placeholder');
+      if (key) el.placeholder = _t(key);
+    });
+
+    // Translate specific known elements by ID
+    var _idMap = {
+      'falconChatInput': { placeholder: 'type_message' },
+      'portalTicketMsg': { placeholder: 'describe_issue' }
+    };
+    Object.keys(_idMap).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      var map = _idMap[id];
+      if (map.placeholder) el.placeholder = _t(map.placeholder);
+      if (map.text) el.textContent = _t(map.text);
+    });
+
+    // Update chat send button
+    var sendBtn = document.getElementById('falconChatSend');
+    if (sendBtn) sendBtn.textContent = _t('send');
+
+    // Update chat title
+    var chatTitle = document.querySelector('#falconChatHead .title');
+    if (chatTitle) chatTitle.textContent = _t('support_chat');
+  }
+
+  // Expose globally
+  window._falconSetLang = function (lang) {
+    if (_translations[lang]) _applyLang(lang);
+  };
+  window._falconT = _t;
+
+  // Apply on load
+  setTimeout(function () { _applyLang(_currentLang); }, 500);
+})();
+</script>
+
+<!-- ═══ CUSTOMER SELF-SERVICE PORTAL LOGIC ═══ -->
+<script>
+(function () {
+  'use strict';
+
+  // Portal: update account info from live state every 5 seconds
+  function _portalUpdate() {
+    var s = window._falconState;
+    if (!s) return;
+
+    // Account info
+    var acc = s.account || {};
+    var el;
+    el = document.getElementById('portalAccLogin');
+    if (el) el.textContent = acc.login || '—';
+    el = document.getElementById('portalAccServer');
+    if (el) el.textContent = s.broker_server || localStorage.getItem('falcon_acc_server') || '—';
+    el = document.getElementById('portalAccEaStatus');
+    if (el) {
+      var online = s.last_ea_poll && (Date.now() - Date.parse(s.last_ea_poll) < 30000);
+      el.textContent = online ? '🟢 Online' : '🔴 Offline';
+      el.style.color = online ? '#00ff88' : '#ff6b6b';
+    }
+    el = document.getElementById('portalAccLastPoll');
+    if (el && s.last_ea_poll) {
+      var ago = Math.floor((Date.now() - Date.parse(s.last_ea_poll)) / 1000);
+      el.textContent = ago < 60 ? ago + 's ago' : Math.floor(ago / 60) + 'm ago';
+    }
+
+    // License info
+    var badge = document.getElementById('portalLicBadge');
+    if (badge && acc.has_data) {
+      if (acc.license_valid) {
+        badge.textContent = '✓ Active';
+        badge.style.background = 'rgba(0,255,136,0.12)';
+        badge.style.color = '#00ff88';
+        badge.style.borderColor = 'rgba(0,255,136,0.3)';
+      } else {
+        badge.textContent = '✗ Inactive';
+        badge.style.background = 'rgba(255,68,68,0.12)';
+        badge.style.color = '#ff6b6b';
+        badge.style.borderColor = 'rgba(255,68,68,0.3)';
+      }
+    }
+    el = document.getElementById('portalLicAccount');
+    if (el) el.textContent = 'Account: ' + (acc.login || '—');
+    el = document.getElementById('portalLicServer');
+    if (el) el.textContent = 'Server: ' + (s.broker_server || localStorage.getItem('falcon_acc_server') || '—');
+    el = document.getElementById('portalLicExpiry');
+    if (el) el.textContent = 'Expires: ' + (s.license_expiry || 'Contact admin');
+  }
+
+  setInterval(_portalUpdate, 5000);
+  setTimeout(_portalUpdate, 2000);
+
+  // Portal: EA download link — admin sets this via a script property or it defaults
+  // For now, use a configurable localStorage value or a default
+  var dlLink = document.getElementById('portalDownloadLink');
+  if (dlLink) {
+    var savedDlUrl = localStorage.getItem('falcon_ea_download_url');
+    if (savedDlUrl) {
+      dlLink.href = savedDlUrl;
+    } else {
+      dlLink.href = '#';
+      dlLink.style.opacity = '0.5';
+      document.getElementById('portalDownloadNote').textContent = 'Download link not configured. Contact admin.';
+    }
+  }
+
+  // Portal: Email registration and toggle
+  window.portalSaveEmail = async function () {
+    var inp = document.getElementById('portalEmailInput');
+    var statusEl = document.getElementById('portalEmailStatus');
+    var btn = document.getElementById('portalEmailBtn');
+    if (!inp) return;
+    var email = (inp.value || '').trim();
+    if (!email || email.indexOf('@') < 1) {
+      _showEmailStatus('Please enter a valid email address.', '#ff6b6b');
+      return;
+    }
+    btn.disabled = true;
+    _showEmailStatus('Saving…', '#8b94a8');
+    try {
+      var cfg = (typeof getConfig === 'function') ? getConfig() : {};
+      var token = cfg.secretToken || '';
+      var url = (cfg.endpointUrl || '').trim();
+      if (!url || !token) { _showEmailStatus('Configure endpoint first.', '#ff6b6b'); btn.disabled = false; return; }
+      var params = { token: token, command: 'email_register', source: 'web_cmd', email: email };
+      var finalUrl = window._gasFinalUrl;
+      var success = false;
+      if (finalUrl) {
+        try {
+          var r = await fetch(finalUrl, { method: 'POST', mode: 'cors', cache: 'no-cache', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) });
+          if (r.ok) { var d = await r.json(); if (d && d.status === 'ok') success = true; }
+        } catch (_) {}
+      }
+      if (!success) {
+        var qs = Object.keys(params).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+        try {
+          var r2 = await fetch(url + (url.indexOf('?') >= 0 ? '&' : '?') + qs, { method: 'GET', mode: 'cors' });
+          if (r2.ok) { var d2 = await r2.json(); if (d2 && d2.status === 'ok') success = true; }
+        } catch (_) {}
+      }
+      if (success) {
+        _showEmailStatus('✓ Email saved. You will receive notifications.', '#00ff88');
+        localStorage.setItem('falcon_email', email);
+      } else {
+        _showEmailStatus('Failed to save. Try again.', '#ff6b6b');
+      }
+    } catch (e) { _showEmailStatus('Error: ' + (e.message || 'unknown'), '#ff6b6b'); }
+    btn.disabled = false;
+  };
+
+  window.portalToggleEmail = async function () {
+    var toggle = document.getElementById('portalEmailToggle');
+    if (!toggle) return;
+    try {
+      var cfg = (typeof getConfig === 'function') ? getConfig() : {};
+      var token = cfg.secretToken || '';
+      var url = (cfg.endpointUrl || '').trim();
+      if (!url || !token) return;
+      var params = { token: token, command: 'email_toggle', source: 'web_cmd' };
+      var finalUrl = window._gasFinalUrl;
+      if (finalUrl) {
+        try { await fetch(finalUrl, { method: 'POST', mode: 'cors', cache: 'no-cache', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) }); } catch (_) {}
+      }
+    } catch (_) {}
+  };
+
+  function _showEmailStatus(text, color) {
+    var el = document.getElementById('portalEmailStatus');
+    if (!el) return;
+    el.style.display = 'block';
+    el.style.color = color || '#8b94a8';
+    el.textContent = text;
+  }
+
+  // Load saved email on init
+  (function () {
+    var saved = localStorage.getItem('falcon_email');
+    if (saved) {
+      var inp = document.getElementById('portalEmailInput');
+      if (inp) inp.value = saved;
+    }
+  })();
+
+  // ── Referral Program ──────────────────────────────────────────────
+  var _refCode = '';
+
+  async function _refLoadInfo() {
+    try {
+      var cfg = (typeof getConfig === 'function') ? getConfig() : {};
+      var token = cfg.secretToken || '';
+      var url = (cfg.endpointUrl || '').trim();
+      if (!url || !token) return;
+      var params = { token: token, command: 'ref_get_info', source: 'web_cmd' };
+      var data = null;
+      var finalUrl = window._gasFinalUrl;
+      if (finalUrl) {
+        try {
+          var r = await fetch(finalUrl, { method: 'POST', mode: 'cors', cache: 'no-cache', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) });
+          if (r.ok) data = await r.json();
+        } catch (_) {}
+      }
+      if (!data || data.status !== 'ok') {
+        var qs = Object.keys(params).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+        try {
+          var r2 = await fetch(url + (url.indexOf('?') >= 0 ? '&' : '?') + qs, { method: 'GET', mode: 'cors' });
+          if (r2.ok) data = await r2.json();
+        } catch (_) {}
+      }
+      if (data && data.status === 'ok') {
+        _refCode = data.code || '';
+        var codeEl = document.getElementById('refCodeDisplay');
+        if (codeEl) codeEl.textContent = _refCode || '—';
+        var countEl = document.getElementById('refCount');
+        if (countEl) countEl.textContent = String(data.referral_count || 0);
+        var earnedEl = document.getElementById('refEarned');
+        if (earnedEl) earnedEl.textContent = '£' + (data.total_earned || 0);
+        var descEl = document.getElementById('refRewardDesc');
+        if (descEl && data.reward_description) descEl.textContent = data.reward_description;
+      }
+    } catch (_) {}
+  }
+  setTimeout(_refLoadInfo, 4000);
+
+  window.portalCopyRefCode = function () {
+    if (!_refCode) return;
+    try {
+      navigator.clipboard.writeText(_refCode);
+      var el = document.getElementById('refCodeDisplay');
+      if (el) { var orig = el.textContent; el.textContent = '✓ Copied!'; setTimeout(function () { el.textContent = orig; }, 1500); }
+    } catch (_) {
+      // Fallback for older browsers
+      var ta = document.createElement('textarea');
+      ta.value = _refCode; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    }
+  };
+
+  window.portalShareRefLink = function () {
+    if (!_refCode) return;
+    var shareUrl = window.location.href.split('?')[0] + '?ref=' + _refCode;
+    if (navigator.share) {
+      navigator.share({ title: 'Falcon AI', text: 'Join Falcon AI with my referral code: ' + _refCode, url: shareUrl });
+    } else {
+      try { navigator.clipboard.writeText(shareUrl); } catch (_) {}
+      var el = document.getElementById('refCodeDisplay');
+      if (el) { var orig = el.textContent; el.textContent = '✓ Link copied!'; setTimeout(function () { el.textContent = orig; }, 2000); }
+    }
+  };
+
+  window.portalApplyRefCode = async function () {
+    var inp = document.getElementById('refApplyInput');
+    var statusEl = document.getElementById('refApplyStatus');
+    if (!inp) return;
+    var code = (inp.value || '').trim().toUpperCase();
+    if (!code) { _showRefStatus('Enter a referral code.', '#ff6b6b'); return; }
+    try {
+      var cfg = (typeof getConfig === 'function') ? getConfig() : {};
+      var token = cfg.secretToken || '';
+      var url = (cfg.endpointUrl || '').trim();
+      if (!url || !token) { _showRefStatus('Configure endpoint first.', '#ff6b6b'); return; }
+      var params = { token: token, command: 'ref_apply_code', source: 'web_cmd', referral_code: code };
+      var data = null;
+      var finalUrl = window._gasFinalUrl;
+      if (finalUrl) {
+        try {
+          var r = await fetch(finalUrl, { method: 'POST', mode: 'cors', cache: 'no-cache', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) });
+          if (r.ok) data = await r.json();
+        } catch (_) {}
+      }
+      if (!data) {
+        var qs = Object.keys(params).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+        try {
+          var r2 = await fetch(url + (url.indexOf('?') >= 0 ? '&' : '?') + qs, { method: 'GET', mode: 'cors' });
+          if (r2.ok) data = await r2.json();
+        } catch (_) {}
+      }
+      if (data && data.status === 'ok') {
+        _showRefStatus('✓ ' + (data.message || 'Referral code applied!'), '#00ff88');
+        inp.value = '';
+      } else {
+        _showRefStatus(data && data.error ? data.error : 'Failed to apply code.', '#ff6b6b');
+      }
+    } catch (e) { _showRefStatus('Error: ' + (e.message || 'unknown'), '#ff6b6b'); }
+  };
+
+  function _showRefStatus(text, color) {
+    var el = document.getElementById('refApplyStatus');
+    if (!el) return;
+    el.style.display = 'block';
+    el.style.color = color || '#8b94a8';
+    el.textContent = text;
+  }
+
+  // Check URL for referral code on page load
+  (function () {
+    try {
+      var urlParams = new URLSearchParams(window.location.search);
+      var refFromUrl = urlParams.get('ref');
+      if (refFromUrl) {
+        var inp = document.getElementById('refApplyInput');
+        if (inp) inp.value = refFromUrl.toUpperCase();
+      }
+    } catch (_) {}
+  })();
+
+  // ── Knowledge Base / FAQ ──────────────────────────────────────────
+  var _kbArticles = [];
+
+  async function _kbLoadArticles() {
+    try {
+      var cfg = (typeof getConfig === 'function') ? getConfig() : {};
+      var token = cfg.secretToken || '';
+      var url = (cfg.endpointUrl || '').trim();
+      if (!url || !token) return;
+      var params = { token: token, command: 'kb_get_articles', source: 'web_cmd' };
+      var data = null;
+      var finalUrl = window._gasFinalUrl;
+      if (finalUrl) {
+        try {
+          var r = await fetch(finalUrl, { method: 'POST', mode: 'cors', cache: 'no-cache', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) });
+          if (r.ok) data = await r.json();
+        } catch (_) {}
+      }
+      if (!data || data.status !== 'ok') {
+        var qs = Object.keys(params).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+        try {
+          var r2 = await fetch(url + (url.indexOf('?') >= 0 ? '&' : '?') + qs, { method: 'GET', mode: 'cors' });
+          if (r2.ok) data = await r2.json();
+        } catch (_) {}
+      }
+      if (data && data.status === 'ok') {
+        _kbArticles = data.articles || [];
+        _kbRenderList();
+      }
+    } catch (_) {}
+  }
+
+  function _kbRenderList() {
+    var listEl = document.getElementById('kbArticleList');
+    var detailEl = document.getElementById('kbArticleDetail');
+    if (!listEl) return;
+    listEl.style.display = 'flex';
+    if (detailEl) detailEl.style.display = 'none';
+    var search = (document.getElementById('kbSearchInput') || {}).value || '';
+    search = search.trim().toLowerCase();
+    var filtered = _kbArticles;
+    if (search) {
+      filtered = _kbArticles.filter(function (a) {
+        return (a.title || '').toLowerCase().indexOf(search) >= 0 ||
+               (a.body || '').toLowerCase().indexOf(search) >= 0 ||
+               (a.category || '').toLowerCase().indexOf(search) >= 0;
+      });
+    }
+    if (!filtered.length) {
+      listEl.innerHTML = '<div style="color:#5b6580;font-size:12px;padding:8px;">' + (search ? 'No articles match your search.' : 'No help articles available yet.') + '</div>';
+      return;
+    }
+    // Group by category
+    var categories = {};
+    filtered.forEach(function (a) {
+      var cat = a.category || 'General';
+      if (!categories[cat]) categories[cat] = [];
+      categories[cat].push(a);
+    });
+    var html = '';
+    Object.keys(categories).forEach(function (cat) {
+      html += '<div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:rgba(255,255,255,0.35);padding:4px 0;margin-top:6px;">' + cat + '</div>';
+      categories[cat].forEach(function (a) {
+        html += '<div style="padding:10px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;cursor:pointer;transition:background 0.12s;" onclick="kbShowArticle(\'' + a.id + '\')" onmouseover="this.style.background=\'rgba(255,255,255,0.04)\'" onmouseout="this.style.background=\'transparent\'">' +
+          '<div style="font-size:13px;font-weight:600;color:#e6edf3;">' + (a.title || 'Untitled') + '</div>' +
+          '<div style="font-size:11px;color:#5b6580;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (a.body || '').slice(0, 80) + '</div>' +
+          '</div>';
+      });
+    });
+    listEl.innerHTML = html;
+  }
+
+  window.kbFilterArticles = _kbRenderList;
+
+  window.kbShowArticle = function (id) {
+    var article = _kbArticles.find(function (a) { return a.id === id; });
+    if (!article) return;
+    var listEl = document.getElementById('kbArticleList');
+    var detailEl = document.getElementById('kbArticleDetail');
+    var searchEl = document.getElementById('kbSearchInput');
+    if (listEl) listEl.style.display = 'none';
+    if (searchEl) searchEl.style.display = 'none';
+    if (detailEl) {
+      detailEl.style.display = 'block';
+      document.getElementById('kbDetailTitle').textContent = article.title || '';
+      document.getElementById('kbDetailCategory').textContent = article.category || '';
+      document.getElementById('kbDetailBody').textContent = article.body || '';
+    }
+  };
+
+  window.kbBackToList = function () {
+    var listEl = document.getElementById('kbArticleList');
+    var detailEl = document.getElementById('kbArticleDetail');
+    var searchEl = document.getElementById('kbSearchInput');
+    if (listEl) listEl.style.display = 'flex';
+    if (searchEl) searchEl.style.display = 'block';
+    if (detailEl) detailEl.style.display = 'none';
+  };
+
+  // Load articles after a delay
+  setTimeout(_kbLoadArticles, 5000);
+
+  // ── Data Export ───────────────────────────────────────────────────
+  window.portalExportData = async function () {
+    var btn = document.getElementById('portalExportBtn');
+    var statusEl = document.getElementById('portalExportStatus');
+    if (btn) btn.disabled = true;
+    _showExportStatus('Exporting…', '#8b94a8');
+    try {
+      var cfg = (typeof getConfig === 'function') ? getConfig() : {};
+      var token = cfg.secretToken || '';
+      var url = (cfg.endpointUrl || '').trim();
+      if (!url || !token) { _showExportStatus('Configure endpoint first.', '#ff6b6b'); if (btn) btn.disabled = false; return; }
+      var params = { token: token, command: 'export_my_data', source: 'web_cmd' };
+      var data = null;
+      var finalUrl = window._gasFinalUrl;
+      if (finalUrl) {
+        try {
+          var r = await fetch(finalUrl, { method: 'POST', mode: 'cors', cache: 'no-cache', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) });
+          if (r.ok) data = await r.json();
+        } catch (_) {}
+      }
+      if (!data || data.status !== 'ok') {
+        var qs = Object.keys(params).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+        try {
+          var r2 = await fetch(url + (url.indexOf('?') >= 0 ? '&' : '?') + qs, { method: 'GET', mode: 'cors' });
+          if (r2.ok) data = await r2.json();
+        } catch (_) {}
+      }
+      if (data && data.status === 'ok' && data.export) {
+        // Download as JSON file
+        var json = JSON.stringify(data.export, null, 2);
+        var blob = new Blob([json], { type: 'application/json' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'falcon_ai_my_data_' + new Date().toISOString().slice(0, 10) + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+        _showExportStatus('✓ Data exported successfully!', '#00ff88');
+      } else {
+        _showExportStatus('Export failed: ' + (data && data.error || 'unknown'), '#ff6b6b');
+      }
+    } catch (e) { _showExportStatus('Error: ' + (e.message || 'unknown'), '#ff6b6b'); }
+    if (btn) btn.disabled = false;
+  };
+
+  function _showExportStatus(text, color) {
+    var el = document.getElementById('portalExportStatus');
+    if (!el) return;
+    el.style.display = 'block';
+    el.style.color = color || '#8b94a8';
+    el.textContent = text;
+  }
+
+  // Portal: Submit support ticket (sends as a chat message with ticket metadata)
+  window.portalSubmitTicket = async function () {
+    var typeEl = document.getElementById('portalTicketType');
+    var msgEl = document.getElementById('portalTicketMsg');
+    var statusEl = document.getElementById('portalTicketStatus');
+    var btn = document.getElementById('portalTicketBtn');
+    if (!typeEl || !msgEl) return;
+    var type = typeEl.value;
+    var msg = (msgEl.value || '').trim();
+    if (!type) { _showTicketStatus('Please select an issue type.', '#ff6b6b'); return; }
+    if (!msg) { _showTicketStatus('Please describe your issue.', '#ff6b6b'); return; }
+
+    btn.disabled = true;
+    _showTicketStatus('Submitting…', '#8b94a8');
+
+    // Send as a chat message with [TICKET] prefix so admin can identify it
+    var ticketBody = '🎫 [SUPPORT TICKET]\nType: ' + type + '\n\n' + msg;
+    try {
+      var cfg = (typeof getConfig === 'function') ? getConfig() : {};
+      var acc = { server: localStorage.getItem('falcon_acc_server') || '', login: localStorage.getItem('falcon_acc_login') || '' };
+      // Use the chat system to deliver the ticket
+      var token = cfg.secretToken || '';
+      var url = (cfg.endpointUrl || '').trim();
+      if (!url || !token) { _showTicketStatus('Configure endpoint URL and token first.', '#ff6b6b'); btn.disabled = false; return; }
+
+      // Build signed request (reuse chat HMAC if available)
+      var params = {
+        token: token, source: 'web_cmd', command: 'chat_send',
+        body: ticketBody, server: acc.server, login: acc.login,
+        sender_name: localStorage.getItem('falcon_chat_nick') || 'Customer'
+      };
+      // Try POST to final URL
+      var finalUrl = window._gasFinalUrl;
+      var success = false;
+      if (finalUrl) {
+        try {
+          var r = await fetch(finalUrl, {
+            method: 'POST', mode: 'cors', cache: 'no-cache',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(params)
+          });
+          if (r.ok) { var d = await r.json(); if (d && d.status === 'ok') success = true; }
+        } catch (_) {}
+      }
+      // Fallback: GET
+      if (!success) {
+        var qs = Object.keys(params).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+        var getUrl = url + (url.indexOf('?') >= 0 ? '&' : '?') + qs;
+        try {
+          var r2 = await fetch(getUrl, { method: 'GET', mode: 'cors', cache: 'no-cache' });
+          if (r2.ok) { var d2 = await r2.json(); if (d2 && d2.status === 'ok') success = true; }
+        } catch (_) {}
+      }
+
+      if (success) {
+        _showTicketStatus('✓ Ticket submitted successfully! Admin will respond in chat.', '#00ff88');
+        msgEl.value = '';
+        typeEl.value = '';
+      } else {
+        _showTicketStatus('Failed to submit. Please try again or use the chat directly.', '#ff6b6b');
+      }
+    } catch (e) {
+      _showTicketStatus('Error: ' + (e.message || 'unknown'), '#ff6b6b');
+    }
+    btn.disabled = false;
+  };
+
+  function _showTicketStatus(text, color) {
+    var el = document.getElementById('portalTicketStatus');
+    if (!el) return;
+    el.style.display = 'block';
+    el.style.color = color || '#8b94a8';
+    el.textContent = text;
+  }
+})();
+</script>
+
+<!-- ═══ SUBSCRIPTION & PAYMENT LOGIC ═══ -->
+<script>
+(function () {
+  'use strict';
+
+  // ── Configuration (admin sets these in GAS Script Properties) ──
+  // STRIPE_PAYMENT_LINK — a Stripe Payment Link URL (no code needed, created in Stripe Dashboard)
+  // PAYPAL_PAYMENT_LINK — a PayPal.me link or PayPal button URL
+  // These are fetched from the server so admin can change them without redeploying the dashboard.
+
+  var _subConfig = {
+    stripeUrl: '',
+    paypalUrl: '',
+    planName: 'Falcon AI Pro',
+    planPrice: '£400/month',
+    status: 'unknown' // 'active', 'pending_approval', 'expired', 'unpaid'
+  };
+
+  // Fetch subscription status from server
+  async function _subLoadStatus() {
+    try {
+      var cfg = (typeof getConfig === 'function') ? getConfig() : {};
+      var url = (cfg.endpointUrl || '').trim();
+      var token = cfg.secretToken || '';
+      if (!url || !token) return;
+
+      var params = 'token=' + encodeURIComponent(token) + '&command=sub_get_status&source=web_cmd&t=' + Date.now();
+      var fullUrl = url + (url.indexOf('?') >= 0 ? '&' : '?') + params;
+
+      var finalUrl = window._gasFinalUrl;
+      var data = null;
+
+      // Try POST first
+      if (finalUrl) {
+        try {
+          var r = await fetch(finalUrl, {
+            method: 'POST', mode: 'cors', cache: 'no-cache',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: token, command: 'sub_get_status', source: 'web_cmd' })
+          });
+          if (r.ok) data = await r.json();
+        } catch (_) {}
+      }
+      // Fallback GET
+      if (!data) {
+        try {
+          var r2 = await fetch(fullUrl, { method: 'GET', mode: 'cors', cache: 'no-cache' });
+          if (r2.ok) data = await r2.json();
+        } catch (_) {}
+      }
+
+      if (data && data.status === 'ok') {
+        _subConfig.stripeUrl = data.stripe_url || '';
+        _subConfig.paypalUrl = data.paypal_url || '';
+        _subConfig.status = data.sub_status || 'unpaid';
+        _subRender(data);
+      }
+    } catch (_) {}
+  }
+
+  function _subRender(data) {
+    var badge = document.getElementById('subStatusBadge');
+    var paySection = document.getElementById('subPaySection');
+    var renewalRow = document.getElementById('subNextRenewal');
+    var renewalDate = document.getElementById('subRenewalDate');
+    var historyEl = document.getElementById('subPayHistory');
+
+    if (!badge) return;
+
+    var status = data.sub_status || 'unpaid';
+
+    if (status === 'active') {
+      badge.textContent = '✓ Active';
+      badge.style.background = 'rgba(0,255,136,0.12)';
+      badge.style.color = '#00ff88';
+      badge.style.borderColor = 'rgba(0,255,136,0.3)';
+      if (paySection) paySection.style.display = 'none';
+      if (renewalRow && data.next_renewal) {
+        renewalRow.style.display = 'block';
+        renewalDate.textContent = data.next_renewal;
+      }
+    } else if (status === 'pending_approval') {
+      badge.textContent = '⏳ Pending Approval';
+      badge.style.background = 'rgba(255,193,7,0.12)';
+      badge.style.color = '#ffc107';
+      badge.style.borderColor = 'rgba(255,193,7,0.3)';
+      if (paySection) paySection.style.display = 'none';
+    } else if (status === 'expired') {
+      badge.textContent = '✗ Expired';
+      badge.style.background = 'rgba(255,68,68,0.12)';
+      badge.style.color = '#ff6b6b';
+      badge.style.borderColor = 'rgba(255,68,68,0.3)';
+    } else {
+      badge.textContent = 'Not Subscribed';
+      badge.style.background = 'rgba(255,255,255,0.06)';
+      badge.style.color = '#8b94a8';
+      badge.style.borderColor = 'rgba(255,255,255,0.1)';
+    }
+
+    // Payment history
+    if (historyEl && data.payments && data.payments.length) {
+      var html = '';
+      data.payments.slice(-5).reverse().forEach(function (p) {
+        var statusColor = p.status === 'approved' ? '#00ff88' : (p.status === 'pending' ? '#ffc107' : '#8b94a8');
+        html += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);">' +
+          '<span>' + (p.date || '—') + '</span>' +
+          '<span style="color:' + statusColor + ';font-weight:600;">' + (p.amount || '£400') + ' — ' + (p.status || 'unknown') + '</span>' +
+          '</div>';
+      });
+      historyEl.innerHTML = html;
+    }
+  }
+
+  // Payment actions
+  window.subPayWithStripe = function () {
+    if (_subConfig.stripeUrl) {
+      window.open(_subConfig.stripeUrl, '_blank');
+      _subNotifyPayment('stripe');
+    } else {
+      _subShowStatus('Stripe payment not configured yet. Contact admin.', '#ff6b6b');
+    }
+  };
+
+  window.subPayWithPaypal = function () {
+    if (_subConfig.paypalUrl) {
+      window.open(_subConfig.paypalUrl, '_blank');
+      _subNotifyPayment('paypal');
+    } else {
+      _subShowStatus('PayPal payment not configured yet. Contact admin.', '#ff6b6b');
+    }
+  };
+
+  // Notify server that customer initiated a payment (so admin knows to check)
+  async function _subNotifyPayment(method) {
+    _subShowStatus('Payment window opened. Complete payment there, then wait for admin approval.', '#00d9ff');
+    try {
+      var cfg = (typeof getConfig === 'function') ? getConfig() : {};
+      var token = cfg.secretToken || '';
+      var url = (cfg.endpointUrl || '').trim();
+      if (!url || !token) return;
+
+      var params = {
+        token: token, command: 'sub_payment_initiated', source: 'web_cmd',
+        method: method,
+        server: localStorage.getItem('falcon_acc_server') || '',
+        login: localStorage.getItem('falcon_acc_login') || ''
+      };
+
+      var success = false;
+      // Try POST to final URL
+      var finalUrl = window._gasFinalUrl;
+      if (finalUrl) {
+        try {
+          var r = await fetch(finalUrl, {
+            method: 'POST', mode: 'cors', cache: 'no-cache',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(params)
+          });
+          if (r.ok) { var d = await r.json(); if (d && d.status === 'ok') success = true; }
+        } catch (_) {}
+      }
+      // GET fallback if POST failed or finalUrl not available
+      if (!success) {
+        try {
+          var qs = Object.keys(params).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+          var getUrl = url + (url.indexOf('?') >= 0 ? '&' : '?') + qs + '&t=' + Date.now();
+          var r2 = await fetch(getUrl, { method: 'GET', mode: 'cors', cache: 'no-cache' });
+          if (r2.ok) { var d2 = await r2.json(); if (d2 && d2.status === 'ok') success = true; }
+        } catch (_) {}
+      }
+      if (success) {
+        _subShowStatus('✓ Payment recorded. Complete payment in the opened window, then wait for admin approval.', '#00ff88');
+      }
+    } catch (_) {}
+  }
+
+  function _subShowStatus(text, color) {
+    var el = document.getElementById('subPayStatus');
+    if (!el) return;
+    el.style.display = 'block';
+    el.style.color = color || '#8b94a8';
+    el.textContent = text;
+  }
+
+  // Load status on page ready
+  setTimeout(_subLoadStatus, 3000);
+  // Refresh every 60 seconds
+  setInterval(_subLoadStatus, 60000);
 })();
 </script>
 

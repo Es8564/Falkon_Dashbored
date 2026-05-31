@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download — Falcon AI</title>
+    <meta name="description" content="Download Falcon AI Expert Advisor for MetaTrader 5 and get started with automated trading.">
+    <meta name="theme-color" content="#0d1117">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #0d1117; color: #e6edf3; line-height: 1.6; overflow-x: hidden; }
+        .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(13,17,23,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { font-size: 20px; font-weight: 900; background: linear-gradient(90deg, #00d9ff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-decoration: none; }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { color: #8b94a8; text-decoration: none; font-size: 14px; font-weight: 500; }
+        .nav-links a:hover { color: #e6edf3; }
+        .nav-cta { background: linear-gradient(135deg, #00d9ff, #00ff88); color: #0d1117; padding: 8px 18px; border-radius: 8px; font-weight: 700; font-size: 13px; text-decoration: none; }
+        .nav-mobile { display: none; background: none; border: none; color: #e6edf3; font-size: 24px; cursor: pointer; }
+        @media (max-width: 768px) { .nav-links { display: none; } .nav-mobile { display: block; } .nav-links.open { display: flex; flex-direction: column; position: absolute; top: 56px; left: 0; right: 0; background: #0d1117; padding: 20px; border-bottom: 1px solid #2a3142; } }
+
+        .page { max-width: 750px; margin: 0 auto; padding: 100px 24px 60px; }
+        .page-title { font-size: 36px; font-weight: 900; text-align: center; margin-bottom: 12px; }
+        .page-sub { font-size: 16px; color: #8b94a8; text-align: center; margin-bottom: 40px; }
+
+        .download-card { background: rgba(22,27,34,0.8); border: 2px solid rgba(0,217,255,0.2); border-radius: 16px; padding: 36px; text-align: center; margin-bottom: 36px; }
+        .download-card h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+        .download-card p { font-size: 13px; color: #8b94a8; margin-bottom: 20px; }
+        .download-card .version { font-size: 12px; color: #5b6580; margin-bottom: 16px; }
+        .btn-download { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #00d9ff, #00ff88); color: #0d1117; padding: 14px 32px; border-radius: 10px; font-weight: 800; font-size: 15px; text-decoration: none; transition: filter 0.2s; }
+        .btn-download:hover { filter: brightness(1.1); }
+
+        .requirements { background: rgba(22,27,34,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 24px; margin-bottom: 36px; }
+        .requirements h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+        .requirements ul { list-style: none; }
+        .requirements li { padding: 6px 0; font-size: 13px; color: #c8d0df; display: flex; align-items: center; gap: 8px; }
+        .requirements li::before { content: '✓'; color: #00ff88; font-weight: 700; }
+
+        .setup-guide { margin-bottom: 36px; }
+        .setup-guide h3 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+        .step { display: flex; gap: 14px; margin-bottom: 16px; padding: 16px; background: rgba(22,27,34,0.5); border: 1px solid rgba(255,255,255,0.04); border-radius: 10px; }
+        .step-num { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #00d9ff, #00ff88); color: #0d1117; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; flex-shrink: 0; }
+        .step-content h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .step-content p { font-size: 12px; color: #8b94a8; }
+
+        .changelog { background: rgba(22,27,34,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 24px; }
+        .changelog h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+        .changelog-item { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .changelog-item:last-child { border-bottom: none; }
+        .changelog-item h4 { font-size: 13px; font-weight: 600; color: #00d9ff; margin-bottom: 4px; }
+        .changelog-item p { font-size: 12px; color: #8b94a8; }
+
+        .footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 40px 24px; text-align: center; font-size: 13px; color: #5b6580; margin-top: 60px; }
+        .footer a { color: #8b94a8; text-decoration: none; margin: 0 10px; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="index.html" class="nav-logo">◈ FALCON AI</a>
+    <div class="nav-links" id="navLinks">
+        <a href="index.html">Home</a>
+        <a href="features.html">Features</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="about.html">About</a>
+        <a href="support.html">Support</a>
+        <a href="contact.html">Contact</a>
+        <a href="COSTUMER_DASHBORED.html" class="nav-cta">Dashboard</a>
+    </div>
+    <button class="nav-mobile" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+</nav>
+
+<div class="page">
+    <h1 class="page-title">Download Falcon AI</h1>
+    <p class="page-sub">Get the Expert Advisor and start trading in minutes.</p>
+
+    <div class="download-card">
+        <h2>Falcon AI EA for MetaTrader 5</h2>
+        <div class="version">Version 4.0 • Latest Release</div>
+        <p>Compatible with all MT5 brokers. Requires an active subscription.</p>
+        <a href="#" class="btn-download" id="downloadBtn">📥 Download EA File</a>
+        <p style="font-size:11px;color:#5b6580;margin-top:12px;">File size: ~150 KB • .ex5 format</p>
+    </div>
+
+    <div class="requirements">
+        <h3>System Requirements</h3>
+        <ul>
+            <li>MetaTrader 5 (any broker)</li>
+            <li>Windows 7/10/11 or VPS with Windows</li>
+            <li>Stable internet connection</li>
+            <li>Active Falcon AI subscription</li>
+            <li>WebRequest enabled in MT5 settings</li>
+        </ul>
+    </div>
+
+    <div class="setup-guide">
+        <h3>Installation Guide</h3>
+        <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+                <h4>Download the EA file</h4>
+                <p>Click the download button above to get the .ex5 file.</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+                <h4>Copy to MT5 Experts folder</h4>
+                <p>Open MT5 → File → Open Data Folder → MQL5 → Experts. Paste the file there.</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+                <h4>Enable WebRequest</h4>
+                <p>In MT5: Tools → Options → Expert Advisors → Check "Allow WebRequest" and add the Google Apps Script URL.</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-content">
+                <h4>Attach to a chart</h4>
+                <p>Drag Falcon AI from the Navigator panel onto any chart. Enter your secret token in the settings.</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">5</div>
+            <div class="step-content">
+                <h4>Connect your dashboard</h4>
+                <p>Open the web dashboard, enter the same token, and you're connected. Start trading!</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="changelog">
+        <h3>Version History</h3>
+        <div class="changelog-item">
+            <h4>v4.0 — May 2026</h4>
+            <p>AI engine upgrade, multi-symbol support, improved risk management, remote daily target override.</p>
+        </div>
+        <div class="changelog-item">
+            <h4>v3.5 — March 2026</h4>
+            <p>Security hardening (HMAC signing), anti-tamper detection, license validation improvements.</p>
+        </div>
+        <div class="changelog-item">
+            <h4>v3.0 — January 2026</h4>
+            <p>Remote control dashboard integration, live chat support, per-symbol controls.</p>
+        </div>
+        <div class="changelog-item">
+            <h4>v2.0 — October 2025</h4>
+            <p>AI learning system, adaptive strategy, daily profit targets, account monitoring.</p>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <a href="index.html">Home</a> <a href="features.html">Features</a> <a href="pricing.html">Pricing</a> <a href="privacy.html">Privacy</a> <a href="terms.html">Terms</a> <a href="contact.html">Contact</a>
+    <p style="margin-top:16px;">© 2024–2026 Falcon AI. All rights reserved.</p>
+</footer>
+
+</body>
+</html>

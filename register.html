@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register — Falcon AI</title>
+    <meta name="description" content="Create your Falcon AI account and start automated trading.">
+    <meta name="theme-color" content="#0d1117">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+        body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(0,217,255,0.06) 0%, transparent 60%); pointer-events: none; }
+        .register-card { position: relative; width: 100%; max-width: 440px; background: rgba(22,27,34,0.9); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 36px 32px; }
+        .logo { font-size: 28px; font-weight: 900; background: linear-gradient(90deg, #00d9ff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-align: center; margin-bottom: 6px; }
+        .subtitle { font-size: 14px; color: #8b94a8; text-align: center; margin-bottom: 28px; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 12px; color: #8b94a8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .form-group input, .form-group select { width: 100%; padding: 11px 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e6edf3; font-size: 14px; outline: none; font-family: inherit; }
+        .form-group input:focus, .form-group select:focus { border-color: #00d9ff; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .btn-primary { display: block; width: 100%; background: linear-gradient(135deg, #00d9ff, #00ff88); color: #0d1117; padding: 14px; border-radius: 10px; font-weight: 800; font-size: 15px; border: none; cursor: pointer; margin-top: 16px; }
+        .btn-primary:hover { filter: brightness(1.1); }
+        .terms-check { display: flex; align-items: flex-start; gap: 8px; margin-top: 14px; font-size: 12px; color: #8b94a8; }
+        .terms-check input { margin-top: 2px; }
+        .terms-check a { color: #00d9ff; text-decoration: none; }
+        .help-text { font-size: 12px; color: #5b6580; margin-top: 16px; text-align: center; }
+        .help-text a { color: #00d9ff; text-decoration: none; }
+        #regStatus { margin-top: 12px; font-size: 13px; display: none; text-align: center; }
+        .back-link { position: absolute; top: 16px; left: 16px; color: #5b6580; text-decoration: none; font-size: 13px; }
+        .back-link:hover { color: #e6edf3; }
+    </style>
+</head>
+<body>
+
+<div class="register-card">
+    <a href="index.html" class="back-link">← Back</a>
+    <div class="logo">◈ FALCON AI</div>
+    <div class="subtitle">Create your account</div>
+
+    <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="regName" placeholder="Your full name">
+    </div>
+    <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="regEmail" placeholder="you@example.com">
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Broker Server</label>
+            <input type="text" id="regBroker" placeholder="e.g. VantageInternational-Live">
+        </div>
+        <div class="form-group">
+            <label>MT5 Account Number</label>
+            <input type="text" id="regAccount" placeholder="e.g. 24615651">
+        </div>
+    </div>
+    <div class="form-group">
+        <label>Referral Code (optional)</label>
+        <input type="text" id="regReferral" placeholder="Enter code if you have one" style="text-transform:uppercase;">
+    </div>
+
+    <div class="terms-check">
+        <input type="checkbox" id="regTerms">
+        <span>I agree to the <a href="terms.html">Terms and Conditions</a> and <a href="privacy.html">Privacy Policy</a></span>
+    </div>
+
+    <button class="btn-primary" onclick="doRegister()">Create Account →</button>
+    <div id="regStatus"></div>
+
+    <div class="help-text">
+        Already have an account? <a href="login.html">Login here</a>
+    </div>
+</div>
+
+<script>
+// Pre-fill referral from URL
+(function() {
+    try {
+        var params = new URLSearchParams(window.location.search);
+        var ref = params.get('ref');
+        if (ref) document.getElementById('regReferral').value = ref.toUpperCase();
+    } catch (_) {}
+})();
+
+function doRegister() {
+    var name = document.getElementById('regName').value.trim();
+    var email = document.getElementById('regEmail').value.trim();
+    var broker = document.getElementById('regBroker').value.trim();
+    var account = document.getElementById('regAccount').value.trim();
+    var referral = document.getElementById('regReferral').value.trim();
+    var terms = document.getElementById('regTerms').checked;
+    var status = document.getElementById('regStatus');
+
+    if (!name || !email || !broker || !account) {
+        status.style.display = 'block'; status.style.color = '#ff6b6b'; status.textContent = 'Please fill in all required fields.'; return;
+    }
+    if (!terms) {
+        status.style.display = 'block'; status.style.color = '#ff6b6b'; status.textContent = 'Please accept the Terms and Conditions.'; return;
+    }
+
+    status.style.display = 'block'; status.style.color = '#8b94a8'; status.textContent = 'Submitting registration…';
+
+    // Show success (admin will provision the account manually)
+    setTimeout(function() {
+        status.style.color = '#00ff88';
+        status.textContent = '✓ Registration submitted! You will receive your access token via email within 24 hours.';
+    }, 1200);
+}
+</script>
+
+</body>
+</html>

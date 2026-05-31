@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us — Falcon AI</title>
+    <meta name="description" content="Learn about Falcon AI — our mission, technology, and commitment to intelligent automated trading.">
+    <meta name="theme-color" content="#0d1117">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #0d1117; color: #e6edf3; line-height: 1.6; overflow-x: hidden; }
+        .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(13,17,23,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { font-size: 20px; font-weight: 900; background: linear-gradient(90deg, #00d9ff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-decoration: none; }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { color: #8b94a8; text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: #e6edf3; }
+        .nav-cta { background: linear-gradient(135deg, #00d9ff, #00ff88); color: #0d1117; padding: 8px 18px; border-radius: 8px; font-weight: 700; font-size: 13px; text-decoration: none; }
+        .nav-mobile { display: none; background: none; border: none; color: #e6edf3; font-size: 24px; cursor: pointer; }
+        @media (max-width: 768px) { .nav-links { display: none; } .nav-mobile { display: block; } .nav-links.open { display: flex; flex-direction: column; position: absolute; top: 56px; left: 0; right: 0; background: #0d1117; padding: 20px; border-bottom: 1px solid #2a3142; } }
+
+        .page { max-width: 800px; margin: 0 auto; padding: 100px 24px 60px; }
+        .page-title { font-size: 36px; font-weight: 900; text-align: center; margin-bottom: 12px; }
+        .page-sub { font-size: 16px; color: #8b94a8; text-align: center; max-width: 550px; margin: 0 auto 48px; }
+
+        .about-section { margin-bottom: 48px; }
+        .about-section h2 { font-size: 20px; font-weight: 700; margin-bottom: 12px; color: #00d9ff; }
+        .about-section p { font-size: 15px; color: #c8d0df; margin-bottom: 12px; line-height: 1.7; }
+
+        .values-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 24px; }
+        .value-card { background: rgba(22,27,34,0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 20px; }
+        .value-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+        .value-card p { font-size: 12px; color: #8b94a8; }
+
+        .timeline { margin-top: 24px; padding-left: 20px; border-left: 2px solid rgba(0,217,255,0.2); }
+        .timeline-item { margin-bottom: 20px; padding-left: 16px; position: relative; }
+        .timeline-item::before { content: ''; position: absolute; left: -25px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: #00d9ff; }
+        .timeline-item h4 { font-size: 13px; color: #00d9ff; margin-bottom: 4px; }
+        .timeline-item p { font-size: 13px; color: #8b94a8; }
+
+        .footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 40px 24px; text-align: center; font-size: 13px; color: #5b6580; margin-top: 60px; }
+        .footer a { color: #8b94a8; text-decoration: none; margin: 0 10px; }
+        .footer a:hover { color: #e6edf3; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="index.html" class="nav-logo">◈ FALCON AI</a>
+    <div class="nav-links" id="navLinks">
+        <a href="index.html">Home</a>
+        <a href="features.html">Features</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="about.html">About</a>
+        <a href="support.html">Support</a>
+        <a href="contact.html">Contact</a>
+        <a href="COSTUMER_DASHBORED.html" class="nav-cta">Dashboard</a>
+    </div>
+    <button class="nav-mobile" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+</nav>
+
+<div class="page">
+    <h1 class="page-title">About Falcon AI</h1>
+    <p class="page-sub">Building the future of intelligent automated trading.</p>
+
+    <div class="about-section">
+        <h2>Our Mission</h2>
+        <p>Falcon AI was created with a single goal: to give every trader access to institutional-grade AI trading technology. We believe that intelligent automation, combined with proper risk management, can transform how people trade the financial markets.</p>
+        <p>Our platform combines cutting-edge artificial intelligence with a user-friendly remote control system, allowing traders to manage their accounts from anywhere in the world — from their phone, tablet, or computer.</p>
+    </div>
+
+    <div class="about-section">
+        <h2>What Makes Us Different</h2>
+        <p>Unlike traditional Expert Advisors that follow rigid rules, Falcon AI learns and adapts. Our self-improving algorithm analyzes market conditions in real-time, adjusts its strategy, and protects your capital through multiple layers of risk management.</p>
+        <p>We don't just sell software — we provide a complete trading ecosystem with live support, daily profit targets, remote control, and continuous updates.</p>
+    </div>
+
+    <div class="about-section">
+        <h2>Our Values</h2>
+        <div class="values-grid">
+            <div class="value-card">
+                <h3>🛡️ Security First</h3>
+                <p>Your data and funds are protected with enterprise-grade encryption and per-account isolation.</p>
+            </div>
+            <div class="value-card">
+                <h3>🎯 Results-Driven</h3>
+                <p>Every feature we build is designed to improve your trading performance and protect your capital.</p>
+            </div>
+            <div class="value-card">
+                <h3>💬 Transparent</h3>
+                <p>No hidden fees, no misleading promises. We're honest about what our system can and cannot do.</p>
+            </div>
+            <div class="value-card">
+                <h3>🚀 Innovation</h3>
+                <p>We continuously improve our AI algorithms and add new features based on trader feedback.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="about-section">
+        <h2>Our Journey</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <h4>2024 — Foundation</h4>
+                <p>Falcon AI development begins. Core trading algorithm and risk management system built.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>2025 — Launch</h4>
+                <p>Public launch with remote control dashboard, AI trading, and live support system.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>2025 — Growth</h4>
+                <p>Multi-language support, payment integration, referral system, and mobile app added.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>2026 — Expansion</h4>
+                <p>Advanced AI improvements, new trading strategies, and expanded platform features.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="about-section">
+        <h2>Technology</h2>
+        <p>Falcon AI is built on a modern, scalable architecture:</p>
+        <p>• <strong>Trading Engine:</strong> MQL5 Expert Advisor running on MetaTrader 5<br>
+           • <strong>AI Layer:</strong> Self-learning algorithm with adaptive decision-making<br>
+           • <strong>Backend:</strong> Google Apps Script for secure, serverless data management<br>
+           • <strong>Dashboard:</strong> Progressive Web App (PWA) — installable on any device<br>
+           • <strong>Security:</strong> HMAC-SHA256 signed communications, per-token isolation</p>
+    </div>
+</div>
+
+<footer class="footer">
+    <a href="index.html">Home</a> <a href="features.html">Features</a> <a href="pricing.html">Pricing</a> <a href="privacy.html">Privacy</a> <a href="terms.html">Terms</a> <a href="contact.html">Contact</a>
+    <p style="margin-top:16px;">© 2024–2026 Falcon AI. All rights reserved.</p>
+</footer>
+
+</body>
+</html>

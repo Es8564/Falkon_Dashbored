@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — Falcon AI</title>
+    <meta name="description" content="Access your Falcon AI trading dashboard.">
+    <meta name="theme-color" content="#0d1117">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+        body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(0,217,255,0.06) 0%, transparent 60%); pointer-events: none; }
+        .login-card { position: relative; width: 100%; max-width: 400px; background: rgba(22,27,34,0.9); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 40px 32px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; background: linear-gradient(90deg, #00d9ff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px; }
+        .subtitle { font-size: 14px; color: #8b94a8; margin-bottom: 32px; }
+        .form-group { margin-bottom: 16px; text-align: left; }
+        .form-group label { display: block; font-size: 12px; color: #8b94a8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .form-group input { width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e6edf3; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        .form-group input:focus { border-color: #00d9ff; }
+        .btn-primary { display: block; width: 100%; background: linear-gradient(135deg, #00d9ff, #00ff88); color: #0d1117; padding: 14px; border-radius: 10px; font-weight: 800; font-size: 15px; border: none; cursor: pointer; margin-top: 8px; transition: filter 0.2s; }
+        .btn-primary:hover { filter: brightness(1.1); }
+        .help-text { font-size: 12px; color: #5b6580; margin-top: 16px; }
+        .help-text a { color: #00d9ff; text-decoration: none; }
+        .help-text a:hover { text-decoration: underline; }
+        #loginStatus { margin-top: 12px; font-size: 13px; display: none; }
+        .back-link { position: absolute; top: 16px; left: 16px; color: #5b6580; text-decoration: none; font-size: 13px; }
+        .back-link:hover { color: #e6edf3; }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <a href="index.html" class="back-link">← Back</a>
+    <div class="logo">◈ FALCON AI</div>
+    <div class="subtitle">Access your trading dashboard</div>
+
+    <div class="form-group">
+        <label>Your Secret Token</label>
+        <input type="password" id="loginToken" placeholder="Enter your secret token" autocomplete="off">
+    </div>
+
+    <button class="btn-primary" onclick="doLogin()">Login →</button>
+    <div id="loginStatus"></div>
+
+    <div class="help-text">
+        <p>Your secret token was provided when you registered.</p>
+        <p style="margin-top:8px;">Don't have an account? <a href="register.html">Register here</a></p>
+        <p style="margin-top:4px;">Forgot your token? <a href="contact.html">Contact support</a></p>
+    </div>
+</div>
+
+<script>
+function doLogin() {
+    var token = document.getElementById('loginToken').value.trim();
+    var status = document.getElementById('loginStatus');
+    if (!token) {
+        status.style.display = 'block'; status.style.color = '#ff6b6b'; status.textContent = 'Please enter your token.'; return;
+    }
+    if (token.length < 8) {
+        status.style.display = 'block'; status.style.color = '#ff6b6b'; status.textContent = 'Token must be at least 8 characters.'; return;
+    }
+    // Save token and redirect to dashboard
+    try {
+        var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
+        cfg.secretToken = token;
+        localStorage.setItem('falconConfig', JSON.stringify(cfg));
+    } catch (_) {}
+    status.style.display = 'block'; status.style.color = '#00ff88'; status.textContent = '✓ Redirecting to dashboard…';
+    setTimeout(function() { window.location.href = 'COSTUMER_DASHBORED.html'; }, 800);
+}
+document.getElementById('loginToken').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+</script>
+
+</body>
+</html>
