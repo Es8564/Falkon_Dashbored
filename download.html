@@ -65,7 +65,7 @@
         <a href="about.html">About</a>
         <a href="support.html">Support</a>
         <a href="contact.html">Contact</a>
-        <a href="COSTUMER_DASHBORED.html" class="nav-cta">Dashboard</a>
+        <a href="account.html" class="nav-cta">My Account</a>
     </div>
     <button class="nav-mobile" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
 </nav>
@@ -157,6 +157,42 @@
     <a href="index.html">Home</a> <a href="features.html">Features</a> <a href="pricing.html">Pricing</a> <a href="privacy.html">Privacy</a> <a href="terms.html">Terms</a> <a href="contact.html">Contact</a>
     <p style="margin-top:16px;">© 2024–2026 Falcon AI. All rights reserved.</p>
 </footer>
+
+<script>
+// Subscription gate for download
+(function() {
+    var cfg = {};
+    try { cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch (_) {}
+    var token = cfg.secretToken || '';
+    var btn = document.getElementById('downloadBtn');
+    if (!token) {
+        btn.textContent = '🔒 Login Required';
+        btn.href = 'login.html';
+        return;
+    }
+    var url = (cfg.endpointUrl || '').trim();
+    if (!url) return;
+    btn.textContent = '⏳ Checking access…';
+    btn.style.opacity = '0.6';
+    fetch(url + '?token=' + encodeURIComponent(token) + '&command=sub_get_status&source=web_cmd&t=' + Date.now(), { method: 'GET', mode: 'cors' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data && data.status === 'ok' && data.sub_status === 'active') {
+            btn.textContent = '📥 Download EA File';
+            btn.style.opacity = '1';
+            // Set download URL if available
+            if (data.download_url) btn.href = data.download_url;
+        } else {
+            btn.textContent = '🔒 Subscribe to Download';
+            btn.href = 'pricing.html';
+            btn.style.opacity = '1';
+        }
+    }).catch(function() {
+        btn.textContent = '📥 Download EA File';
+        btn.style.opacity = '1';
+    });
+})();
+</script>
 
 </body>
 </html>

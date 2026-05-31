@@ -4,72 +4,169 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login — Falcon AI</title>
-    <meta name="description" content="Access your Falcon AI trading dashboard.">
+    <meta name="description" content="Login to your Falcon AI trading dashboard.">
     <meta name="theme-color" content="#0d1117">
     <link rel="icon" type="image/svg+xml" href="icon.svg">
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
         body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(0,217,255,0.06) 0%, transparent 60%); pointer-events: none; }
-        .login-card { position: relative; width: 100%; max-width: 400px; background: rgba(22,27,34,0.9); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 40px 32px; text-align: center; }
+        .card { position: relative; width: 100%; max-width: 400px; background: rgba(22,27,34,0.9); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 40px 32px; text-align: center; }
         .logo { font-size: 28px; font-weight: 900; background: linear-gradient(90deg, #00d9ff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px; }
         .subtitle { font-size: 14px; color: #8b94a8; margin-bottom: 32px; }
         .form-group { margin-bottom: 16px; text-align: left; }
         .form-group label { display: block; font-size: 12px; color: #8b94a8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
-        .form-group input { width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e6edf3; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        .form-group input { width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e6edf3; font-size: 14px; outline: none; transition: border-color 0.2s; font-family: inherit; }
         .form-group input:focus { border-color: #00d9ff; }
         .btn-primary { display: block; width: 100%; background: linear-gradient(135deg, #00d9ff, #00ff88); color: #0d1117; padding: 14px; border-radius: 10px; font-weight: 800; font-size: 15px; border: none; cursor: pointer; margin-top: 8px; transition: filter 0.2s; }
         .btn-primary:hover { filter: brightness(1.1); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
         .help-text { font-size: 12px; color: #5b6580; margin-top: 16px; }
         .help-text a { color: #00d9ff; text-decoration: none; }
         .help-text a:hover { text-decoration: underline; }
         #loginStatus { margin-top: 12px; font-size: 13px; display: none; }
         .back-link { position: absolute; top: 16px; left: 16px; color: #5b6580; text-decoration: none; font-size: 13px; }
         .back-link:hover { color: #e6edf3; }
+        .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
+        .divider span { font-size: 11px; color: #5b6580; text-transform: uppercase; }
+        .forgot-link { display: block; text-align: right; font-size: 12px; color: #00d9ff; text-decoration: none; margin-top: -8px; margin-bottom: 8px; }
+        .forgot-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
 
-<div class="login-card">
+<div class="card">
     <a href="index.html" class="back-link">← Back</a>
     <div class="logo">◈ FALCON AI</div>
-    <div class="subtitle">Access your trading dashboard</div>
+    <div class="subtitle">Login to your account</div>
 
-    <div class="form-group">
-        <label>Your Secret Token</label>
-        <input type="password" id="loginToken" placeholder="Enter your secret token" autocomplete="off">
+    <!-- Email + Password Login -->
+    <div id="loginForm">
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password">
+        </div>
+        <a href="#" class="forgot-link" onclick="showForgotPassword();return false;">Forgot password?</a>
+        <button class="btn-primary" onclick="doLogin()">Login →</button>
     </div>
 
-    <button class="btn-primary" onclick="doLogin()">Login →</button>
+    <!-- Forgot Password -->
+    <div id="forgotForm" style="display:none;">
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="forgotEmail" placeholder="Enter your registered email" autocomplete="email">
+        </div>
+        <button class="btn-primary" onclick="doForgotPassword()">Send Reset Code →</button>
+        <div style="margin-top:12px;text-align:center;">
+            <a href="#" style="font-size:12px;color:#00d9ff;text-decoration:none;" onclick="showLoginForm();return false;">← Back to login</a>
+        </div>
+    </div>
+
     <div id="loginStatus"></div>
 
+    <div class="divider"><span>or</span></div>
+
     <div class="help-text">
-        <p>Your secret token was provided when you registered.</p>
-        <p style="margin-top:8px;">Don't have an account? <a href="register.html">Register here</a></p>
-        <p style="margin-top:4px;">Forgot your token? <a href="contact.html">Contact support</a></p>
+        <p>Don't have an account? <a href="register.html">Register here</a></p>
     </div>
 </div>
 
 <script>
-function doLogin() {
-    var token = document.getElementById('loginToken').value.trim();
-    var status = document.getElementById('loginStatus');
-    if (!token) {
-        status.style.display = 'block'; status.style.color = '#ff6b6b'; status.textContent = 'Please enter your token.'; return;
-    }
-    if (token.length < 8) {
-        status.style.display = 'block'; status.style.color = '#ff6b6b'; status.textContent = 'Token must be at least 8 characters.'; return;
-    }
-    // Save token and redirect to dashboard
+function _showStatus(msg, color) {
+    var el = document.getElementById('loginStatus');
+    el.style.display = 'block'; el.style.color = color || '#8b94a8'; el.textContent = msg;
+}
+
+async function doLogin() {
+    var email = document.getElementById('loginEmail').value.trim();
+    var password = document.getElementById('loginPassword').value;
+
+    if (!email || email.indexOf('@') < 1) { _showStatus('Please enter your email address.', '#ff6b6b'); return; }
+    if (!password) { _showStatus('Please enter your password.', '#ff6b6b'); return; }
+
+    _showStatus('Logging in…', '#8b94a8');
+
     try {
         var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
-        cfg.secretToken = token;
-        localStorage.setItem('falconConfig', JSON.stringify(cfg));
-    } catch (_) {}
-    status.style.display = 'block'; status.style.color = '#00ff88'; status.textContent = '✓ Redirecting to dashboard…';
-    setTimeout(function() { window.location.href = 'COSTUMER_DASHBORED.html'; }, 800);
+        var url = (cfg.endpointUrl || '').trim();
+        if (!url) { _showStatus('System not configured. Contact admin.', '#ff6b6b'); return; }
+
+        var params = { command: 'auth_login', email: email, password: password };
+        var data = null;
+        var finalUrl = window._gasFinalUrl || url;
+
+        try {
+            var r = await fetch(finalUrl, { method: 'POST', mode: 'cors', cache: 'no-cache', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) });
+            if (r.ok) data = await r.json();
+        } catch (_) {}
+
+        if (!data) {
+            var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+            try {
+                var r2 = await fetch(url + (url.indexOf('?')>=0?'&':'?') + qs, { method: 'GET', mode: 'cors' });
+                if (r2.ok) data = await r2.json();
+            } catch (_) {}
+        }
+
+        if (data && data.status === 'ok' && data.token) {
+            // Save token and user info
+            cfg.secretToken = data.token;
+            localStorage.setItem('falconConfig', JSON.stringify(cfg));
+            if (data.name) localStorage.setItem('falcon_user_name', data.name);
+            localStorage.setItem('falcon_email', email);
+            _showStatus('✓ Login successful! Redirecting…', '#00ff88');
+            setTimeout(function() { window.location.href = 'account.html'; }, 800);
+        } else {
+            _showStatus(data && data.error ? data.error : 'Invalid email or password.', '#ff6b6b');
+        }
+    } catch (e) {
+        _showStatus('Login failed: ' + (e.message || 'unknown error'), '#ff6b6b');
+    }
 }
-document.getElementById('loginToken').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+
+function showForgotPassword() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('forgotForm').style.display = 'block';
+    document.getElementById('loginStatus').style.display = 'none';
+}
+
+function showLoginForm() {
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('forgotForm').style.display = 'none';
+    document.getElementById('loginStatus').style.display = 'none';
+}
+
+async function doForgotPassword() {
+    var email = document.getElementById('forgotEmail').value.trim();
+    if (!email || email.indexOf('@') < 1) { _showStatus('Please enter your email.', '#ff6b6b'); return; }
+    _showStatus('Sending reset code…', '#8b94a8');
+
+    try {
+        var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
+        var url = (cfg.endpointUrl || '').trim();
+        if (!url) { _showStatus('System not configured.', '#ff6b6b'); return; }
+        var params = { command: 'auth_forgot_password', email: email };
+        var finalUrl = window._gasFinalUrl || url;
+        try {
+            await fetch(finalUrl, { method: 'POST', mode: 'cors', cache: 'no-cache', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) });
+        } catch (_) {}
+        _showStatus('✓ If this email is registered, a reset code has been sent. Check your inbox.', '#00ff88');
+    } catch (_) {
+        _showStatus('✓ If this email is registered, a reset code has been sent.', '#00ff88');
+    }
+}
+
+// Enter key support
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        if (document.getElementById('loginForm').style.display !== 'none') doLogin();
+    }
+});
 </script>
 
 </body>

@@ -55,7 +55,7 @@
         <a href="about.html">About</a>
         <a href="support.html">Support</a>
         <a href="contact.html">Contact</a>
-        <a href="COSTUMER_DASHBORED.html" class="nav-cta">Dashboard</a>
+        <a href="account.html" class="nav-cta">My Account</a>
     </div>
     <button class="nav-mobile" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
 </nav>
@@ -133,14 +133,35 @@ function submitContact() {
         status.style.display = 'block'; status.style.color = '#ff6b6b'; status.textContent = 'Please fill in all fields.'; return;
     }
     status.style.display = 'block'; status.style.color = '#8b94a8'; status.textContent = 'Sending…';
-    // For now, show success (integrate with GAS contact_submit command later)
-    setTimeout(function() {
-        status.style.color = '#00ff88'; status.textContent = '✓ Message sent! We\'ll get back to you within 24 hours.';
-        document.getElementById('contactName').value = '';
-        document.getElementById('contactEmail').value = '';
-        document.getElementById('contactSubject').value = '';
-        document.getElementById('contactMessage').value = '';
-    }, 1000);
+
+    // Send to GAS backend
+    var cfg = {};
+    try { cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch (_) {}
+    var url = (cfg.endpointUrl || '').trim();
+    if (!url) { status.style.color = '#ff6b6b'; status.textContent = 'System not configured. Please contact support@falconai.trade directly.'; return; }
+
+    var params = { command: 'contact_submit', name: name, email: email, subject: subject, message: message, source: 'web_cmd' };
+    var qs = Object.keys(params).map(function(k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+    var getUrl = url + (url.indexOf('?') >= 0 ? '&' : '?') + qs + '&t=' + Date.now();
+
+    fetch(getUrl, { method: 'GET', mode: 'cors', cache: 'no-cache' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data && data.status === 'ok') {
+            status.style.color = '#00ff88';
+            status.textContent = '✓ Message sent! We\'ll get back to you within 24 hours.';
+            document.getElementById('contactName').value = '';
+            document.getElementById('contactEmail').value = '';
+            document.getElementById('contactSubject').value = '';
+            document.getElementById('contactMessage').value = '';
+        } else {
+            status.style.color = '#ff6b6b';
+            status.textContent = 'Failed to send: ' + (data && data.error || 'unknown error');
+        }
+    }).catch(function() {
+        status.style.color = '#ff6b6b';
+        status.textContent = 'Network error. Please try again or email support@falconai.trade directly.';
+    });
 }
 </script>
 

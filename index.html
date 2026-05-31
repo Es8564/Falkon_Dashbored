@@ -203,7 +203,7 @@
             <option value="tr">🇹🇷 TR</option>
         </select>
         <a href="login.html" style="color:#e6edf3;font-weight:600;">Login</a>
-        <a href="COSTUMER_DASHBORED.html" class="nav-cta">Get Started</a>
+        <a href="register.html" class="nav-cta">Get Started</a>
     </div>
     <button class="nav-mobile" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
 </nav>
@@ -214,7 +214,7 @@
     <h1>Trade Smarter with <span>Falcon AI</span></h1>
     <p>Advanced MT5 Expert Advisor with artificial intelligence, remote control from anywhere, and professional risk management — fully automated.</p>
     <div class="hero-btns">
-        <a href="COSTUMER_DASHBORED.html" class="btn-primary">Start Trading →</a>
+        <a href="pricing.html" class="btn-primary">Start Trading →</a>
         <a href="#features" class="btn-secondary">Learn More</a>
     </div>
 </section>
@@ -308,7 +308,7 @@
             <li>Email notifications</li>
             <li>Priority support</li>
         </ul>
-        <a href="COSTUMER_DASHBORED.html" class="btn-primary" style="display:block;text-align:center;margin-top:20px;">Subscribe Now →</a>
+        <a href="pricing.html" class="btn-primary" style="display:block;text-align:center;margin-top:20px;">Subscribe Now →</a>
     </div>
 </section>
 
@@ -369,7 +369,7 @@
     <h2 class="section-title">Ready to Start?</h2>
     <div class="contact-box">
         <p>Have questions? Need help getting started? Reach out to our team.</p>
-        <a href="COSTUMER_DASHBORED.html" class="btn-primary">Open Dashboard →</a>
+        <a href="contact.html" class="btn-primary">Contact Us →</a>
         <p style="margin-top:16px;font-size:12px;color:#5b6580;">Or contact us through the live chat inside the dashboard.</p>
     </div>
 </section>
@@ -380,7 +380,7 @@
         <a href="#features">Features</a>
         <a href="#pricing">Pricing</a>
         <a href="#faq">FAQ</a>
-        <a href="COSTUMER_DASHBORED.html">Dashboard</a>
+        <a href="account.html">My Account</a>
     </div>
     <p>© 2024–2026 Falcon AI. All rights reserved. Trading involves risk. Past performance does not guarantee future results.</p>
 </footer>
@@ -411,7 +411,7 @@ function _siteLang(lang) {
     var params = new URLSearchParams(window.location.search);
     var ref = params.get('ref');
     if (ref) {
-        var links = document.querySelectorAll('a[href*="COSTUMER_DASHBORED"]');
+        var links = document.querySelectorAll('a[href*="register"]');
         links.forEach(function(a) {
             a.href = a.href + (a.href.indexOf('?') >= 0 ? '&' : '?') + 'ref=' + encodeURIComponent(ref);
         });
