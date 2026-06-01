@@ -82,6 +82,14 @@
         <p style="font-size:11px;color:#5b6580;margin-top:12px;">File size: ~150 KB • .ex5 format</p>
     </div>
 
+    <div class="download-card" style="margin-top:20px;">
+        <h2>Falcon AI Customer Dashboard</h2>
+        <div class="version">Version 4.0 • Latest Release</div>
+        <p>The web dashboard for remote control, monitoring, and support chat.</p>
+        <a href="#" class="btn-download" id="downloadDashBtn" style="background:linear-gradient(135deg,#00ff88,#00d9ff);">📥 Download Dashboard</a>
+        <p style="font-size:11px;color:#5b6580;margin-top:12px;">File size: ~500 KB • .html format • Open in any browser</p>
+    </div>
+
     <div class="requirements">
         <h3>System Requirements</h3>
         <ul>
@@ -159,37 +167,78 @@
 </footer>
 
 <script>
-// Subscription gate for download
+// Subscription + Trial gate for download
 (function() {
     var cfg = {};
     try { cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch (_) {}
     var token = cfg.secretToken || '';
     var btn = document.getElementById('downloadBtn');
+    var dashBtn = document.getElementById('downloadDashBtn');
+
+    // Check trial access
+    var trialStart = parseInt(localStorage.getItem('falcon_trial_start') || '0');
+    var trialDays = parseInt(localStorage.getItem('falcon_trial_days') || '7');
+    var subscribed = localStorage.getItem('falcon_subscribed') === 'true';
+    var trialActive = false;
+    if (trialStart) {
+        var elapsed = Math.floor((Date.now() - trialStart) / (24 * 60 * 60 * 1000));
+        trialActive = elapsed < trialDays;
+    }
+
+    function grantAccess() {
+        // EA download
+        btn.textContent = '📥 Download EA File';
+        btn.style.opacity = '1';
+        btn.href = 'https://es8564.github.io/Falkon_Dashbored/FalconAI_EA_v4.ex5';
+        // Dashboard download
+        if (dashBtn) {
+            dashBtn.textContent = '📥 Download Dashboard';
+            dashBtn.style.opacity = '1';
+            dashBtn.href = 'https://es8564.github.io/Falkon_Dashbored/COSTUMER_DASHBORED.html';
+            dashBtn.setAttribute('download', 'FalconAI_Dashboard.html');
+        }
+    }
+
+    function lockAccess() {
+        btn.textContent = '🔒 Subscribe to Download';
+        btn.href = 'pricing.html';
+        btn.style.opacity = '1';
+        if (dashBtn) {
+            dashBtn.textContent = '🔒 Subscribe to Download';
+            dashBtn.href = 'pricing.html';
+            dashBtn.style.opacity = '1';
+        }
+    }
+
     if (!token) {
         btn.textContent = '🔒 Login Required';
         btn.href = 'login.html';
+        if (dashBtn) { dashBtn.textContent = '🔒 Login Required'; dashBtn.href = 'login.html'; }
         return;
     }
+
+    // Trial users get immediate access
+    if (trialActive || subscribed) {
+        grantAccess();
+        return;
+    }
+
+    // Otherwise check subscription from server
     var url = (cfg.endpointUrl || '').trim();
-    if (!url) return;
+    if (!url) { lockAccess(); return; }
     btn.textContent = '⏳ Checking access…';
     btn.style.opacity = '0.6';
     fetch(url + '?token=' + encodeURIComponent(token) + '&command=sub_get_status&source=web_cmd&t=' + Date.now(), { method: 'GET', mode: 'cors' })
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data && data.status === 'ok' && data.sub_status === 'active') {
-            btn.textContent = '📥 Download EA File';
-            btn.style.opacity = '1';
-            // Set download URL if available
-            if (data.download_url) btn.href = data.download_url;
+            localStorage.setItem('falcon_subscribed', 'true');
+            grantAccess();
         } else {
-            btn.textContent = '🔒 Subscribe to Download';
-            btn.href = 'pricing.html';
-            btn.style.opacity = '1';
+            lockAccess();
         }
     }).catch(function() {
-        btn.textContent = '📥 Download EA File';
-        btn.style.opacity = '1';
+        lockAccess();
     });
 })();
 </script>
