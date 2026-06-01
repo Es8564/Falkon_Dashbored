@@ -285,13 +285,8 @@ function _accPayStripe() {
     }
 }
 function _accPayPaypal() {
-    if (_accPaypalUrl) {
-        window.open(_accPaypalUrl, '_blank');
-        _accNotifyPayment('paypal');
-    } else {
-        var el = document.getElementById('accPayStatus');
-        if (el) { el.style.display = 'block'; el.style.color = '#ff6b6b'; el.textContent = 'PayPal payment not configured yet. Contact admin.'; }
-    }
+    window.open('https://www.paypal.com/ncp/payment/BNPU2VTPYU6CE', '_blank');
+    _accNotifyPayment('paypal');
 }
 async function _accNotifyPayment(method) {
     var el = document.getElementById('accPayStatus');
