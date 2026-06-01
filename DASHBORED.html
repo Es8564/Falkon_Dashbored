@@ -2702,6 +2702,16 @@
 </head>
 <body>
 <div id="themeFlash"></div>
+
+<!-- TRIAL BANNER -->
+<div id="dashTrialBanner" style="display:none;background:linear-gradient(135deg,rgba(0,217,255,0.1),rgba(0,255,136,0.1));border-bottom:1px solid rgba(0,255,136,0.25);padding:10px 20px;text-align:center;font-size:13px;font-weight:600;">
+    🚀 Free Trial: <span id="dashTrialDays" style="color:#00ff88;font-weight:800;">7</span> days remaining —
+    <a href="account.html#subscription" style="color:#00d9ff;text-decoration:underline;">Upgrade to Pro</a>
+</div>
+<div id="dashTrialExpiredBanner" style="display:none;background:rgba(255,68,68,0.12);border-bottom:1px solid rgba(255,68,68,0.3);padding:10px 20px;text-align:center;font-size:13px;font-weight:600;color:#ff6b6b;">
+    ⏰ Your free trial has expired —
+    <a href="account.html#subscription" style="color:#00d9ff;text-decoration:underline;font-weight:800;">Subscribe now to continue trading</a>
+</div>
 <div class="os-desktop" id="osDesktop">
 
     <!-- TOP STATUS BAR -->
@@ -11858,5 +11868,22 @@ window.addEventListener('appinstalled', function () {
 });
 </script>
 
+<script>
+// ── TRIAL BANNER FOR DASHBOARD ──
+(function() {
+    var trialStart = parseInt(localStorage.getItem('falcon_trial_start') || '0');
+    var trialDays = parseInt(localStorage.getItem('falcon_trial_days') || '7');
+    var subscribed = localStorage.getItem('falcon_subscribed') === 'true';
+    if (subscribed || !trialStart) return;
+    var msPerDay = 24 * 60 * 60 * 1000;
+    var elapsed = Math.floor((Date.now() - trialStart) / msPerDay);
+    var remaining = trialDays - elapsed;
+    if (remaining > 0) {
+        document.getElementById('dashTrialBanner').style.display = 'block';
+        document.getElementById('dashTrialDays').textContent = remaining;
+    } else {
+        document.getElementById('dashTrialExpiredBanner').style.display = 'block';
+    }
+})();
+</script>
 </body>
-</html>

@@ -93,6 +93,22 @@
 <!-- Logged in state -->
 <div class="page" id="accountContent" style="display:none;">
     <h1 class="page-title">My Account</h1>
+
+    <!-- TRIAL BANNER -->
+    <div id="trialBanner" style="display:none;background:linear-gradient(135deg,rgba(0,217,255,0.12),rgba(0,255,136,0.12));border:1px solid rgba(0,255,136,0.35);border-radius:14px;padding:18px 22px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+            <div style="font-size:15px;font-weight:800;color:#00ff88;">🚀 Free Trial Active</div>
+            <div style="font-size:13px;color:#8b94a8;margin-top:3px;"><span id="trialDaysLeft" style="color:#00d9ff;font-weight:700;">7</span> days remaining — full access to all features</div>
+        </div>
+        <a href="#subscription" style="background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;padding:10px 22px;border-radius:8px;font-size:13px;font-weight:800;text-decoration:none;">Upgrade Now →</a>
+    </div>
+
+    <!-- TRIAL EXPIRED BANNER -->
+    <div id="trialExpiredBanner" style="display:none;background:rgba(255,68,68,0.1);border:1px solid rgba(255,68,68,0.3);border-radius:14px;padding:18px 22px;margin-bottom:20px;text-align:center;">
+        <div style="font-size:15px;font-weight:800;color:#ff6b6b;">⏰ Your Free Trial Has Expired</div>
+        <div style="font-size:13px;color:#8b94a8;margin-top:6px;">Subscribe to continue trading with Falcon AI</div>
+        <a href="#subscription" style="display:inline-block;margin-top:12px;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;padding:10px 28px;border-radius:8px;font-size:13px;font-weight:800;text-decoration:none;">Subscribe Now — £400/month →</a>
+    </div>
     <p class="page-sub">Welcome back, <span id="accUserName">User</span></p>
 
     <!-- Profile Card -->
@@ -179,6 +195,24 @@
     }
 
     document.getElementById('accountContent').style.display = 'block';
+
+    // ── TRIAL BANNER LOGIC ──
+    (function() {
+        var trialStart = parseInt(localStorage.getItem('falcon_trial_start') || '0');
+        var trialDays = parseInt(localStorage.getItem('falcon_trial_days') || '7');
+        var subscribed = localStorage.getItem('falcon_subscribed') === 'true';
+        if (subscribed || !trialStart) return;
+        var msPerDay = 24 * 60 * 60 * 1000;
+        var elapsed = Math.floor((Date.now() - trialStart) / msPerDay);
+        var remaining = trialDays - elapsed;
+        if (remaining > 0) {
+            var banner = document.getElementById('trialBanner');
+            banner.style.display = 'flex';
+            document.getElementById('trialDaysLeft').textContent = remaining;
+        } else {
+            document.getElementById('trialExpiredBanner').style.display = 'block';
+        }
+    })();
 
     // Load user info from auth system
     async function loadAccount() {

@@ -125,10 +125,15 @@
     <!-- STEP 3: Success -->
     <div id="step3" class="hidden">
         <div style="text-align:center;">
-            <div style="font-size:48px;margin-bottom:16px;">✅</div>
+            <div style="font-size:48px;margin-bottom:16px;">🎉</div>
             <h2 style="font-size:20px;font-weight:800;margin-bottom:8px;">Account Created!</h2>
-            <p style="font-size:14px;color:#8b94a8;margin-bottom:24px;">Your Falcon AI account is ready. You can now log in and access your trading dashboard.</p>
-            <a href="login.html" class="btn-primary" style="text-decoration:none;display:block;text-align:center;">Login to Dashboard →</a>
+            <div style="background:linear-gradient(135deg,rgba(0,217,255,0.1),rgba(0,255,136,0.1));border:1px solid rgba(0,255,136,0.3);border-radius:12px;padding:16px;margin-bottom:20px;">
+                <div style="font-size:24px;margin-bottom:6px;">🚀 7-Day Free Trial Activated!</div>
+                <p style="font-size:13px;color:#00ff88;font-weight:700;">Full access to all Falcon AI features</p>
+                <p style="font-size:12px;color:#8b94a8;margin-top:6px;">Trading Dashboard · Expert Advisor · Remote Control · Risk Management</p>
+                <div style="margin-top:10px;font-size:11px;color:#5b6580;">Trial expires in <strong style="color:#00d9ff;">7 days</strong> — upgrade anytime from your account page</div>
+            </div>
+            <a href="login.html" class="btn-primary" style="text-decoration:none;display:block;text-align:center;">Start Trading Now →</a>
         </div>
     </div>
 
@@ -237,6 +242,10 @@ async function regStep2() {
             if (r.ok) { var d = await r.json(); if (d && d.status === 'ok') { success = true; if (d.token) { var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}'); cfg.secretToken = d.token; cfg.endpointUrl = url; localStorage.setItem('falconConfig', JSON.stringify(cfg)); localStorage.setItem('falcon_user_name', _regData.name); localStorage.setItem('falcon_email', _regData.email); } } }
         } catch (_) {}
         if (success) {
+            // Activate 7-day free trial
+            var trialStart = Date.now();
+            localStorage.setItem('falcon_trial_start', trialStart);
+            localStorage.setItem('falcon_trial_days', '7');
             _showSuccessStep();
         } else {
             _showStatus('Verification failed. Please check the code and try again.', '#ff6b6b');
