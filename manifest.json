@@ -2,7 +2,7 @@
   "name": "FALCON AI — Remote Control",
   "short_name": "Falcon AI",
   "description": "MT5 Expert Advisor remote control and monitoring dashboard",
-  "start_url": "./COSTUMER_DASHBORED.html",
+  "start_url": "./DASHBORED.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
@@ -33,7 +33,7 @@
     {
       "name": "Support Chat",
       "short_name": "Chat",
-      "url": "./COSTUMER_DASHBORED.html#chat",
+      "url": "./DASHBORED.html#chat",
       "icons": [{ "src": "icon.svg", "sizes": "any" }]
     }
   ]

@@ -91,8 +91,11 @@
         </div>
         <div class="form-group">
             <label>Password</label>
-            <input type="password" id="regPassword" placeholder="Create a strong password" autocomplete="new-password">
-            <div class="password-hint">Minimum 8 characters</div>
+            <input type="password" id="regPassword" placeholder="Create a strong password" autocomplete="new-password" oninput="_updateStrength(this.value)">
+            <div id="strengthBar" style="margin-top:6px;height:4px;border-radius:2px;background:rgba(255,255,255,0.06);overflow:hidden;">
+                <div id="strengthFill" style="height:100%;width:0%;border-radius:2px;transition:width 0.3s,background 0.3s;"></div>
+            </div>
+            <div id="strengthText" class="password-hint">Minimum 8 characters</div>
         </div>
         <div class="form-group">
             <label>Confirm Password</label>
@@ -102,7 +105,7 @@
             <input type="checkbox" id="regTerms">
             <span>I agree to the <a href="terms.html" target="_blank">Terms and Conditions</a> and <a href="privacy.html" target="_blank">Privacy Policy</a></span>
         </div>
-        <button class="btn-primary" onclick="regStep1()">Continue →</button>
+        <button class="btn-primary" id="btnStep1" onclick="regStep1()">Continue →</button>
     </div>
 
     <!-- STEP 2: Email Verification -->
@@ -116,7 +119,7 @@
             <label>Verification Code</label>
             <input type="text" id="regOtp" class="otp-input" placeholder="000000" maxlength="6" autocomplete="one-time-code">
         </div>
-        <button class="btn-primary" onclick="regStep2()">Verify & Create Account →</button>
+        <button class="btn-primary" id="btnStep2" onclick="regStep2()">Verify & Create Account →</button>
         <div style="text-align:center;margin-top:12px;">
             <button onclick="regResendCode()" style="background:none;border:none;color:#00d9ff;font-size:12px;cursor:pointer;text-decoration:underline;">Resend code</button>
         </div>
@@ -146,20 +149,162 @@
 
 <script>
 var _regData = {};
-var _regOtpCode = '';
+var _regDeviceFp = '';
 
-// Pre-fill referral from URL
+// ── DEVICE FINGERPRINT ──────────────────────────────────────────────────────
+// Generates a stable device fingerprint from hardware/browser signals.
+// No external libraries. Runs silently in ~50ms.
+// Used server-side to prevent trial abuse (one trial per device).
+async function _generateDeviceFingerprint() {
+    try {
+        var parts = [];
+
+        // 1. Canvas fingerprint (GPU rendering signature)
+        try {
+            var canvas = document.createElement('canvas');
+            canvas.width = 200; canvas.height = 50;
+            var ctx = canvas.getContext('2d');
+            ctx.textBaseline = 'top';
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#00d9ff';
+            ctx.fillRect(0, 0, 200, 50);
+            ctx.fillStyle = '#0d1117';
+            ctx.fillText('Falcon\u00a0AI\u2603', 2, 2);
+            ctx.fillStyle = 'rgba(0,255,136,0.5)';
+            ctx.fillRect(10, 10, 80, 20);
+            parts.push(canvas.toDataURL().slice(-80));
+        } catch (_) { parts.push('nc'); }
+
+        // 2. WebGL renderer (GPU model)
+        try {
+            var gl = document.createElement('canvas').getContext('webgl') ||
+                     document.createElement('canvas').getContext('experimental-webgl');
+            if (gl) {
+                var dbg = gl.getExtension('WEBGL_debug_renderer_info');
+                if (dbg) {
+                    parts.push(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || 'wr');
+                    parts.push(gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) || 'wv');
+                } else {
+                    parts.push(gl.getParameter(gl.RENDERER) || 'wr');
+                }
+            }
+        } catch (_) { parts.push('ngl'); }
+
+        // 3. Screen + display
+        parts.push(screen.width + 'x' + screen.height + 'x' + screen.colorDepth);
+        parts.push(window.devicePixelRatio || 1);
+
+        // 4. Timezone + language
+        parts.push(Intl.DateTimeFormat().resolvedOptions().timeZone || 'tz');
+        parts.push(navigator.language || 'lang');
+
+        // 5. Hardware concurrency + device memory
+        parts.push(navigator.hardwareConcurrency || 0);
+        parts.push(navigator.deviceMemory || 0);
+
+        // 6. Platform + user agent snippet
+        parts.push((navigator.platform || '').slice(0, 20));
+        parts.push((navigator.userAgent || '').slice(20, 60));
+
+        // 7. Audio context fingerprint
+        try {
+            var AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) {
+                var ac = new AudioCtx();
+                var osc = ac.createOscillator();
+                var analyser = ac.createAnalyser();
+                var gain = ac.createGain();
+                gain.gain.value = 0;
+                osc.connect(analyser);
+                analyser.connect(gain);
+                gain.connect(ac.destination);
+                osc.start(0);
+                var buf = new Float32Array(analyser.frequencyBinCount);
+                analyser.getFloatFrequencyData(buf);
+                osc.stop();
+                ac.close();
+                parts.push(buf.slice(0, 5).join(','));
+            }
+        } catch (_) { parts.push('nac'); }
+
+        // Hash all parts together using SubtleCrypto SHA-256
+        var raw = parts.join('|');
+        var encoded = new TextEncoder().encode(raw);
+        var hashBuf = await crypto.subtle.digest('SHA-256', encoded);
+        var hashArr = Array.from(new Uint8Array(hashBuf));
+        var hex = hashArr.map(function(b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+        return hex;
+    } catch (_) {
+        // Fallback: simple hash of navigator properties
+        var fb = (navigator.userAgent || '') + (screen.width || '') + (screen.height || '') + (navigator.language || '');
+        var h = 0;
+        for (var i = 0; i < fb.length; i++) { h = ((h << 5) - h) + fb.charCodeAt(i); h |= 0; }
+        return 'fb' + Math.abs(h).toString(16).padStart(8, '0');
+    }
+}
+
+// Pre-fill referral from URL + generate fingerprint on page load
 (function() {
     try {
         var params = new URLSearchParams(window.location.search);
         var ref = params.get('ref');
         if (ref) document.getElementById('regReferral').value = ref.toUpperCase();
     } catch (_) {}
+    // Generate fingerprint early so it's ready when user submits
+    _generateDeviceFingerprint().then(function(fp) {
+        _regDeviceFp = fp;
+        // [FIRST-LINE-DEFENSE] Check localStorage — blocks before hitting server
+        var usedFps = {};
+        try { usedFps = JSON.parse(localStorage.getItem('falcon_used_fps') || '{}'); } catch (_) {}
+        if (usedFps[fp]) {
+            // Mark the form — will show error if they try to register
+            window._fpAlreadyUsed = true;
+        }
+    }).catch(function() {});
 })();
 
 function _showStatus(msg, color) {
     var el = document.getElementById('regStatus');
     el.style.display = 'block'; el.style.color = color || '#8b94a8'; el.textContent = msg;
+}
+
+function _btnLoading(id, loading, originalText) {
+    var btn = document.getElementById(id);
+    if (!btn) return;
+    if (loading) {
+        btn.disabled = true;
+        btn.setAttribute('data-original', btn.textContent);
+        btn.textContent = '⏳ Please wait…';
+        btn.style.opacity = '0.7';
+    } else {
+        btn.disabled = false;
+        btn.textContent = originalText || btn.getAttribute('data-original') || 'Continue';
+        btn.style.opacity = '1';
+    }
+}
+
+function _updateStrength(pass) {
+    var score = 0;
+    if (pass.length >= 8) score++;
+    if (pass.length >= 12) score++;
+    if (/[a-z]/.test(pass) && /[A-Z]/.test(pass)) score++;
+    if (/\d/.test(pass)) score++;
+    if (/[^a-zA-Z0-9]/.test(pass)) score++;
+
+    var pct = Math.min(score * 20, 100);
+    var color = '#ff4444';
+    var label = 'Weak';
+    if (score >= 4) { color = '#00ff88'; label = 'Strong'; }
+    else if (score >= 3) { color = '#00d9ff'; label = 'Good'; }
+    else if (score >= 2) { color = '#ffc107'; label = 'Fair'; }
+
+    var fill = document.getElementById('strengthFill');
+    var text = document.getElementById('strengthText');
+    if (fill) { fill.style.width = pct + '%'; fill.style.background = color; }
+    if (text) {
+        if (!pass) { text.textContent = 'Minimum 8 characters'; text.style.color = '#5b6580'; }
+        else { text.textContent = label + (pass.length < 8 ? ' — need ' + (8 - pass.length) + ' more characters' : ''); text.style.color = color; }
+    }
 }
 
 function regStep1() {
@@ -179,27 +324,47 @@ function regStep1() {
     if (password !== password2) { _showStatus('Passwords do not match.', '#ff6b6b'); return; }
     if (!terms) { _showStatus('Please accept the Terms and Conditions.', '#ff6b6b'); return; }
 
+    // [FIRST-LINE-DEFENSE] Block if fingerprint already used (localStorage check)
+    if (window._fpAlreadyUsed) {
+        _showStatus('A free trial has already been used on this device. Please subscribe to continue.', '#ff6b6b');
+        return;
+    }
+
     _regData = { name: name, email: email, phone: phone, country: country, password: password, referral: document.getElementById('regReferral').value.trim() };
 
     _showStatus('Sending verification code…', '#8b94a8');
+    _btnLoading('btnStep1', true);
 
     // Send verification code via GAS
     _sendVerificationCode(email);
 }
 
 async function _sendVerificationCode(email) {
-    // Generate a 6-digit code locally (GAS will also generate and email it)
-    _regOtpCode = String(Math.floor(100000 + Math.random() * 900000));
-
+    // OTP is generated server-side for security — client just triggers the send
     try {
         var url = 'https://script.google.com/macros/s/AKfycbyfhxELNSDXLuC7yZ61nsAPdFn9J9dqg-5W3gMKZSD9plWX2l6gyGEAS7Z8DH01PZS_IQ/exec';
-        var params = { command: 'auth_send_otp', email: _regData.email, otp: _regOtpCode, name: _regData.name };
-        var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+        var params = { command: 'auth_send_otp', email: _regData.email, name: _regData.name };
+
+        // Send via POST (email never in URL)
         try {
-            var r = await fetch(url + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors', cache: 'no-cache' });
+            var r = await fetch(url, {
+                method: 'POST',
+                mode: 'cors',
+                cache: 'no-cache',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(params)
+            });
             if (r.ok) { var d = await r.json(); if (d && d.status === 'ok') { _showOtpStep(); return; } }
         } catch (_) {}
-        // If request failed, still show OTP step (best effort)
+
+        // Fallback to GET if POST fails
+        try {
+            var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+            var r2 = await fetch(url + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors', cache: 'no-cache' });
+            if (r2.ok) { var d2 = await r2.json(); if (d2 && d2.status === 'ok') { _showOtpStep(); return; } }
+        } catch (_) {}
+
+        // If both failed, still show OTP step (best effort)
         _showOtpStep();
     } catch (_) {
         _showOtpStep();
@@ -221,6 +386,12 @@ async function regStep2() {
     if (otp.length !== 6) { _showStatus('Please enter the 6-digit code.', '#ff6b6b'); return; }
 
     _showStatus('Verifying…', '#8b94a8');
+    _btnLoading('btnStep2', true);
+
+    // Ensure fingerprint is ready
+    if (!_regDeviceFp) {
+        try { _regDeviceFp = await _generateDeviceFingerprint(); } catch (_) {}
+    }
 
     // Call GAS to verify OTP and create account
     try {
@@ -233,25 +404,74 @@ async function regStep2() {
             phone: _regData.phone,
             country: _regData.country,
             password: _regData.password,
-            referral: _regData.referral
+            referral: _regData.referral,
+            device_fp: _regDeviceFp || '',
+            reg_ip: window._clientIpHint || ''
         };
         var success = false;
-        var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+        var respData = null;
+
+        // Send via POST (password never in URL)
         try {
-            var r = await fetch(url + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors', cache: 'no-cache' });
-            if (r.ok) { var d = await r.json(); if (d && d.status === 'ok') { success = true; if (d.token) { var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}'); cfg.secretToken = d.token; cfg.endpointUrl = url; localStorage.setItem('falconConfig', JSON.stringify(cfg)); localStorage.setItem('falcon_user_name', _regData.name); localStorage.setItem('falcon_email', _regData.email); } } }
+            var r = await fetch(url, {
+                method: 'POST',
+                mode: 'cors',
+                cache: 'no-cache',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(params)
+            });
+            if (r.ok) {
+                respData = await r.json();
+                if (respData && respData.status === 'ok') success = true;
+            }
         } catch (_) {}
+
+        // Fallback to GET if POST fails (some restricted networks block POST)
+        if (!respData) {
+            try {
+                var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+                var r2 = await fetch(url + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors', cache: 'no-cache' });
+                if (r2.ok) {
+                    respData = await r2.json();
+                    if (respData && respData.status === 'ok') success = true;
+                }
+            } catch (_) {}
+        }
+
         if (success) {
-            // Activate 7-day free trial
-            var trialStart = Date.now();
-            localStorage.setItem('falcon_trial_start', trialStart);
-            localStorage.setItem('falcon_trial_days', '7');
+            // Store token and user info from server response
+            if (respData && respData.token) {
+                var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
+                cfg.secretToken = respData.token;
+                cfg.endpointUrl = url;
+                localStorage.setItem('falconConfig', JSON.stringify(cfg));
+                localStorage.setItem('falcon_user_name', _regData.name);
+                localStorage.setItem('falcon_email', _regData.email);
+                if (respData.trial_expires) {
+                    localStorage.setItem('falcon_trial_expires', respData.trial_expires);
+                    localStorage.setItem('falcon_trial_days', String(respData.trial_days || 7));
+                }
+            }
+            // [FIRST-LINE-DEFENSE] Record fingerprint in localStorage
+            if (_regDeviceFp) {
+                var usedFps = {};
+                try { usedFps = JSON.parse(localStorage.getItem('falcon_used_fps') || '{}'); } catch (_) {}
+                usedFps[_regDeviceFp] = { email: _regData.email, ts: Date.now() };
+                localStorage.setItem('falcon_used_fps', JSON.stringify(usedFps));
+            }
             _showSuccessStep();
         } else {
-            _showStatus('Verification failed. Please check the code and try again.', '#ff6b6b');
+            // Check for specific abuse errors
+            var errMsg = (respData && respData.error) || 'Verification failed. Please check the code and try again.';
+            if (errMsg.indexOf('trial_device_used') >= 0 || errMsg.indexOf('trial_phone_used') >= 0) {
+                errMsg = 'A free trial has already been used on this device or phone number. Please subscribe to continue.';
+            }
+            _showStatus(errMsg, '#ff6b6b');
+            _btnLoading('btnStep2', false, 'Verify & Create Account →');
         }
     } catch (e) {
         _showStatus('Error: ' + (e.message || 'unknown'), '#ff6b6b');
+        _btnLoading('btnStep2', false, 'Verify & Create Account →');
     }
 }
 
@@ -269,5 +489,6 @@ function regResendCode() {
 }
 </script>
 
+<script src="consent-banner.js"></script>
 </body>
 </html>

@@ -3021,6 +3021,38 @@
             <span class="os-resize os-resize-b"></span>
             <span class="os-resize os-resize-br"></span>
         </section>
+        <section class="os-window" id="winEmotional" data-win="emotional" data-title="Emotional Mode" data-icon="🧠" style="left:14px;top:370px;width:380px;height:180px;">
+            <div class="os-titlebar">
+                <span class="os-title-icon">🧠</span>
+                <span class="os-title-text">Emotional Mode</span>
+                <div class="os-title-controls">
+                    <button class="os-tb-btn os-min" data-action="minimize" title="Minimize">_</button>
+                    <button class="os-tb-btn os-max" data-action="maximize" title="Maximize">▢</button>
+                    <button class="os-tb-btn os-close" data-action="close" title="Close">×</button>
+                </div>
+            </div>
+            <div class="os-window-body">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">🧠 Emotional Mode</div>
+                        <div id="emotionalBadge" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.1);">--</div>
+                    </div>
+                    <div class="card-body">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                            <div>
+                                <div style="font-size:13px;font-weight:600;">Emotional Bias System</div>
+                                <div style="font-size:11px;color:rgba(255,255,255,0.35);">Enables AI emotional intelligence in trading decisions</div>
+                            </div>
+                            <button id="emotionalToggle" class="sym-mini-toggle" onclick="toggleEmotionalMode()" style="width:50px;height:27px;"></button>
+                        </div>
+                        <div id="emotionalStatus" style="font-size:10px;color:rgba(255,255,255,0.35);text-align:center;"></div>
+                    </div>
+                </div>
+            </div>
+            <span class="os-resize os-resize-r"></span>
+            <span class="os-resize os-resize-b"></span>
+            <span class="os-resize os-resize-br"></span>
+        </section>
         <section class="os-window" id="winAccount" data-win="account" data-title="Account Snapshot" data-icon="💼" style="left:410px;top:14px;width:400px;height:240px;">
             <div class="os-titlebar">
                 <span class="os-title-icon">💼</span>
@@ -4746,6 +4778,7 @@
         renderCommHealth(currentState);
         renderLicense(currentState.account);
         renderAI(currentState.ai);
+        if (typeof _emotionalCheckFromState === 'function') _emotionalCheckFromState(currentState);
     }
 
     /* ====================================================================
@@ -7080,6 +7113,8 @@
         + '  RESUME_EA_SYMBOL  {"symbol":"BTCUSD"}            — undo PAUSE_EA_SYMBOL on one symbol.\n'
         + '  DISABLE_EA_SYMBOL {"symbol":"BTCUSD"}            — ⚠ DESTRUCTIVE: disables the EA on ONE symbol AND immediately CLOSES every open position on that symbol at market price. The "disabled" flag is reversible (re-enable with ENABLE_EA_SYMBOL) but the closed positions are NOT — realized P/L is locked in. Use ONLY when the user explicitly says "disable BTCUSD and close everything", "kill BTCUSD", or similar. If the user just wants to stop NEW trades while keeping existing positions running, use PAUSE_EA_SYMBOL instead.\n'
         + '  ENABLE_EA_SYMBOL  {"symbol":"BTCUSD"}            — undo DISABLE_EA_SYMBOL on one symbol.\n'
+        + '  EMOTIONAL_MODE_ON  {}                           — enable Emotional Mode (AI emotional intelligence influences trading decisions). Use when user says "enable emotional mode", "turn on emotions", "activate emotional bias".\n'
+        + '  EMOTIONAL_MODE_OFF {}                           — disable Emotional Mode (pure algorithmic trading, no emotional bias). Use when user says "disable emotional mode", "turn off emotions", "disable emotional bias".\n'
         + '  DETACH_EA_SYMBOL  {"symbol":"BTCUSD"}            — ⚠ IRREVERSIBLE FROM REMOTE. Fully unloads the EA instance from the BTCUSD chart (calls ExpertRemove). Any open positions on BTCUSD become UNMANAGED — no trailing stops, no automated exits. The user must manually re-drag the EA from MT5 Navigator to re-enable. Use ONLY when the user explicitly says "remove EA from <symbol> chart", "detach", "unload", or "remove BTCUSD from chart". If they just say "stop trading X" or "pause X", use PAUSE_EA_SYMBOL instead — it is reversible and safer.\n'
         + 'Rules:\n'
         + '  1. Only emit ONE action block per reply, and only when the user clearly asks for action.\n'
@@ -7893,6 +7928,10 @@
             }
             case 'RESUME_EA':
                 return 'FALCON_TA:RESUME_EA';
+            case 'EMOTIONAL_MODE_ON':
+                return 'FALCON_TA:EMOTIONAL_MODE:ON';
+            case 'EMOTIONAL_MODE_OFF':
+                return 'FALCON_TA:EMOTIONAL_MODE:OFF';
             case 'EMERGENCY_STOP': {
                 const reason = (a.reason || 'ai_request').replace(/[:|\s]+/g, '_').slice(0, 40);
                 return 'FALCON_TA:EMERGENCY_STOP:' + reason;
@@ -8065,6 +8104,26 @@
         }
 
         try {
+            // [EMOTIONAL-MODE] Special handling: EMOTIONAL_MODE commands must use
+            // callAdmin (master_token) to write to disable_emotional_bias state field.
+            // Regular sendCommand only sets last_command/action — it doesn't update the state flag.
+            if (cmdString === 'FALCON_TA:EMOTIONAL_MODE:ON' || cmdString === 'FALCON_TA:EMOTIONAL_MODE:OFF') {
+                const isOn = cmdString.endsWith(':ON');
+                try {
+                    const res = await callAdmin({ command: 'admin_set_emotional_mode', enabled: isOn ? '1' : '0' });
+                    const ok = res && res.status === 'ok';
+                    if (ok) {
+                        if (typeof _updateEmotionalUI === 'function') _updateEmotionalUI(isOn);
+                        if (typeof addLog === 'function') addLog('Emotional Mode ' + (isOn ? 'ENABLED' : 'DISABLED') + ' via AI Chat', isOn ? 'success' : 'warning');
+                        _safeChatMsg('✅ Emotional Mode ' + (isOn ? 'ENABLED' : 'DISABLED') + '. EA will update on next poll (within 5s).');
+                    } else {
+                        _safeChatMsg('⚠️ Emotional Mode command failed: ' + (res && res.error || 'unknown error'));
+                    }
+                } catch (e) {
+                    _safeChatMsg('❌ Emotional Mode command failed: ' + (e && e.message || e));
+                }
+                return;
+            }
             const ok = await sendCommand('update', {
                 action:       cmdString,        // GAS stores this as last_command
                 last_command: cmdString,
@@ -12348,6 +12407,46 @@
                     '<tbody>'+rows.join('')+'</tbody></table>';
             } catch (e) { _dtsOut('ERROR: '+(e&&e.message||e), 'err'); }
         };
+
+        /* ─── EMOTIONAL MODE REMOTE TOGGLE ─── */
+        var _emotionalModeState = null; // null=unknown, true=ON, false=OFF
+        function _updateEmotionalUI(isOn) {
+            _emotionalModeState = isOn;
+            var toggle = $('emotionalToggle');
+            var badge = $('emotionalBadge');
+            var status = $('emotionalStatus');
+            if (toggle) toggle.className = 'sym-mini-toggle' + (isOn ? ' on' : '');
+            if (badge) {
+                if (isOn) { badge.textContent = 'ACTIVE'; badge.style.background = 'rgba(0,255,136,0.12)'; badge.style.color = '#00ff88'; badge.style.borderColor = 'rgba(0,255,136,0.3)'; }
+                else      { badge.textContent = 'DISABLED'; badge.style.background = 'rgba(255,68,68,0.12)'; badge.style.color = '#ff6b6b'; badge.style.borderColor = 'rgba(255,68,68,0.3)'; }
+            }
+            if (status) status.textContent = isOn ? 'Emotional AI is influencing trading decisions' : 'Pure algorithmic mode — no emotional bias';
+        }
+        window.toggleEmotionalMode = async function() {
+            var newState = !_emotionalModeState;
+            var statusEl = $('emotionalStatus');
+            if (statusEl) { statusEl.textContent = 'Sending…'; statusEl.style.color = '#8b94a8'; }
+            try {
+                var res = await callAdmin({ command: 'admin_set_emotional_mode', enabled: newState ? '1' : '0' });
+                if (res && res.status === 'ok') {
+                    _updateEmotionalUI(res.emotional_mode);
+                    if (typeof addLog === 'function') addLog('Emotional mode ' + (res.emotional_mode ? 'ENABLED' : 'DISABLED'), res.emotional_mode ? 'success' : 'warning');
+                } else {
+                    if (statusEl) { statusEl.textContent = (res && res.error) || 'Failed'; statusEl.style.color = '#ff6b6b'; }
+                }
+            } catch (e) {
+                if (statusEl) { statusEl.textContent = 'Error: ' + (e && e.message || e); statusEl.style.color = '#ff6b6b'; }
+            }
+        };
+        // Read emotional mode from state on each poll (state.disable_emotional_bias)
+        // This hooks into the existing poll cycle — look for where state is refreshed
+        function _emotionalCheckFromState(state) {
+            if (state && typeof state.disable_emotional_bias !== 'undefined') {
+                _updateEmotionalUI(!state.disable_emotional_bias);
+            }
+        }
+        // Hook: call _emotionalCheckFromState whenever state is received
+        // (attached to the poll renderer below)
 
         /* ─── LIVE CHAT INBOX ─── */
         var _inbox = {

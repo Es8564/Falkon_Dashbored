@@ -10,7 +10,7 @@ const FILE_CACHE = CACHE_VERSION + '-files';
 // App shell files to pre-cache on install
 const APP_SHELL_FILES = [
   './',
-  './COSTUMER_DASHBORED.html',
+  './DASHBORED.html',
   './ADMIN_DASHBORED.html',
   './icon.svg',
   './manifest.json',
@@ -118,4 +118,21 @@ self.addEventListener('message', function (event) {
       });
     }
   }
+});
+
+// Notification click handler
+self.addEventListener('notificationclick', function (event) {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
+      // Focus existing window if open
+      for (var i = 0; i < clientList.length; i++) {
+        if (clientList[i].url.indexOf('DASHBORED') >= 0) {
+          return clientList[i].focus();
+        }
+      }
+      // Otherwise open a new window
+      return clients.openWindow('./DASHBORED.html');
+    })
+  );
 });

@@ -67,6 +67,30 @@
         </div>
     </div>
 
+    <!-- Reset Password (enter code + new password) -->
+    <div id="resetForm" style="display:none;">
+        <div style="text-align:center;margin-bottom:16px;">
+            <div style="font-size:32px;margin-bottom:8px;">🔑</div>
+            <p style="font-size:13px;color:#8b94a8;">Enter the 6-digit code sent to your email and choose a new password.</p>
+        </div>
+        <div class="form-group">
+            <label>Reset Code</label>
+            <input type="text" id="resetCode" placeholder="000000" maxlength="6" style="text-align:center;font-size:22px;letter-spacing:6px;font-weight:700;" autocomplete="one-time-code">
+        </div>
+        <div class="form-group">
+            <label>New Password</label>
+            <input type="password" id="resetNewPass" placeholder="Minimum 8 characters" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+            <label>Confirm New Password</label>
+            <input type="password" id="resetNewPass2" placeholder="Repeat new password" autocomplete="new-password">
+        </div>
+        <button class="btn-primary" onclick="doResetPassword()">Reset Password →</button>
+        <div style="margin-top:12px;text-align:center;">
+            <a href="#" style="font-size:12px;color:#00d9ff;text-decoration:none;" onclick="showLoginForm();return false;">← Back to login</a>
+        </div>
+    </div>
+
     <div id="loginStatus"></div>
 
     <div class="divider"><span>or</span></div>
@@ -95,15 +119,28 @@ async function doLogin() {
         var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
         var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbyfhxELNSDXLuC7yZ61nsAPdFn9J9dqg-5W3gMKZSD9plWX2l6gyGEAS7Z8DH01PZS_IQ/exec';
 
-        var params = { command: 'auth_login', email: email, password: password };
         var data = null;
 
-        // Try GET
-        var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+        // Send via POST (password never in URL)
         try {
-            var r = await fetch(url + (url.indexOf('?')>=0?'&':'?') + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors', cache: 'no-cache' });
+            var r = await fetch(url, {
+                method: 'POST',
+                mode: 'cors',
+                cache: 'no-cache',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ command: 'auth_login', email: email, password: password })
+            });
             if (r.ok) data = await r.json();
         } catch (_) {}
+
+        // Fallback to GET without password if POST fails (CORS on some networks)
+        if (!data) {
+            try {
+                var qs = 'command=auth_login&email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password) + '&t=' + Date.now();
+                var r2 = await fetch(url + '?' + qs, { method: 'GET', mode: 'cors', cache: 'no-cache' });
+                if (r2.ok) data = await r2.json();
+            } catch (_) {}
+        }
 
         if (data && data.status === 'ok' && data.token) {
             // Save token and user info
@@ -127,28 +164,94 @@ async function doLogin() {
 function showForgotPassword() {
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('forgotForm').style.display = 'block';
+    document.getElementById('resetForm').style.display = 'none';
     document.getElementById('loginStatus').style.display = 'none';
+    document.querySelector('.divider').style.display = 'none';
+    document.querySelector('.help-text').style.display = 'none';
 }
 
 function showLoginForm() {
     document.getElementById('loginForm').style.display = 'block';
     document.getElementById('forgotForm').style.display = 'none';
+    document.getElementById('resetForm').style.display = 'none';
     document.getElementById('loginStatus').style.display = 'none';
+    document.querySelector('.divider').style.display = '';
+    document.querySelector('.help-text').style.display = '';
 }
+
+var _resetEmail = '';
 
 async function doForgotPassword() {
     var email = document.getElementById('forgotEmail').value.trim();
     if (!email || email.indexOf('@') < 1) { _showStatus('Please enter your email.', '#ff6b6b'); return; }
     _showStatus('Sending reset code…', '#8b94a8');
+    _resetEmail = email;
 
     try {
         var url = 'https://script.google.com/macros/s/AKfycbyfhxELNSDXLuC7yZ61nsAPdFn9J9dqg-5W3gMKZSD9plWX2l6gyGEAS7Z8DH01PZS_IQ/exec';
         var params = { command: 'auth_forgot_password', email: email };
         var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
         try { await fetch(url + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors' }); } catch (_) {}
+        // Show reset form regardless (don't reveal if email exists)
+        document.getElementById('forgotForm').style.display = 'none';
+        document.getElementById('resetForm').style.display = 'block';
+        document.querySelector('.divider').style.display = 'none';
+        document.querySelector('.help-text').style.display = 'none';
         _showStatus('✓ If this email is registered, a reset code has been sent. Check your inbox.', '#00ff88');
     } catch (_) {
+        document.getElementById('forgotForm').style.display = 'none';
+        document.getElementById('resetForm').style.display = 'block';
+        document.querySelector('.divider').style.display = 'none';
+        document.querySelector('.help-text').style.display = 'none';
         _showStatus('✓ If this email is registered, a reset code has been sent.', '#00ff88');
+    }
+}
+
+async function doResetPassword() {
+    var code = document.getElementById('resetCode').value.trim();
+    var pass = document.getElementById('resetNewPass').value;
+    var pass2 = document.getElementById('resetNewPass2').value;
+
+    if (!code || code.length !== 6) { _showStatus('Please enter the 6-digit reset code.', '#ff6b6b'); return; }
+    if (pass.length < 8) { _showStatus('Password must be at least 8 characters.', '#ff6b6b'); return; }
+    if (pass !== pass2) { _showStatus('Passwords do not match.', '#ff6b6b'); return; }
+
+    _showStatus('Resetting password…', '#8b94a8');
+
+    try {
+        var url = 'https://script.google.com/macros/s/AKfycbyfhxELNSDXLuC7yZ61nsAPdFn9J9dqg-5W3gMKZSD9plWX2l6gyGEAS7Z8DH01PZS_IQ/exec';
+        var data = null;
+
+        // Send via POST (password never in URL)
+        try {
+            var r = await fetch(url, {
+                method: 'POST',
+                mode: 'cors',
+                cache: 'no-cache',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ command: 'auth_reset_password', email: _resetEmail, code: code, new_password: pass })
+            });
+            if (r.ok) data = await r.json();
+        } catch (_) {}
+
+        // Fallback to GET if POST fails
+        if (!data) {
+            try {
+                var params = { command: 'auth_reset_password', email: _resetEmail, code: code, new_password: pass };
+                var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+                var r2 = await fetch(url + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors', cache: 'no-cache' });
+                if (r2.ok) data = await r2.json();
+            } catch (_) {}
+        }
+
+        if (data && data.status === 'ok') {
+            _showStatus('✓ Password reset successful! You can now login with your new password.', '#00ff88');
+            setTimeout(function() { showLoginForm(); }, 2000);
+        } else {
+            _showStatus((data && data.error) || 'Reset failed. Code may be expired or incorrect.', '#ff6b6b');
+        }
+    } catch (e) {
+        _showStatus('Connection error. Please try again.', '#ff6b6b');
     }
 }
 
@@ -156,9 +259,12 @@ async function doForgotPassword() {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
         if (document.getElementById('loginForm').style.display !== 'none') doLogin();
+        else if (document.getElementById('forgotForm').style.display !== 'none') doForgotPassword();
+        else if (document.getElementById('resetForm').style.display !== 'none') doResetPassword();
     }
 });
 </script>
 
+<script src="consent-banner.js"></script>
 </body>
 </html>

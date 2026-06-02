@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation & Knowledge Base — Falcon AI</title>
+    <meta name="description" content="Complete documentation for Falcon AI. Setup guides, EA configuration, dashboard usage, troubleshooting, and more.">
+    <meta name="theme-color" content="#0d1117">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #0d1117; color: #e6edf3; line-height: 1.7; overflow-x: hidden; }
+        .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(13,17,23,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { font-size: 20px; font-weight: 900; background: linear-gradient(90deg, #00d9ff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-decoration: none; }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { color: #8b94a8; text-decoration: none; font-size: 14px; font-weight: 500; }
+        .nav-links a:hover { color: #e6edf3; }
+        .nav-cta { background: linear-gradient(135deg, #00d9ff, #00ff88); color: #0d1117; padding: 8px 18px; border-radius: 8px; font-weight: 700; font-size: 13px; text-decoration: none; }
+        .nav-mobile { display: none; background: none; border: none; color: #e6edf3; font-size: 24px; cursor: pointer; }
+        @media (max-width: 768px) { .nav-links { display: none; } .nav-mobile { display: block; } .nav-links.open { display: flex; flex-direction: column; position: absolute; top: 56px; left: 0; right: 0; background: #0d1117; padding: 20px; border-bottom: 1px solid #2a3142; } }
+        .page { max-width: 900px; margin: 0 auto; padding: 100px 24px 60px; }
+        .page-title { font-size: 36px; font-weight: 900; text-align: center; margin-bottom: 8px; }
+        .page-sub { font-size: 16px; color: #8b94a8; text-align: center; margin-bottom: 40px; }
+
+        .docs-search { display: flex; justify-content: center; margin-bottom: 36px; }
+        .docs-search input { width: 100%; max-width: 500px; padding: 14px 20px; background: rgba(22,27,34,0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e6edf3; font-size: 15px; outline: none; font-family: inherit; }
+        .docs-search input:focus { border-color: #00d9ff; box-shadow: 0 0 0 3px rgba(0,217,255,0.1); }
+        .docs-search input::placeholder { color: rgba(255,255,255,0.25); }
+
+        .docs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 48px; }
+        .docs-card { background: rgba(22,27,34,0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 24px; transition: border-color 0.2s, transform 0.2s; cursor: pointer; text-decoration: none; color: inherit; }
+        .docs-card:hover { border-color: rgba(0,217,255,0.3); transform: translateY(-2px); }
+        .docs-card .icon { font-size: 28px; margin-bottom: 12px; }
+        .docs-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+        .docs-card p { font-size: 12px; color: #8b94a8; }
+        .docs-card .count { font-size: 10px; color: #5b6580; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .doc-section { margin-bottom: 48px; }
+        .doc-section-title { font-size: 22px; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; color: #00d9ff; }
+        .doc-article { background: rgba(22,27,34,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
+        .doc-article-header { padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.15s; }
+        .doc-article-header:hover { background: rgba(255,255,255,0.03); }
+        .doc-article-header h4 { font-size: 14px; font-weight: 600; color: #e6edf3; }
+        .doc-article-header::after { content: '+'; font-size: 18px; color: #5b6580; transition: transform 0.2s; }
+        .doc-article-header.open::after { content: '−'; color: #00d9ff; }
+        .doc-article-body { padding: 0 20px 16px; display: none; font-size: 13px; color: #c8d0df; line-height: 1.8; }
+        .doc-article-body.open { display: block; }
+        .doc-article-body p { margin-bottom: 10px; }
+        .doc-article-body code { background: rgba(0,217,255,0.08); color: #00d9ff; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: 'Consolas', monospace; }
+        .doc-article-body ul, .doc-article-body ol { margin: 8px 0 12px 20px; }
+        .doc-article-body li { margin-bottom: 4px; }
+        .doc-article-body .step-box { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 12px 16px; margin: 10px 0; }
+        .doc-article-body .step-num { display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, #00d9ff, #00ff88); color: #0d1117; font-size: 11px; font-weight: 800; text-align: center; line-height: 22px; margin-right: 8px; }
+        .doc-article-body .warning { background: rgba(255,193,7,0.08); border: 1px solid rgba(255,193,7,0.2); border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #ffc107; margin: 10px 0; }
+        .doc-article-body .tip { background: rgba(0,255,136,0.06); border: 1px solid rgba(0,255,136,0.15); border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #00ff88; margin: 10px 0; }
+
+        .footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 40px 24px; text-align: center; font-size: 13px; color: #5b6580; margin-top: 60px; }
+        .footer a { color: #8b94a8; text-decoration: none; margin: 0 10px; }
+        .footer a:hover { color: #e6edf3; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="index.html" class="nav-logo">◈ FALCON AI</a>
+    <div class="nav-links" id="navLinks">
+        <a href="index.html">Home</a>
+        <a href="features.html">Features</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="support.html">Support</a>
+        <a href="docs.html" style="color:#00d9ff;font-weight:600;">Docs</a>
+        <a href="contact.html">Contact</a>
+        <a href="account.html" class="nav-cta">My Account</a>
+    </div>
+    <button class="nav-mobile" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+</nav>
+
+<div class="page">
+    <h1 class="page-title">Documentation</h1>
+    <p class="page-sub">Everything you need to set up, configure, and get the most from Falcon AI.</p>
+
+    <div class="docs-search">
+        <input type="text" id="docsSearch" placeholder="Search documentation…" oninput="filterDocs(this.value)">
+    </div>
+
+    <!-- Quick access cards -->
+    <div class="docs-grid">
+        <a href="#getting-started" class="docs-card">
+            <div class="icon">🚀</div>
+            <h3>Getting Started</h3>
+            <p>Installation, first connection, and initial setup.</p>
+            <div class="count">5 articles</div>
+        </a>
+        <a href="#ea-configuration" class="docs-card">
+            <div class="icon">⚙️</div>
+            <h3>EA Configuration</h3>
+            <p>All EA settings explained — tokens, risk, symbols.</p>
+            <div class="count">6 articles</div>
+        </a>
+        <a href="#dashboard" class="docs-card">
+            <div class="icon">📱</div>
+            <h3>Dashboard Guide</h3>
+            <p>How to use the remote control dashboard.</p>
+            <div class="count">5 articles</div>
+        </a>
+        <a href="#trading" class="docs-card">
+            <div class="icon">📈</div>
+            <h3>Trading & AI</h3>
+            <p>Daily targets, AI health, symbol management.</p>
+            <div class="count">4 articles</div>
+        </a>
+        <a href="#account" class="docs-card">
+            <div class="icon">👤</div>
+            <h3>Account & Billing</h3>
+            <p>Subscription, payments, trial, password reset.</p>
+            <div class="count">4 articles</div>
+        </a>
+        <a href="#troubleshooting" class="docs-card">
+            <div class="icon">🔧</div>
+            <h3>Troubleshooting</h3>
+            <p>Common issues and how to fix them.</p>
+            <div class="count">6 articles</div>
+        </a>
+    </div>
+
+    <!-- ═══ GETTING STARTED ═══ -->
+    <div class="doc-section" id="getting-started">
+        <div class="doc-section-title">🚀 Getting Started</div>
+
+        <div class="doc-article" data-search="install download ea mt5 expert advisor">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Installing the EA on MetaTrader 5</h4></div>
+            <div class="doc-article-body">
+                <div class="step-box"><span class="step-num">1</span> Download the <code>FalconAI_EA_v4.ex5</code> file from the <a href="download.html" style="color:#00d9ff;">Download page</a>.</div>
+                <div class="step-box"><span class="step-num">2</span> Open MT5 → <strong>File</strong> → <strong>Open Data Folder</strong> → navigate to <code>MQL5/Experts</code>.</div>
+                <div class="step-box"><span class="step-num">3</span> Copy the .ex5 file into the Experts folder.</div>
+                <div class="step-box"><span class="step-num">4</span> Restart MT5 or right-click the Navigator panel → <strong>Refresh</strong>.</div>
+                <div class="step-box"><span class="step-num">5</span> Drag "Falcon AI" from Navigator → Expert Advisors onto any chart.</div>
+                <div class="tip">💡 Use a VPS with Windows for 24/7 operation. The EA must be running continuously to trade.</div>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="webrequest url allow enable permissions">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Enabling WebRequest in MT5</h4></div>
+            <div class="doc-article-body">
+                <p>The EA needs permission to communicate with the server. Without this, all remote features are disabled.</p>
+                <div class="step-box"><span class="step-num">1</span> In MT5: <strong>Tools</strong> → <strong>Options</strong> → <strong>Expert Advisors</strong></div>
+                <div class="step-box"><span class="step-num">2</span> Check <code>Allow WebRequest for listed URL</code></div>
+                <div class="step-box"><span class="step-num">3</span> Click <strong>Add</strong> and paste: <code>https://script.google.com</code></div>
+                <div class="step-box"><span class="step-num">4</span> Click <strong>OK</strong> and restart the EA.</div>
+                <div class="warning">⚠️ Without this step, the EA cannot receive remote commands or report telemetry.</div>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="token secret connect dashboard first time">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Connecting Your Dashboard</h4></div>
+            <div class="doc-article-body">
+                <p>Your dashboard connects to your EA using a unique secret token. This token is generated when you register.</p>
+                <div class="step-box"><span class="step-num">1</span> Open the Customer Dashboard file in your browser (or install it as a PWA).</div>
+                <div class="step-box"><span class="step-num">2</span> Go to the <strong>Configuration</strong> section (gear icon).</div>
+                <div class="step-box"><span class="step-num">3</span> Paste your <strong>Google Apps Script URL</strong> and your <strong>Secret Token</strong>.</div>
+                <div class="step-box"><span class="step-num">4</span> Click <strong>Save & Reconnect</strong>.</div>
+                <p>Once connected, the dashboard polls the server every 5 seconds and displays live data from your EA.</p>
+                <div class="tip">💡 You can find your token in your Account page after logging in.</div>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="pwa install mobile app phone home screen">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Installing as a Mobile App (PWA)</h4></div>
+            <div class="doc-article-body">
+                <p>Falcon AI works as a Progressive Web App — installable on any phone or tablet without an app store.</p>
+                <p><strong>On Android (Chrome):</strong></p>
+                <ol>
+                    <li>Open the dashboard URL in Chrome.</li>
+                    <li>Tap the three-dot menu → "Add to Home screen" or "Install app".</li>
+                    <li>The app appears on your home screen with its own icon.</li>
+                </ol>
+                <p><strong>On iPhone (Safari):</strong></p>
+                <ol>
+                    <li>Open the dashboard URL in Safari.</li>
+                    <li>Tap the Share button (square with arrow) → "Add to Home Screen".</li>
+                    <li>Tap "Add". The app launches in full-screen mode.</li>
+                </ol>
+                <div class="tip">💡 The PWA supports push notifications and offline caching.</div>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="autotrading enable green button">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Enabling AutoTrading in MT5</h4></div>
+            <div class="doc-article-body">
+                <p>MT5 has a global AutoTrading switch. If it's off, no EA can place trades — including Falcon AI.</p>
+                <div class="step-box"><span class="step-num">1</span> Look at the top toolbar in MT5 for the <strong>AutoTrading</strong> button.</div>
+                <div class="step-box"><span class="step-num">2</span> If it's <span style="color:#ff4444;">red</span>, click it to turn it <span style="color:#00ff88;">green</span>.</div>
+                <div class="step-box"><span class="step-num">3</span> Also check the EA settings tab: "Allow Algo Trading" must be checked.</div>
+                <div class="warning">⚠️ A red AutoTrading button means ZERO trades will be placed, regardless of EA settings.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ EA CONFIGURATION ═══ -->
+    <div class="doc-section" id="ea-configuration">
+        <div class="doc-section-title">⚙️ EA Configuration</div>
+
+        <div class="doc-article" data-search="settings parameters inputs rc_secrettoken rc_endpointurl">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Core Settings (Token & Endpoint)</h4></div>
+            <div class="doc-article-body">
+                <p>These two settings are required for the EA to function:</p>
+                <ul>
+                    <li><code>RC_SecretToken</code> — Your unique account token. This isolates your data from all other users.</li>
+                    <li><code>RC_EndpointURL</code> — The Google Apps Script web app URL. This is where the EA sends/receives data.</li>
+                </ul>
+                <div class="warning">⚠️ Never share your secret token. Anyone with your token can control your EA.</div>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="risk lot size position sizing drawdown">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Risk Management Settings</h4></div>
+            <div class="doc-article-body">
+                <p>Falcon AI includes multiple risk protection layers. Key settings:</p>
+                <ul>
+                    <li><code>MaxDrawdownPercent</code> — Maximum allowed drawdown before EA stops trading (default: 5%)</li>
+                    <li><code>RiskPerTrade</code> — Percentage of equity risked per trade (default: 1%)</li>
+                    <li><code>MaxOpenPositions</code> — Maximum simultaneous open positions</li>
+                    <li><code>UseFixedLot</code> — If true, ignores dynamic sizing and uses a fixed lot</li>
+                    <li><code>FixedLotSize</code> — The fixed lot size when UseFixedLot is true</li>
+                </ul>
+                <div class="tip">💡 Start with conservative settings (1% risk, 3% max drawdown) until you're comfortable with the system.</div>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="symbols pairs currency multi symbol">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Symbol Configuration</h4></div>
+            <div class="doc-article-body">
+                <p>Falcon AI can trade multiple symbols simultaneously. Symbols are managed from the dashboard, but you can also pre-configure them in the EA inputs:</p>
+                <ul>
+                    <li><code>TradedSymbols</code> — Comma-separated list (e.g., "XAUUSD,EURUSD,GBPJPY")</li>
+                    <li>Each symbol can be individually paused, resumed, or disabled from the dashboard</li>
+                    <li>Per-symbol statistics (wins, losses, P&L) are tracked separately</li>
+                </ul>
+                <p>The EA normalizes symbol names (adds broker suffixes automatically if needed).</p>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="daily target profit stop dts percentage">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Daily Profit Target (DTS)</h4></div>
+            <div class="doc-article-body">
+                <p>The Daily Target System automatically stops trading when your profit goal is reached for the day.</p>
+                <ul>
+                    <li><code>DailyTargetPercent</code> — Target as a % of starting balance (e.g., 2.0 = 2%)</li>
+                    <li><code>DTS_Enabled</code> — Enable/disable the daily target system</li>
+                    <li>When target is hit, no new trades are opened until the next trading day</li>
+                    <li>Admin can override the target remotely from the dashboard</li>
+                </ul>
+                <div class="tip">💡 A daily target of 1-3% is realistic and sustainable. Avoid setting overly aggressive targets.</div>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="ai learning training freeze score cognitive">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>AI Engine Settings</h4></div>
+            <div class="doc-article-body">
+                <p>The AI engine learns from trading outcomes and adapts its strategy. Key settings:</p>
+                <ul>
+                    <li><code>AI_Enabled</code> — Master switch for the AI decision layer</li>
+                    <li><code>AI_LearningRate</code> — How fast the AI adapts (lower = more conservative)</li>
+                    <li><code>AI_MinTradesForAdapt</code> — Minimum trades before AI starts adjusting strategy</li>
+                    <li><code>AI_FreezeOnDrawdown</code> — Pause AI learning during drawdown periods</li>
+                </ul>
+                <p>The dashboard shows a real-time AI Health Score (0-100) and cognitive state (Learning, Adapting, Innovating).</p>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="license validation activation account server login">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>License & Activation</h4></div>
+            <div class="doc-article-body">
+                <p>Falcon AI validates your license on startup. The EA sends your MT5 account number and broker server to the license registry.</p>
+                <ul>
+                    <li>License is tied to your specific MT5 account (server + login pair)</li>
+                    <li>Free trial: 7 days full access, starts automatically on registration</li>
+                    <li>Paid subscription: validated on each EA startup and periodically during operation</li>
+                    <li>If license is invalid or expired, the EA disables new trade entries (existing positions are never touched)</li>
+                </ul>
+                <div class="warning">⚠️ Changing your MT5 account requires contacting support to transfer your license.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ DASHBOARD GUIDE ═══ -->
+    <div class="doc-section" id="dashboard">
+        <div class="doc-section-title">📱 Dashboard Guide</div>
+
+        <div class="doc-article" data-search="remote control enable disable emergency stop">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Remote Control — Enable, Disable & Emergency Stop</h4></div>
+            <div class="doc-article-body">
+                <p>The dashboard gives you full control over your EA from anywhere:</p>
+                <ul>
+                    <li><strong>EA Enabled</strong> toggle — master on/off for all trading</li>
+                    <li><strong>Allow New Entries</strong> toggle — controls whether new positions can be opened</li>
+                    <li><strong>Emergency Stop</strong> button — immediately disables all trading (panic button)</li>
+                </ul>
+                <p>Changes are sent to the server instantly and the EA picks them up within 5 seconds (next poll cycle).</p>
+                <div class="warning">⚠️ Emergency Stop disables the EA but does NOT close existing positions. Use your broker's terminal for that.</div>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="symbol card pause resume per-symbol control">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Per-Symbol Controls</h4></div>
+            <div class="doc-article-body">
+                <p>Each trading symbol appears as a card in the dashboard. You can individually:</p>
+                <ul>
+                    <li><strong>Enable</strong> — symbol actively traded</li>
+                    <li><strong>Pause</strong> — no new entries, but existing positions managed normally</li>
+                    <li><strong>Disable</strong> — completely excluded from trading</li>
+                    <li><strong>Remove</strong> — delete from the dashboard (double-tap to confirm)</li>
+                </ul>
+                <p>You can also add new symbols using the input field at the bottom of the symbols card.</p>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="connection status offline online poll badge signal">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Understanding Connection Status</h4></div>
+            <div class="doc-article-body">
+                <p>The top bar shows your connection health:</p>
+                <ul>
+                    <li><span style="color:#00ff88;">● CONNECTED</span> — Dashboard ↔ Server communication is working</li>
+                    <li><span style="color:#ffc107;">● LOADING</span> — Connecting or waiting for response</li>
+                    <li><span style="color:#ff4444;">● DISCONNECTED</span> — Cannot reach the server</li>
+                </ul>
+                <p>The <strong>EA Offline</strong> banner appears when the server hasn't received a poll from your EA in over 30 seconds. This usually means MT5 is closed, your VPS is down, or WebRequest is not enabled.</p>
+                <p>Signal bars (1-4) indicate poll freshness: 4 bars = polled within 5s, 1 bar = 20+ seconds ago.</p>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="chat message support send file image">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Live Chat & Support</h4></div>
+            <div class="doc-article-body">
+                <p>The built-in chat connects you directly with the admin team. Features:</p>
+                <ul>
+                    <li>Send text messages (up to 2000 characters)</li>
+                    <li>Attach files and images (stored securely per-account)</li>
+                    <li>Receive admin broadcasts and announcements</li>
+                    <li>Chat history is preserved across sessions and devices</li>
+                    <li>Email notifications when you receive a new message</li>
+                </ul>
+                <div class="tip">💡 Chat is the fastest way to get support — responses typically within hours.</div>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="account snapshot balance equity positions kpi">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Account Snapshot & KPIs</h4></div>
+            <div class="doc-article-body">
+                <p>The dashboard displays real-time account metrics reported by your EA:</p>
+                <ul>
+                    <li><strong>Balance</strong> — current account balance</li>
+                    <li><strong>Equity</strong> — balance + unrealized P&L</li>
+                    <li><strong>Open Positions</strong> — number of active trades</li>
+                    <li><strong>Floating P&L</strong> — unrealized profit/loss</li>
+                    <li><strong>Today's Wins / Losses</strong> — closed trade count for the day</li>
+                    <li><strong>Win Rate</strong> — percentage of profitable trades today</li>
+                </ul>
+                <p>These values update every 5 seconds when the EA is online.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ TRADING & AI ═══ -->
+    <div class="doc-section" id="trading">
+        <div class="doc-section-title">📈 Trading & AI</div>
+
+        <div class="doc-article" data-search="daily target progress hit remaining">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>How Daily Targets Work</h4></div>
+            <div class="doc-article-body">
+                <p>The Daily Target System (DTS) calculates your profit as a percentage of your starting balance for the day. When the target is reached:</p>
+                <ol>
+                    <li>EA automatically stops opening new positions</li>
+                    <li>Dashboard shows "🎯 TARGET HIT" banner</li>
+                    <li>Existing positions continue to be managed (SL/TP)</li>
+                    <li>Trading resumes automatically the next day</li>
+                </ol>
+                <p>The progress bar shows real-time percentage toward your target. Admin can set or override your target remotely.</p>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="ai health score cognitive state learning adapting innovating">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>AI Health & Cognitive States</h4></div>
+            <div class="doc-article-body">
+                <p>The AI Health card shows how well the algorithm is performing:</p>
+                <ul>
+                    <li><strong>Health Score (0-100)</strong>: Above 70 = good, 40-70 = needs attention, below 40 = degraded</li>
+                    <li><strong>Cognitive State</strong>:
+                        <ul>
+                            <li><span style="color:#00d9ff;">Learning</span> — gathering data, conservative mode</li>
+                            <li><span style="color:#00ff88;">Adapting</span> — adjusting strategy based on patterns</li>
+                            <li><span style="color:#b48cff;">Innovating</span> — testing new approaches</li>
+                        </ul>
+                    </li>
+                    <li><strong>Adaptation Rate</strong> — how quickly the AI is changing strategy</li>
+                    <li><strong>Innovation Rate</strong> — how much new behavior is being explored</li>
+                </ul>
+                <p>If the AI is "frozen" (shown in red), it means learning has been paused — usually due to drawdown protection.</p>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="spawn new chart remote spawn symbol timeframe">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Remote Symbol Spawning</h4></div>
+            <div class="doc-article-body">
+                <p>Admins can remotely spawn a new chart+EA instance from the dashboard. This creates a new chart window on your MT5 terminal with Falcon AI already attached.</p>
+                <p>This feature requires a dedicated "Spawner EA" to be running on a blank chart. It monitors the spawn mailbox and creates charts when requested.</p>
+                <div class="tip">💡 Spawn is an advanced feature. Contact support for setup assistance.</div>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="local lock veto override admin freeze">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Locks, Vetoes & Overrides</h4></div>
+            <div class="doc-article-body">
+                <p>Multiple protection layers can prevent trading:</p>
+                <ul>
+                    <li><strong>Admin Lock</strong> — set by the platform owner, freezes all new entries. Cannot be overridden by the customer.</li>
+                    <li><strong>Local Lock</strong> — EA self-locks when it detects critical errors (e.g., license failure, tamper detection)</li>
+                    <li><strong>Veto</strong> — per-symbol override that blocks entries for a specific pair</li>
+                </ul>
+                <p>When any lock is active, the EA continues managing existing positions but will not open new ones.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ ACCOUNT & BILLING ═══ -->
+    <div class="doc-section" id="account">
+        <div class="doc-section-title">👤 Account & Billing</div>
+
+        <div class="doc-article" data-search="trial free 7 days trial period test evaluate">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Free Trial (7 Days)</h4></div>
+            <div class="doc-article-body">
+                <p>Every new account receives a <strong>7-day free trial</strong> with full access to all features:</p>
+                <ul>
+                    <li>Full AI trading system</li>
+                    <li>Remote control dashboard</li>
+                    <li>Daily profit targets</li>
+                    <li>Live chat support</li>
+                    <li>All premium features — nothing restricted</li>
+                </ul>
+                <p>When your trial expires, you'll need to subscribe (£400/month) to continue trading. Your existing open positions are never affected by trial expiry.</p>
+                <div class="warning">⚠️ One free trial per person. Creating multiple accounts to extend trials is detected and blocked.</div>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="subscribe payment stripe paypal £400 month billing">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Subscribing & Payments</h4></div>
+            <div class="doc-article-body">
+                <p>To subscribe after your trial:</p>
+                <div class="step-box"><span class="step-num">1</span> Go to your <a href="account.html" style="color:#00d9ff;">Account page</a></div>
+                <div class="step-box"><span class="step-num">2</span> Choose your payment method (Stripe card or PayPal)</div>
+                <div class="step-box"><span class="step-num">3</span> Complete payment in the payment window</div>
+                <div class="step-box"><span class="step-num">4</span> Wait for admin confirmation (usually within hours)</div>
+                <p>Once approved, your subscription activates for 30 days. It auto-renews monthly.</p>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="password reset forgot change update">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Resetting Your Password</h4></div>
+            <div class="doc-article-body">
+                <div class="step-box"><span class="step-num">1</span> Go to the <a href="login.html" style="color:#00d9ff;">Login page</a> and click "Forgot password?"</div>
+                <div class="step-box"><span class="step-num">2</span> Enter your registered email address.</div>
+                <div class="step-box"><span class="step-num">3</span> Check your inbox for a 6-digit reset code (arrives within minutes).</div>
+                <div class="step-box"><span class="step-num">4</span> Enter the code and your new password.</div>
+                <p>The code expires after 10 minutes. If expired, request a new one.</p>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="cancel subscription stop cancel renew">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Cancelling Your Subscription</h4></div>
+            <div class="doc-article-body">
+                <p>To cancel, contact support through the dashboard chat or email. Upon cancellation:</p>
+                <ul>
+                    <li>Access continues until the end of your current billing period</li>
+                    <li>The EA stops receiving remote commands after expiry</li>
+                    <li>Existing open positions are NEVER automatically closed</li>
+                    <li>Your data remains available for export for 30 days</li>
+                </ul>
+                <p>There are no cancellation fees and no long-term contracts.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ TROUBLESHOOTING ═══ -->
+    <div class="doc-section" id="troubleshooting">
+        <div class="doc-section-title">🔧 Troubleshooting</div>
+
+        <div class="doc-article" data-search="offline ea not connecting disconnected no poll">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>EA Shows "Offline" in Dashboard</h4></div>
+            <div class="doc-article-body">
+                <p>If the dashboard shows your EA as offline, check these in order:</p>
+                <ol>
+                    <li><strong>Is MT5 running?</strong> — The EA can only poll when MT5 is open.</li>
+                    <li><strong>Is AutoTrading enabled?</strong> — Must be green in the MT5 toolbar.</li>
+                    <li><strong>Is the EA attached?</strong> — Check if the smiley face appears on the chart.</li>
+                    <li><strong>Is WebRequest enabled?</strong> — Tools → Options → Expert Advisors → check "Allow WebRequest" and verify the URL is correct.</li>
+                    <li><strong>Is internet working?</strong> — Try opening a webpage on the same machine.</li>
+                    <li><strong>Check the Experts tab</strong> — View → Toolbox → Experts tab for error messages.</li>
+                </ol>
+                <div class="tip">💡 The most common cause is WebRequest not being enabled or the URL being wrong.</div>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="commands not working toggle not responding buttons broken">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Dashboard Commands Not Working</h4></div>
+            <div class="doc-article-body">
+                <p>If you toggle something in the dashboard but the EA doesn't respond:</p>
+                <ul>
+                    <li>Wait 5-10 seconds — commands are picked up on the next poll cycle</li>
+                    <li>Check if the EA is online (green connected badge)</li>
+                    <li>Check for a local lock or admin lock (shown as red banners)</li>
+                    <li>Refresh the dashboard page</li>
+                    <li>Ensure your token and URL are correct in Configuration</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="no trades not trading entries disabled positions">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>EA Not Opening Trades</h4></div>
+            <div class="doc-article-body">
+                <p>Multiple things can prevent new trade entries:</p>
+                <ol>
+                    <li><strong>EA Enabled = OFF</strong> — check the main toggle</li>
+                    <li><strong>Allow New Entries = OFF</strong> — check this toggle</li>
+                    <li><strong>Daily target already hit</strong> — check DTS card</li>
+                    <li><strong>Max drawdown reached</strong> — check risk management</li>
+                    <li><strong>All symbols paused or disabled</strong> — check per-symbol cards</li>
+                    <li><strong>Admin lock active</strong> — contact admin</li>
+                    <li><strong>License expired or invalid</strong> — check license badge</li>
+                    <li><strong>Market is closed</strong> — check trading hours for your symbols</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="trial expired cannot trade subscribe access denied">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Trial Expired — What Now?</h4></div>
+            <div class="doc-article-body">
+                <p>When your 7-day trial expires:</p>
+                <ul>
+                    <li>The EA stops opening new positions (existing ones are managed normally)</li>
+                    <li>The dashboard shows a "Trial Expired" banner</li>
+                    <li>You can still view your account and chat with support</li>
+                </ul>
+                <p>To continue trading, subscribe from your <a href="account.html" style="color:#00d9ff;">Account page</a>. Access is restored within hours of payment approval.</p>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="login failed wrong password cannot login">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Cannot Login</h4></div>
+            <div class="doc-article-body">
+                <ul>
+                    <li><strong>Wrong password</strong> — use "Forgot password?" to reset it</li>
+                    <li><strong>Email not found</strong> — check you're using the exact email you registered with</li>
+                    <li><strong>Account suspended</strong> — contact support</li>
+                    <li><strong>Connection error</strong> — check your internet, try again in a minute</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="doc-article" data-search="device fingerprint blocked trial used already">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>"Trial Already Used on This Device"</h4></div>
+            <div class="doc-article-body">
+                <p>If you see this message, it means a free trial has already been activated from your device/browser. This is an anti-abuse measure.</p>
+                <p>If you believe this is an error (e.g., you share a computer with someone), contact support and we can manually review your case.</p>
+                <p>The solution is to <a href="pricing.html" style="color:#00d9ff;">subscribe to a paid plan</a> — this bypasses all trial restrictions.</p>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /page -->
+
+<footer class="footer">
+    <a href="index.html">Home</a> <a href="features.html">Features</a> <a href="pricing.html">Pricing</a> <a href="support.html">Support</a> <a href="privacy.html">Privacy</a> <a href="terms.html">Terms</a> <a href="contact.html">Contact</a>
+    <p style="margin-top:16px;">© 2024–2026 Falcon AI. All rights reserved.</p>
+</footer>
+
+<script>
+function toggleDoc(el) {
+    el.classList.toggle('open');
+    var body = el.nextElementSibling;
+    if (body) body.classList.toggle('open');
+}
+
+function filterDocs(query) {
+    var q = (query || '').toLowerCase().trim();
+    var articles = document.querySelectorAll('.doc-article');
+    var sections = document.querySelectorAll('.doc-section');
+    if (!q) {
+        articles.forEach(function(a) { a.style.display = ''; });
+        sections.forEach(function(s) { s.style.display = ''; });
+        return;
+    }
+    articles.forEach(function(a) {
+        var searchText = (a.getAttribute('data-search') || '') + ' ' + (a.textContent || '');
+        a.style.display = searchText.toLowerCase().indexOf(q) >= 0 ? '' : 'none';
+    });
+    // Hide sections with no visible articles
+    sections.forEach(function(s) {
+        var visible = s.querySelectorAll('.doc-article:not([style*="display: none"])');
+        s.style.display = visible.length > 0 ? '' : 'none';
+    });
+}
+</script>
+
+<script src="nav-auth.js"></script><script src="consent-banner.js"></script>
+</body>
+</html>

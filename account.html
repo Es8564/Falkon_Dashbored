@@ -95,7 +95,7 @@
     <h1 class="page-title">My Account</h1>
 
     <!-- TRIAL BANNER -->
-    <div id="trialBanner" style="display:none;background:linear-gradient(135deg,rgba(0,217,255,0.12),rgba(0,255,136,0.12));border:1px solid rgba(0,255,136,0.35);border-radius:14px;padding:18px 22px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <div id="trialBanner" style="display:none;background:linear-gradient(135deg,rgba(0,217,255,0.12),rgba(0,255,136,0.12));border:1px solid rgba(0,255,136,0.35);border-radius:14px;padding:18px 22px;margin-bottom:20px;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
         <div>
             <div style="font-size:15px;font-weight:800;color:#00ff88;">🚀 Free Trial Active</div>
             <div style="font-size:13px;color:#8b94a8;margin-top:3px;"><span id="trialDaysLeft" style="color:#00d9ff;font-weight:700;">7</span> days remaining — full access to all features</div>
@@ -173,10 +173,35 @@
     <div class="card" id="subscriberLinks" style="display:none;">
         <h2>🚀 Quick Access</h2>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <a href="COSTUMER_DASHBORED.html" class="btn-primary" style="font-size:13px;padding:10px 18px;">Open Dashboard</a>
+            <a href="DASHBORED.html" class="btn-primary" style="font-size:13px;padding:10px 18px;">Open Dashboard</a>
             <a href="download.html" class="btn-secondary">Download EA</a>
             <a href="support.html" class="btn-secondary">Get Support</a>
         </div>
+    </div>
+
+    <!-- Data Export -->
+    <div class="card">
+        <h2>📥 Export My Data</h2>
+        <p>Download all personal data held by Falcon AI for your account (GDPR right to data portability).</p>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px;">
+            <button onclick="exportMyData()" class="btn-primary" style="font-size:13px;padding:10px 18px;width:auto;">Download My Data</button>
+            <span id="exportStatus" style="font-size:12px;color:#5b6580;"></span>
+        </div>
+    </div>
+
+    <!-- Referral Program -->
+    <div class="card">
+        <h2>💰 Referral Program</h2>
+        <p style="margin-bottom:12px;">Earn up to 20% recurring commission for every trader you refer. <a href="affiliate.html" style="color:#00d9ff;text-decoration:none;">Learn more →</a></p>
+        <div style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:14px;margin-bottom:12px;">
+            <div style="font-size:11px;color:#5b6580;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Your Referral Link</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <input type="text" id="refLinkInput" readonly style="flex:1;padding:10px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#00d9ff;font-size:13px;font-family:monospace;outline:none;" value="Loading…">
+                <button onclick="copyRefLink()" style="padding:10px 14px;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;border:none;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;">Copy</button>
+            </div>
+            <div id="refCopyStatus" style="font-size:11px;color:#00ff88;margin-top:6px;display:none;"></div>
+        </div>
+        <div style="font-size:12px;color:#5b6580;">Share this link on social media, trading forums, or directly with friends. When they register and subscribe, you earn commission.</div>
     </div>
 </div>
 
@@ -199,23 +224,31 @@
 
     document.getElementById('accountContent').style.display = 'block';
 
-    // ── TRIAL BANNER LOGIC ──
-    (function() {
-        var trialStart = parseInt(localStorage.getItem('falcon_trial_start') || '0');
-        var trialDays = parseInt(localStorage.getItem('falcon_trial_days') || '7');
+    // ── TRIAL BANNER LOGIC — driven by server response ──
+    // (localStorage is only a fallback; server is authoritative)
+    function _showTrialBanner(daysLeft, expiresIso) {
         var subscribed = localStorage.getItem('falcon_subscribed') === 'true';
-        if (subscribed || !trialStart) return;
-        var msPerDay = 24 * 60 * 60 * 1000;
-        var elapsed = Math.floor((Date.now() - trialStart) / msPerDay);
-        var remaining = trialDays - elapsed;
-        if (remaining > 0) {
+        if (subscribed) return;
+        if (daysLeft > 0) {
             var banner = document.getElementById('trialBanner');
-            banner.style.display = 'flex';
-            document.getElementById('trialDaysLeft').textContent = remaining;
+            if (banner) {
+                banner.style.display = 'flex';
+                var daysEl = document.getElementById('trialDaysLeft');
+                if (daysEl) daysEl.textContent = daysLeft;
+                // Urgency styling for days 1-2
+                if (daysLeft <= 2) {
+                    banner.style.background = 'linear-gradient(135deg,rgba(255,193,7,0.15),rgba(255,68,68,0.12))';
+                    banner.style.borderColor = 'rgba(255,193,7,0.5)';
+                    var titleEl = banner.querySelector('div > div:first-child');
+                    if (titleEl) titleEl.textContent = '\u26a0\ufe0f Trial Expires in ' + daysLeft + ' day' + (daysLeft === 1 ? '' : 's') + '!';
+                }
+            }
+            if (expiresIso) localStorage.setItem('falcon_trial_expires', expiresIso);
         } else {
-            document.getElementById('trialExpiredBanner').style.display = 'block';
+            var expBanner = document.getElementById('trialExpiredBanner');
+            if (expBanner) expBanner.style.display = 'block';
         }
-    })();
+    }
 
     // Load user info from auth system
     async function loadAccount() {
@@ -237,12 +270,26 @@
                 var info = document.getElementById('accSubInfo');
                 var action = document.getElementById('accSubAction');
 
+                // [TRIAL] Show trial banner from server data (authoritative)
+                if (data.trial_active) {
+                    _showTrialBanner(data.trial_days_left || 0, data.trial_expires || '');
+                } else if (data.trial_status === 'expired' && subStatus !== 'active') {
+                    _showTrialBanner(0, '');
+                }
+
                 if (subStatus === 'active') {
                     badge.className = 'sub-badge sub-active';
                     badge.textContent = '✓ Active';
                     info.innerHTML = '<p>Your subscription is active. Next renewal: <strong>' + (data.next_renewal || '—') + '</strong></p>';
-                    action.innerHTML = '<a href="COSTUMER_DASHBORED.html" class="btn-primary" style="font-size:13px;">Open Dashboard →</a>';
+                    action.innerHTML = '<a href="DASHBORED.html" class="btn-primary" style="font-size:13px;">Open Dashboard →</a>';
                     document.getElementById('accPayButtons').style.display = 'none';
+                    _unlockAccess();
+                } else if (data.trial_active) {
+                    badge.className = 'sub-badge sub-inactive';
+                    badge.textContent = '🚀 Trial Active';
+                    info.innerHTML = '<p>Free trial active — <strong style="color:#00d9ff;">' + (data.trial_days_left || 0) + ' days remaining</strong>. Subscribe to continue after trial.</p>';
+                    action.innerHTML = '<a href="DASHBORED.html" class="btn-primary" style="font-size:13px;">Open Dashboard →</a>';
+                    document.getElementById('accPayButtons').style.display = 'block';
                     _unlockAccess();
                 } else if (subStatus === 'pending_approval') {
                     badge.className = 'sub-badge sub-inactive';
@@ -262,9 +309,19 @@
                     action.innerHTML = '';
                     document.getElementById('accPayButtons').style.display = 'block';
                 }
-                // Store payment URLs for buttons
-                if (data.stripe_url) localStorage.setItem('falcon_stripe_url', data.stripe_url);
-                if (data.paypal_url) localStorage.setItem('falcon_paypal_url', data.paypal_url);
+                // Store payment URLs for buttons — assign to module-level vars so buttons work
+                if (data.stripe_url) {
+                    localStorage.setItem('falcon_stripe_url', data.stripe_url);
+                    _accStripeUrl = data.stripe_url;
+                } else {
+                    _accStripeUrl = localStorage.getItem('falcon_stripe_url') || '';
+                }
+                if (data.paypal_url) {
+                    localStorage.setItem('falcon_paypal_url', data.paypal_url);
+                    _accPaypalUrl = data.paypal_url;
+                } else {
+                    _accPaypalUrl = localStorage.getItem('falcon_paypal_url') || '';
+                }
             }
         } catch (_) {}
     }
@@ -322,7 +379,8 @@ function _accPayStripe() {
     }
 }
 function _accPayPaypal() {
-    window.open('https://www.paypal.com/ncp/payment/BNPU2VTPYU6CE', '_blank');
+    var url = _accPaypalUrl || 'https://www.paypal.com/ncp/payment/BNPU2VTPYU6CE';
+    window.open(url, '_blank');
     _accNotifyPayment('paypal');
 }
 async function _accNotifyPayment(method) {
@@ -345,8 +403,73 @@ async function _accNotifyPayment(method) {
         var initial = name.charAt(0).toUpperCase();
         navLink.innerHTML = '<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;font-weight:800;font-size:12px;margin-right:6px;">' + initial + '</span>' + name.split(' ')[0];
     }
+    // Generate referral link from user email
+    var email = localStorage.getItem('falcon_email') || '';
+    if (email) {
+        var refCode = email.split('@')[0].toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8) + Math.abs(hashStr(email)).toString(36).slice(0, 4).toUpperCase();
+        var refLink = window.location.origin + '/register.html?ref=' + refCode;
+        var refInput = document.getElementById('refLinkInput');
+        if (refInput) refInput.value = refLink;
+    }
 })();
+
+// Simple string hash for referral code generation
+function hashStr(s) {
+    var h = 0;
+    for (var i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
+    return h;
+}
+
+async function exportMyData() {
+    var el = document.getElementById('exportStatus');
+    el.textContent = 'Exporting…';
+    el.style.color = '#8b94a8';
+    try {
+        var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
+        var url = cfg.endpointUrl || '';
+        var token = cfg.secretToken || '';
+        if (!url || !token) { el.textContent = 'Not connected.'; el.style.color = '#ff6b6b'; return; }
+        var r = await fetch(url + '?command=export_my_data&token=' + encodeURIComponent(token) + '&t=' + Date.now(), { method: 'GET', mode: 'cors', cache: 'no-cache' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        var data = await r.json();
+        if (data.status !== 'ok' || !data.export) { el.textContent = data.error || 'Export failed.'; el.style.color = '#ff6b6b'; return; }
+        // Download as JSON file
+        var blob = new Blob([JSON.stringify(data.export, null, 2)], { type: 'application/json' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'falcon-ai-data-export-' + new Date().toISOString().slice(0, 10) + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+        el.textContent = '✓ Downloaded!';
+        el.style.color = '#00ff88';
+    } catch (e) {
+        el.textContent = 'Error: ' + (e.message || 'unknown');
+        el.style.color = '#ff6b6b';
+    }
+}
+
+function copyRefLink() {
+    var input = document.getElementById('refLinkInput');
+    if (!input || input.value === 'Loading…') return;
+    navigator.clipboard.writeText(input.value).then(function() {
+        var el = document.getElementById('refCopyStatus');
+        el.textContent = '✓ Copied to clipboard!';
+        el.style.display = 'block';
+        setTimeout(function() { el.style.display = 'none'; }, 3000);
+    }).catch(function() {
+        // Fallback for older browsers
+        input.select();
+        document.execCommand('copy');
+        var el = document.getElementById('refCopyStatus');
+        el.textContent = '✓ Copied!';
+        el.style.display = 'block';
+        setTimeout(function() { el.style.display = 'none'; }, 3000);
+    });
+}
 </script>
 
+<script src="consent-banner.js"></script>
 </body>
 </html>
