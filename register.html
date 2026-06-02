@@ -342,7 +342,7 @@ function regStep1() {
 async function _sendVerificationCode(email) {
     // OTP is generated server-side for security — client just triggers the send
     try {
-        var url = 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
+        var url = 'https://script.google.com/macros/s/AKfycbyfhxELNSDXLuC7yZ61nsAPdFn9J9dqg-5W3gMKZSD9plWX2l6gyGEAS7Z8DH01PZS_IQ/exec';
         var params = { command: 'auth_send_otp', email: _regData.email, name: _regData.name };
 
         // Send via POST (email never in URL)
@@ -395,7 +395,7 @@ async function regStep2() {
 
     // Call GAS to verify OTP and create account
     try {
-        var url = 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
+        var url = 'https://script.google.com/macros/s/AKfycbyfhxELNSDXLuC7yZ61nsAPdFn9J9dqg-5W3gMKZSD9plWX2l6gyGEAS7Z8DH01PZS_IQ/exec';
         var params = {
             command: 'auth_register',
             email: _regData.email,
@@ -411,26 +411,26 @@ async function regStep2() {
         var success = false;
         var respData = null;
 
-        // Try GET first (reliable with current GAS deployment)
+        // Send via POST (password never in URL)
         try {
-            var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
-            var r = await fetch(url + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors', cache: 'no-cache' });
+            var r = await fetch(url, {
+                method: 'POST',
+                mode: 'cors',
+                cache: 'no-cache',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(params)
+            });
             if (r.ok) {
                 respData = await r.json();
                 if (respData && respData.status === 'ok') success = true;
             }
         } catch (_) {}
 
-        // If GET failed, try POST
+        // Fallback to GET if POST fails (some restricted networks block POST)
         if (!respData) {
             try {
-                var r2 = await fetch(url, {
-                    method: 'POST',
-                    mode: 'cors',
-                    cache: 'no-cache',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(params)
-                });
+                var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+                var r2 = await fetch(url + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors', cache: 'no-cache' });
                 if (r2.ok) {
                     respData = await r2.json();
                     if (respData && respData.status === 'ok') success = true;
