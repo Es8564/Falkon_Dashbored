@@ -117,27 +117,27 @@ async function doLogin() {
 
     try {
         var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
-        var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbyfhxELNSDXLuC7yZ61nsAPdFn9J9dqg-5W3gMKZSD9plWX2l6gyGEAS7Z8DH01PZS_IQ/exec';
+        var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
 
         var data = null;
 
-        // Send via POST (password never in URL)
+        // Try GET first (reliable with current GAS deployment)
         try {
-            var r = await fetch(url, {
-                method: 'POST',
-                mode: 'cors',
-                cache: 'no-cache',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ command: 'auth_login', email: email, password: password })
-            });
+            var qs = 'command=auth_login&email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password) + '&t=' + Date.now();
+            var r = await fetch(url + '?' + qs, { method: 'GET', mode: 'cors', cache: 'no-cache' });
             if (r.ok) data = await r.json();
         } catch (_) {}
 
-        // Fallback to GET without password if POST fails (CORS on some networks)
+        // If GET failed, try POST
         if (!data) {
             try {
-                var qs = 'command=auth_login&email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password) + '&t=' + Date.now();
-                var r2 = await fetch(url + '?' + qs, { method: 'GET', mode: 'cors', cache: 'no-cache' });
+                var r2 = await fetch(url, {
+                    method: 'POST',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ command: 'auth_login', email: email, password: password })
+                });
                 if (r2.ok) data = await r2.json();
             } catch (_) {}
         }
@@ -188,7 +188,7 @@ async function doForgotPassword() {
     _resetEmail = email;
 
     try {
-        var url = 'https://script.google.com/macros/s/AKfycbyfhxELNSDXLuC7yZ61nsAPdFn9J9dqg-5W3gMKZSD9plWX2l6gyGEAS7Z8DH01PZS_IQ/exec';
+        var url = 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
         var params = { command: 'auth_forgot_password', email: email };
         var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
         try { await fetch(url + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors' }); } catch (_) {}
@@ -219,27 +219,27 @@ async function doResetPassword() {
     _showStatus('Resetting password…', '#8b94a8');
 
     try {
-        var url = 'https://script.google.com/macros/s/AKfycbyfhxELNSDXLuC7yZ61nsAPdFn9J9dqg-5W3gMKZSD9plWX2l6gyGEAS7Z8DH01PZS_IQ/exec';
+        var url = 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
         var data = null;
 
-        // Send via POST (password never in URL)
+        // Try GET first (reliable)
         try {
-            var r = await fetch(url, {
-                method: 'POST',
-                mode: 'cors',
-                cache: 'no-cache',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ command: 'auth_reset_password', email: _resetEmail, code: code, new_password: pass })
-            });
+            var params = { command: 'auth_reset_password', email: _resetEmail, code: code, new_password: pass };
+            var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+            var r = await fetch(url + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors', cache: 'no-cache' });
             if (r.ok) data = await r.json();
         } catch (_) {}
 
-        // Fallback to GET if POST fails
+        // If GET failed, try POST
         if (!data) {
             try {
-                var params = { command: 'auth_reset_password', email: _resetEmail, code: code, new_password: pass };
-                var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
-                var r2 = await fetch(url + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors', cache: 'no-cache' });
+                var r2 = await fetch(url, {
+                    method: 'POST',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ command: 'auth_reset_password', email: _resetEmail, code: code, new_password: pass })
+                });
                 if (r2.ok) data = await r2.json();
             } catch (_) {}
         }
