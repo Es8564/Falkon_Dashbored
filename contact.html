@@ -137,7 +137,7 @@ function submitContact() {
     // Send to GAS backend
     var cfg = {};
     try { cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch (_) {}
-    var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbyfhxELNSDXLuC7yZ61nsAPdFn9J9dqg-5W3gMKZSD9plWX2l6gyGEAS7Z8DH01PZS_IQ/exec';
+    var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
 
     var params = { command: 'contact_submit', name: name, email: email, subject: subject, message: message, source: 'web_cmd' };
     var qs = Object.keys(params).map(function(k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
@@ -164,7 +164,7 @@ function submitContact() {
 }
 </script>
 
-<script src="nav-auth.js"></script><script src="consent-banner.js"></script><script>
+<script src="nav-auth.js"></script><script src="consent-banner.js"></script><script src="nav-back.js"></script><script>
 (function(){var c=JSON.parse(localStorage.getItem('falconConfig')||'{}');var n=localStorage.getItem('falcon_user_name');if(c.secretToken&&n){var links=document.querySelectorAll('.nav-links');if(links.length){var nav=links[0];var badge=document.createElement('span');badge.style.cssText='width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;';badge.textContent=n.charAt(0).toUpperCase();badge.title=n+' (logged in)';badge.onclick=function(){window.location.href='account.html';};nav.appendChild(badge);}}})();
 </script>
 </body>

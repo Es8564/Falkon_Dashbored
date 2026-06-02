@@ -72,22 +72,39 @@
 
 <div class="page">
     <h1 class="page-title">Download Falcon AI</h1>
-    <p class="page-sub">Get the Expert Advisor and start trading in minutes.</p>
+    <p class="page-sub">Download and install the Expert Advisor and Dashboard to start trading.</p>
 
-    <div class="download-card">
-        <h2>Falcon AI EA for MetaTrader 5</h2>
-        <div class="version">Version 4.0 • Latest Release</div>
-        <p>Compatible with all MT5 brokers. Requires an active subscription.</p>
-        <a href="#" class="btn-download" id="downloadBtn">📥 Download EA File</a>
-        <p style="font-size:11px;color:#5b6580;margin-top:12px;">File size: ~150 KB • .ex5 format</p>
+    <!-- Access Status Banner -->
+    <div id="accessBanner" style="display:none;background:rgba(22,27,34,0.8);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:16px 20px;margin-bottom:24px;text-align:center;">
+        <span id="accessBadge" style="display:inline-block;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.05em;margin-bottom:8px;"></span>
+        <p id="accessInfo" style="font-size:12px;color:#8b94a8;margin:0;"></p>
     </div>
 
-    <div class="download-card" style="margin-top:20px;">
+    <!-- Step 1: EA Download -->
+    <div class="download-card" id="eaCard">
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;">
+            <span style="background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;">1</span>
+            <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.08em;">Step 1 — Install EA</span>
+        </div>
+        <h2>Falcon AI EA for MetaTrader 5</h2>
+        <div class="version">Version 4.0 • Latest Release</div>
+        <p>The AI trading engine. Download and install in your MT5 Experts folder.</p>
+        <a href="#" class="btn-download" id="downloadBtn">📥 Download EA File</a>
+        <p style="font-size:11px;color:#5b6580;margin-top:12px;">File size: ~150 KB • .ex5 format • Windows / VPS</p>
+    </div>
+
+    <!-- Step 2: Dashboard Download -->
+    <div class="download-card" id="dashCard" style="margin-top:20px;opacity:0.5;pointer-events:none;" >
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;">
+            <span style="background:linear-gradient(135deg,#00ff88,#00d9ff);color:#0d1117;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;">2</span>
+            <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.08em;">Step 2 — Install Dashboard</span>
+        </div>
         <h2>Falcon AI Customer Dashboard</h2>
         <div class="version">Version 4.0 • Latest Release</div>
-        <p>The web dashboard for remote control, monitoring, and support chat.</p>
+        <p>Remote control, monitoring, AI chat, and support. Install on any device.</p>
         <a href="#" class="btn-download" id="downloadDashBtn" style="background:linear-gradient(135deg,#00ff88,#00d9ff);">📥 Download Dashboard</a>
-        <p style="font-size:11px;color:#5b6580;margin-top:12px;">File size: ~500 KB • .html format • Open in any browser</p>
+        <p style="font-size:11px;color:#5b6580;margin-top:12px;">File size: ~500 KB • .html format • Works on mobile, PC & laptop</p>
+        <p id="dashLockMsg" style="font-size:11px;color:#ffc107;margin-top:8px;">⚠️ Download the EA first (Step 1) to unlock this step</p>
     </div>
 
     <div class="requirements">
@@ -96,8 +113,19 @@
             <li>MetaTrader 5 (any broker)</li>
             <li>Windows 7/10/11 or VPS with Windows</li>
             <li>Stable internet connection</li>
-            <li>Active Falcon AI subscription</li>
+            <li>Active Falcon AI subscription or free trial</li>
             <li>WebRequest enabled in MT5 settings</li>
+        </ul>
+    </div>
+
+    <div class="requirements" style="margin-bottom:36px;">
+        <h3>Dashboard Compatibility</h3>
+        <ul>
+            <li>Windows PC / Laptop (any browser)</li>
+            <li>macOS (Safari, Chrome, Firefox)</li>
+            <li>Android mobile / tablet (Chrome)</li>
+            <li>iOS / iPad (Safari — Add to Home Screen for app experience)</li>
+            <li>VPS (remote desktop browser)</li>
         </ul>
     </div>
 
@@ -134,8 +162,15 @@
         <div class="step">
             <div class="step-num">5</div>
             <div class="step-content">
-                <h4>Connect your dashboard</h4>
-                <p>Open the web dashboard, enter the same token, and you're connected. Start trading!</p>
+                <h4>Download & install the Dashboard</h4>
+                <p>Download the Dashboard file and save it anywhere on your device. Open it in any browser to connect.</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">6</div>
+            <div class="step-content">
+                <h4>Install as app (optional)</h4>
+                <p>On mobile: open in Chrome/Safari → tap "Add to Home Screen". On PC: open in Chrome → click install icon in address bar. This gives you a native app experience.</p>
             </div>
         </div>
     </div>
@@ -167,36 +202,67 @@
 </footer>
 
 <script>
-// Subscription + Trial gate for download
+// Subscription + Trial gate for download — step-based workflow
 (function() {
     var cfg = {};
     try { cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch (_) {}
     var token = cfg.secretToken || '';
     var btn = document.getElementById('downloadBtn');
     var dashBtn = document.getElementById('downloadDashBtn');
+    var dashCard = document.getElementById('dashCard');
+    var dashLockMsg = document.getElementById('dashLockMsg');
+    var accessBanner = document.getElementById('accessBanner');
+    var accessBadge = document.getElementById('accessBadge');
+    var accessInfo = document.getElementById('accessInfo');
 
-    // Check trial access
-    var trialStart = parseInt(localStorage.getItem('falcon_trial_start') || '0');
-    var trialDays = parseInt(localStorage.getItem('falcon_trial_days') || '7');
-    var subscribed = localStorage.getItem('falcon_subscribed') === 'true';
-    var trialActive = false;
-    if (trialStart) {
-        var elapsed = Math.floor((Date.now() - trialStart) / (24 * 60 * 60 * 1000));
-        trialActive = elapsed < trialDays;
+    var EA_URL = 'https://es8564.github.io/Falkon_Dashbored/FalconAI_EA_v4.ex5';
+    var DASH_URL = 'https://es8564.github.io/Falkon_Dashbored/DASHBORED.html';
+
+    function showAccessStatus(type, daysLeft) {
+        accessBanner.style.display = 'block';
+        if (type === 'trial') {
+            accessBadge.textContent = '🚀 Free Trial — ' + daysLeft + ' days remaining';
+            accessBadge.style.cssText = 'display:inline-block;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.05em;margin-bottom:8px;background:rgba(0,217,255,0.12);color:#00d9ff;border:1px solid rgba(0,217,255,0.3);';
+            accessInfo.textContent = 'You have full access to all downloads during your trial period.';
+        } else if (type === 'active') {
+            accessBadge.textContent = '✓ Active Subscriber';
+            accessBadge.style.cssText = 'display:inline-block;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.05em;margin-bottom:8px;background:rgba(0,255,136,0.12);color:#00ff88;border:1px solid rgba(0,255,136,0.3);';
+            accessInfo.textContent = 'Full access to all downloads. Thank you for your subscription.';
+        }
     }
 
-    function grantAccess() {
-        // EA download
+    function unlockDashboard() {
+        dashCard.style.opacity = '1';
+        dashCard.style.pointerEvents = 'auto';
+        dashLockMsg.style.display = 'none';
+        dashBtn.textContent = '📥 Download Dashboard';
+        dashBtn.href = DASH_URL;
+        dashBtn.setAttribute('download', 'FalconAI_Dashboard.html');
+    }
+
+    function grantAccess(type, daysLeft) {
+        // Show access badge
+        if (type) showAccessStatus(type, daysLeft);
+
+        // EA download — always unlocked
         btn.textContent = '📥 Download EA File';
         btn.style.opacity = '1';
-        btn.href = 'https://es8564.github.io/Falkon_Dashbored/FalconAI_EA_v4.ex5';
-        // Dashboard download
-        if (dashBtn) {
-            dashBtn.textContent = '📥 Download Dashboard';
-            dashBtn.style.opacity = '1';
-            dashBtn.href = 'https://es8564.github.io/Falkon_Dashbored/DASHBORED.html';
-            dashBtn.setAttribute('download', 'FalconAI_Dashboard.html');
+        btn.href = EA_URL;
+
+        // Check if EA was already downloaded (unlock dashboard immediately)
+        var eaDownloaded = localStorage.getItem('falcon_ea_downloaded') === 'true';
+        if (eaDownloaded) {
+            unlockDashboard();
         }
+
+        // Track EA download click to unlock Dashboard
+        btn.addEventListener('click', function() {
+            localStorage.setItem('falcon_ea_downloaded', 'true');
+            // Small delay to allow download to start, then unlock dashboard
+            setTimeout(function() {
+                unlockDashboard();
+            }, 1000);
+        });
     }
 
     function lockAccess() {
@@ -206,44 +272,67 @@
         if (dashBtn) {
             dashBtn.textContent = '🔒 Subscribe to Download';
             dashBtn.href = 'pricing.html';
-            dashBtn.style.opacity = '1';
         }
+        dashCard.style.opacity = '0.5';
+        dashCard.style.pointerEvents = 'none';
+        dashLockMsg.textContent = '🔒 Subscription or free trial required';
+        dashLockMsg.style.color = '#ff6b6b';
     }
 
     if (!token) {
         btn.textContent = '🔒 Login Required';
         btn.href = 'login.html';
         if (dashBtn) { dashBtn.textContent = '🔒 Login Required'; dashBtn.href = 'login.html'; }
+        dashLockMsg.textContent = '🔒 Please log in to access downloads';
+        dashLockMsg.style.color = '#ff6b6b';
         return;
     }
 
-    // Trial users get immediate access
-    if (trialActive || subscribed) {
-        grantAccess();
-        return;
-    }
-
-    // Otherwise check subscription from server
-    var url = (cfg.endpointUrl || '').trim();
+    // Check subscription/trial status from server (authoritative)
+    var url = (cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec').trim();
     if (!url) { lockAccess(); return; }
+
     btn.textContent = '⏳ Checking access…';
     btn.style.opacity = '0.6';
+
     fetch(url + '?token=' + encodeURIComponent(token) + '&command=sub_get_status&source=web_cmd&t=' + Date.now(), { method: 'GET', mode: 'cors' })
     .then(function(r) { return r.json(); })
     .then(function(data) {
-        if (data && data.status === 'ok' && data.sub_status === 'active') {
-            localStorage.setItem('falcon_subscribed', 'true');
-            grantAccess();
+        if (data && data.status === 'ok') {
+            if (data.sub_status === 'active') {
+                grantAccess('active', 0);
+            } else if (data.trial_active) {
+                grantAccess('trial', data.trial_days_left || 7);
+            } else {
+                lockAccess();
+            }
         } else {
             lockAccess();
         }
     }).catch(function() {
-        lockAccess();
+        // On network error, fall back to localStorage
+        var subscribed = localStorage.getItem('falcon_subscribed') === 'true';
+        var trialActiveFlag = localStorage.getItem('falcon_trial_active') === 'true';
+        var trialActive = trialActiveFlag;
+        if (!trialActive) {
+            var trialExpStr = localStorage.getItem('falcon_trial_expires') || '';
+            if (trialExpStr) {
+                var trialExpMs = Date.parse(trialExpStr);
+                if (trialExpMs && trialExpMs > Date.now()) trialActive = true;
+            }
+        }
+        if (subscribed) {
+            grantAccess('active', 0);
+        } else if (trialActive) {
+            grantAccess('trial', 7);
+        } else {
+            lockAccess();
+        }
     });
 })();
 </script>
 
-<script src="nav-auth.js"></script><script src="consent-banner.js"></script><script>
+<script src="nav-auth.js"></script><script src="consent-banner.js"></script><script src="nav-back.js"></script><script>
 (function(){var c=JSON.parse(localStorage.getItem('falconConfig')||'{}');var n=localStorage.getItem('falcon_user_name');if(c.secretToken&&n){var links=document.querySelectorAll('.nav-links');if(links.length){var nav=links[0];var badge=document.createElement('span');badge.style.cssText='width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;';badge.textContent=n.charAt(0).toUpperCase();badge.title=n+' (logged in)';badge.onclick=function(){window.location.href='account.html';};nav.appendChild(badge);}}})();
 </script>
 </body>

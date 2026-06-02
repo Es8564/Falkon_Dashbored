@@ -3099,6 +3099,13 @@
                                     </div>
                                     <button class="toggle" id="toggleEntries" onclick="toggleControl('allow_new_entries')" disabled></button>
                                 </div>
+                                <div class="toggle-row">
+                                    <div class="toggle-info">
+                                        <span class="toggle-label">Emotional Mode</span>
+                                        <span class="toggle-desc">AI emotional intelligence in trading</span>
+                                    </div>
+                                    <button class="toggle" id="toggleEmotional" onclick="toggleControl('emotional_mode')" disabled></button>
+                                </div>
                                 <div class="divider" style="margin:8px 0;"></div>
                                 <div class="section-label" id="selectedLabel">No Symbol Selected</div>
                                 <div class="toggle-row">
@@ -4249,6 +4256,7 @@
 
         setToggle('toggleEA',      currentState.ea_enabled);
         setToggle('toggleEntries', currentState.allow_new_entries);
+        setToggle('toggleEmotional', !currentState.disable_emotional_bias);
 
         // [FIX-SYMSTATS] Merge per-symbol live stats (open_count, floating_pl)
         // from the separate sym_stats map into the symbols map for display.
@@ -4871,7 +4879,7 @@
             const p = pendingFields[k];
             if (now > p.until) { delete pendingFields[k]; continue; }
             // Server has caught up? Drop the lock.
-            if (k === 'ea_enabled' || k === 'allow_new_entries') {
+            if (k === 'ea_enabled' || k === 'allow_new_entries' || k === 'disable_emotional_bias') {
                 if (state[k] === p.value) { delete pendingFields[k]; continue; }
                 state[k] = p.value;
             } else if (k.indexOf('sym:') === 0) {
@@ -4907,6 +4915,12 @@
             payload = { allow_new_entries: v, action: `Entries ${v ? 'ON' : 'OFF'}` };
             currentState.allow_new_entries = v;
             pendingKey = 'allow_new_entries'; pendingValue = v;
+        } else if (type === 'emotional_mode') {
+            const cur = !!currentState.disable_emotional_bias;
+            const newDisable = !cur;  // toggle: if currently disabled, enable (set disable=false)
+            payload = { disable_emotional_bias: newDisable, action: newDisable ? 'chart_emotional_off' : 'chart_emotional_on' };
+            currentState.disable_emotional_bias = newDisable;
+            pendingKey = 'disable_emotional_bias'; pendingValue = newDisable;
         } else if (type === 'symbol_enabled') {
             if (!selectedSymbol) { addLog('No symbol selected', 'warn', 'pending'); return; }
             // Auto-track the symbol locally so the toggle always fires
@@ -5582,7 +5596,7 @@
     }
 
     function enableControls(on) {
-        ['toggleEA','toggleEntries','toggleSymbol','togglePaused','emergencyBtnTop','emergencyBtnBottom','emergencyBtnTray'].forEach(id => {
+        ['toggleEA','toggleEntries','toggleEmotional','toggleSymbol','togglePaused','emergencyBtnTop','emergencyBtnBottom','emergencyBtnTray'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = !on;
         });
@@ -6536,6 +6550,7 @@
         if (s.ea_enabled !== undefined) {
             ctx += '\nEA Trading: ' + (s.ea_enabled ? 'ENABLED' : 'DISABLED');
             ctx += ' | New Entries: ' + (s.allow_new_entries ? 'OPEN' : 'PAUSED');
+            ctx += ' | Emotional Mode: ' + (s.disable_emotional_bias ? 'OFF' : 'ON');
         }
 
         // ── Phase 5: performance snapshot — always inject so AI knows your stats ──
