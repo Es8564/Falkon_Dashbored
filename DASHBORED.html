@@ -3783,8 +3783,21 @@
         var cfg = {};
         try { cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch (_) {}
         var token = cfg.secretToken || '';
-        // If no token at all, redirect to login
+        // If no token at all, show setup prompt (don't redirect — file may be opened locally)
         if (!token) {
+            if (window.location.protocol === 'file:') {
+                // Opened locally — show inline token setup
+                document.body.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:Segoe UI,sans-serif;background:#0d1117;color:#e6edf3;padding:24px;text-align:center;">'
+                    + '<div style="font-size:28px;font-weight:900;background:linear-gradient(90deg,#00d9ff,#00ff88);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px;">◈ FALCON AI</div>'
+                    + '<h2 style="margin-bottom:8px;">Dashboard Setup</h2>'
+                    + '<p style="color:#8b94a8;max-width:420px;margin-bottom:20px;">Enter your account token to connect. You can find it in your Account page after logging in.</p>'
+                    + '<input id="_setupToken" type="text" placeholder="Paste your secret token here" style="width:100%;max-width:400px;padding:12px 14px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e6edf3;font-size:14px;margin-bottom:10px;outline:none;font-family:inherit;">'
+                    + '<input id="_setupUrl" type="text" placeholder="GAS endpoint URL" value="https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec" style="width:100%;max-width:400px;padding:12px 14px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e6edf3;font-size:11px;margin-bottom:16px;outline:none;font-family:inherit;">'
+                    + '<button onclick="(function(){var t=document.getElementById(\'_setupToken\').value.trim();var u=document.getElementById(\'_setupUrl\').value.trim();if(!t){alert(\'Please enter your token\');return;}var c={};try{c=JSON.parse(localStorage.getItem(\'falconConfig\')||\'{}\')}catch(_){}c.secretToken=t;if(u)c.endpointUrl=u;localStorage.setItem(\'falconConfig\',JSON.stringify(c));window.location.reload();})()" style="background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;padding:14px 32px;border-radius:10px;font-weight:800;font-size:15px;border:none;cursor:pointer;">Connect Dashboard</button>'
+                    + '<p style="color:#5b6580;font-size:11px;margin-top:16px;max-width:400px;">Don\'t have a token? <a href="https://es8564.github.io/Falkon_Dashbored/register.html" style="color:#00d9ff;text-decoration:none;">Register here</a> or <a href="https://es8564.github.io/Falkon_Dashbored/login.html" style="color:#00d9ff;text-decoration:none;">login to your account</a> to get your token.</p>'
+                    + '</div>';
+                return;
+            }
             window.location.href = 'login.html';
             return;
         }
