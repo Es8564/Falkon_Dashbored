@@ -114,6 +114,38 @@
     </div>
     <p class="page-sub">Welcome back, <span id="accUserName">User</span></p>
 
+    <!-- ONBOARDING WIZARD (first-time only) -->
+    <div id="onboardingWizard" style="display:none;background:linear-gradient(135deg,rgba(0,217,255,0.08),rgba(0,255,136,0.06));border:2px solid rgba(0,217,255,0.25);border-radius:16px;padding:28px;margin-bottom:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h2 style="font-size:18px;font-weight:800;color:#00d9ff;margin:0;">🚀 Getting Started</h2>
+            <button onclick="dismissOnboarding()" style="background:none;border:none;color:#5b6580;font-size:18px;cursor:pointer;">✕</button>
+        </div>
+        <p style="font-size:13px;color:#8b94a8;margin-bottom:20px;">Complete these steps to start trading with Falcon AI:</p>
+        <div id="onboardSteps">
+            <div class="onboard-step" id="obStep1" style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:rgba(0,0,0,0.15);border-radius:10px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.04);">
+                <span style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;font-weight:900;font-size:12px;flex-shrink:0;">1</span>
+                <div><strong style="font-size:13px;">Download the EA</strong><p style="font-size:11px;color:#8b94a8;margin:4px 0 0;">Get the .ex5 file and install it in MT5</p></div>
+                <a href="download.html" style="margin-left:auto;background:rgba(0,217,255,0.12);border:1px solid rgba(0,217,255,0.3);color:#00d9ff;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">Download →</a>
+            </div>
+            <div class="onboard-step" id="obStep2" style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:rgba(0,0,0,0.15);border-radius:10px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.04);">
+                <span style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;font-weight:900;font-size:12px;flex-shrink:0;">2</span>
+                <div><strong style="font-size:13px;">Configure MT5</strong><p style="font-size:11px;color:#8b94a8;margin:4px 0 0;">Enable WebRequest, attach EA to chart, enter your token & URL</p></div>
+                <a href="docs.html" style="margin-left:auto;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#e6edf3;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">Guide →</a>
+            </div>
+            <div class="onboard-step" id="obStep3" style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:rgba(0,0,0,0.15);border-radius:10px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.04);">
+                <span style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;font-weight:900;font-size:12px;flex-shrink:0;">3</span>
+                <div><strong style="font-size:13px;">Install Dashboard</strong><p style="font-size:11px;color:#8b94a8;margin:4px 0 0;">Download the Dashboard and connect with your token</p></div>
+                <a href="download.html" style="margin-left:auto;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#e6edf3;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">Download →</a>
+            </div>
+            <div class="onboard-step" id="obStep4" style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:rgba(0,0,0,0.15);border-radius:10px;border:1px solid rgba(255,255,255,0.04);">
+                <span style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;font-weight:900;font-size:12px;flex-shrink:0;">4</span>
+                <div><strong style="font-size:13px;">Start Trading!</strong><p style="font-size:11px;color:#8b94a8;margin:4px 0 0;">Once EA is running, control everything from your Dashboard</p></div>
+                <span style="margin-left:auto;color:#00ff88;font-size:11px;font-weight:700;">✓ Ready</span>
+            </div>
+        </div>
+        <button onclick="dismissOnboarding()" style="margin-top:16px;width:100%;padding:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#8b94a8;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;">I've done this — dismiss guide</button>
+    </div>
+
     <!-- Profile Card -->
     <div class="card">
         <h2>👤 Profile</h2>
@@ -121,6 +153,30 @@
         <div class="profile-row"><span class="profile-label">Email</span><span class="profile-value" id="accEmail">—</span></div>
         <div class="profile-row"><span class="profile-label">Member Since</span><span class="profile-value" id="accSince">—</span></div>
         <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+
+    <!-- Connection Settings Card -->
+    <div class="card" id="connectionCard" style="display:none;">
+        <h2>🔗 Connection Settings</h2>
+        <p style="margin-bottom:12px;">Use this URL in your EA settings (<code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;font-size:12px;">RC_EndpointURL</code>) and Dashboard to connect to the Falcon server.</p>
+        <div style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:14px;margin-bottom:12px;">
+            <div style="font-size:11px;color:#5b6580;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Active Server URL</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <input type="text" id="endpointUrlInput" readonly style="flex:1;padding:10px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#00d9ff;font-size:11px;font-family:monospace;outline:none;overflow:hidden;text-overflow:ellipsis;" value="Loading…">
+                <button onclick="copyEndpointUrl()" style="padding:10px 14px;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;border:none;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;">Copy</button>
+            </div>
+            <div id="endpointCopyStatus" style="font-size:11px;color:#00ff88;margin-top:6px;display:none;"></div>
+        </div>
+        <div style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:14px;">
+            <div style="font-size:11px;color:#5b6580;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Your Secret Token</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <input type="password" id="tokenDisplay" readonly style="flex:1;padding:10px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#e6edf3;font-size:11px;font-family:monospace;outline:none;" value="••••••••••••••••">
+                <button onclick="toggleTokenVisibility()" id="tokenToggleBtn" style="padding:10px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#e6edf3;border-radius:6px;font-size:12px;cursor:pointer;">Show</button>
+                <button onclick="copyToken()" style="padding:10px 14px;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;border:none;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;">Copy</button>
+            </div>
+            <div id="tokenCopyStatus" style="font-size:11px;color:#00ff88;margin-top:6px;display:none;"></div>
+        </div>
+        <p style="font-size:11px;color:#5b6580;margin-top:12px;">⚠️ Keep your token private. Anyone with this token can control your EA.</p>
     </div>
 
     <!-- Subscription Card -->
@@ -325,6 +381,16 @@
                 } else {
                     _accPaypalUrl = localStorage.getItem('falcon_paypal_url') || '';
                 }
+                // [ENDPOINT-URL] Auto-sync: if server returns a new endpoint URL, update localStorage
+                if (data.endpoint_url) {
+                    var _curCfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
+                    if (_curCfg.endpointUrl !== data.endpoint_url) {
+                        _curCfg.endpointUrl = data.endpoint_url;
+                        localStorage.setItem('falconConfig', JSON.stringify(_curCfg));
+                    }
+                    var _urlInput = document.getElementById('endpointUrlInput');
+                    if (_urlInput) _urlInput.value = data.endpoint_url;
+                }
             }
         } catch (_) {}
     }
@@ -339,6 +405,11 @@
             if (el) { el.textContent = '✓ Unlocked'; el.className = 'status green'; }
         });
         document.getElementById('subscriberLinks').style.display = 'block';
+        // Show connection settings card
+        document.getElementById('connectionCard').style.display = 'block';
+        var _cfgLocal = {}; try { _cfgLocal = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch(_){}
+        var _endUrl = _cfgLocal.endpointUrl || 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
+        document.getElementById('endpointUrlInput').value = _endUrl;
     }
 
     // Load user name from localStorage or auth
@@ -450,6 +521,50 @@ async function exportMyData() {
     } catch (e) {
         el.textContent = 'Error: ' + (e.message || 'unknown');
         el.style.color = '#ff6b6b';
+    }
+}
+
+// Onboarding wizard — show once for new users
+(function() {
+    if (localStorage.getItem('falcon_onboarding_dismissed') !== 'true') {
+        var el = document.getElementById('onboardingWizard');
+        if (el) el.style.display = 'block';
+    }
+})();
+function dismissOnboarding() {
+    localStorage.setItem('falcon_onboarding_dismissed', 'true');
+    var el = document.getElementById('onboardingWizard');
+    if (el) el.style.display = 'none';
+}
+
+// Connection Settings functions
+function copyEndpointUrl() {
+    var input = document.getElementById('endpointUrlInput');
+    if (!input || input.value === 'Loading…') return;
+    navigator.clipboard.writeText(input.value).then(function() {
+        var el = document.getElementById('endpointCopyStatus');
+        el.textContent = '✓ URL copied to clipboard!'; el.style.display = 'block';
+        setTimeout(function() { el.style.display = 'none'; }, 3000);
+    }).catch(function() { input.select(); document.execCommand('copy'); });
+}
+function copyToken() {
+    var cfg = {}; try { cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch(_){}
+    var token = cfg.secretToken || '';
+    if (!token) return;
+    navigator.clipboard.writeText(token).then(function() {
+        var el = document.getElementById('tokenCopyStatus');
+        el.textContent = '✓ Token copied to clipboard!'; el.style.display = 'block';
+        setTimeout(function() { el.style.display = 'none'; }, 3000);
+    }).catch(function() {});
+}
+function toggleTokenVisibility() {
+    var input = document.getElementById('tokenDisplay');
+    var btn = document.getElementById('tokenToggleBtn');
+    var cfg = {}; try { cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch(_){}
+    if (input.type === 'password') {
+        input.type = 'text'; input.value = cfg.secretToken || ''; btn.textContent = 'Hide';
+    } else {
+        input.type = 'password'; input.value = '••••••••••••••••'; btn.textContent = 'Show';
     }
 }
 

@@ -2754,6 +2754,16 @@
     <!-- ALERT BANNER (floats over windows) -->
     <div class="alert-banner" id="alertBanner"></div>
 
+    <!-- CONNECTING SPLASH — shown while waiting for EA -->
+    <div id="connectingSplash" style="position:absolute;inset:0;z-index:9000;background:rgba(13,17,23,0.96);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:opacity 0.4s ease;">
+        <div style="font-size:36px;font-weight:900;background:linear-gradient(90deg,#00d9ff,#00ff88);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px;">◈ FALCON AI</div>
+        <div style="width:40px;height:40px;border:3px solid rgba(0,217,255,0.2);border-top-color:#00d9ff;border-radius:50%;animation:splashSpin 0.8s linear infinite;margin-bottom:20px;"></div>
+        <h2 style="font-size:18px;font-weight:700;color:#e6edf3;margin-bottom:8px;">Connecting to Trading Engine...</h2>
+        <p style="font-size:13px;color:#8b94a8;max-width:360px;">Setting up your dashboard. This may take a moment if the EA is starting up.</p>
+        <button onclick="document.getElementById('connectingSplash').style.display='none'" style="margin-top:24px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#8b94a8;padding:8px 18px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;">Skip — Show Dashboard</button>
+    </div>
+    <style>@keyframes splashSpin{to{transform:rotate(360deg)}}</style>
+
     <!-- DESKTOP / WINDOW AREA -->
     <main class="os-windows" id="osWindows">
 
@@ -3801,30 +3811,53 @@
             window.location.href = 'login.html';
             return;
         }
-        // Check subscription status (async, non-blocking for now — will show gate if needed)
-        var url = (cfg.endpointUrl || '').trim();
+        // Check subscription status — enforced for ALL access (online and local files)
+        var url = (cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec').trim();
         if (url) {
-            fetch(url + '?token=' + encodeURIComponent(token) + '&command=sub_get_status&source=web_cmd&t=' + Date.now(), { method: 'GET', mode: 'cors' })
+            // [DEVICE-BINDING] Generate simple device fingerprint for binding
+            var _devFp = '';
+            try { _devFp = btoa((navigator.userAgent||'').slice(0,40) + '|' + screen.width + 'x' + screen.height + '|' + (navigator.hardwareConcurrency||0) + '|' + (navigator.language||'')).replace(/[=+/]/g,'').slice(0,40); } catch(_){}
+            fetch(url + '?token=' + encodeURIComponent(token) + '&command=sub_get_status&source=web_cmd&device_id=' + encodeURIComponent(_devFp) + '&t=' + Date.now(), { method: 'GET', mode: 'cors' })
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (data && data.status === 'ok') {
                     var subStatus = data.sub_status || 'unpaid';
-                    if (subStatus !== 'active' && !data.trial_active) {
+                    if (subStatus === 'device_limit') {
+                        // Device limit reached
+                        var overlay = document.createElement('div');
+                        overlay.id = 'subGateOverlay';
+                        overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(13,17,23,0.97);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;';
+                        overlay.innerHTML = '<div style="font-size:48px;margin-bottom:16px;">🚫</div>' +
+                            '<h2 style="font-size:22px;font-weight:800;margin-bottom:8px;color:#e6edf3;">Device Limit Reached</h2>' +
+                            '<p style="font-size:14px;color:#8b94a8;max-width:400px;margin-bottom:24px;">Maximum 2 devices allowed per account. This device is not authorized. Contact support if you need to reset your devices.</p>' +
+                            '<a href="https://es8564.github.io/Falkon_Dashbored/support.html" style="display:inline-block;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;padding:14px 32px;border-radius:10px;font-weight:800;font-size:15px;text-decoration:none;margin-bottom:12px;">Contact Support</a>' +
+                            '<a href="https://es8564.github.io/Falkon_Dashbored/account.html" style="display:inline-block;color:#8b94a8;font-size:13px;text-decoration:none;">← Back to My Account</a>';
+                        document.body.appendChild(overlay);
+                    } else if (subStatus !== 'active' && !data.trial_active) {
                         // Show subscription required overlay
                         var overlay = document.createElement('div');
                         overlay.id = 'subGateOverlay';
                         overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(13,17,23,0.97);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;';
                         overlay.innerHTML = '<div style="font-size:48px;margin-bottom:16px;">🔒</div>' +
                             '<h2 style="font-size:22px;font-weight:800;margin-bottom:8px;color:#e6edf3;">Subscription Required</h2>' +
-                            '<p style="font-size:14px;color:#8b94a8;max-width:400px;margin-bottom:24px;">An active subscription is required to access the Trading Dashboard. Subscribe to unlock all features.</p>' +
+                            '<p style="font-size:14px;color:#8b94a8;max-width:400px;margin-bottom:24px;">Your free trial has expired. Subscribe to continue using the Trading Dashboard.</p>' +
                             '<a href="https://es8564.github.io/Falkon_Dashbored/pricing.html" style="display:inline-block;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;padding:14px 32px;border-radius:10px;font-weight:800;font-size:15px;text-decoration:none;margin-bottom:12px;">Subscribe Now — £400/month</a>' +
                             '<a href="https://es8564.github.io/Falkon_Dashbored/account.html" style="display:inline-block;color:#8b94a8;font-size:13px;text-decoration:none;">← Back to My Account</a>';
                         document.body.appendChild(overlay);
                     }
                 }
-            }).catch(function() {});
+            }).catch(function() {
+                // Network error — allow access if we can't reach server (graceful offline)
+                // The EA itself enforces server-side anyway
+            });
         }
     })();
+
+    // Auto-dismiss connecting splash after 6 seconds
+    setTimeout(function() {
+        var _sp = document.getElementById('connectingSplash');
+        if (_sp && _sp.style.display !== 'none') { _sp.style.opacity = '0'; setTimeout(function(){ _sp.style.display = 'none'; }, 400); }
+    }, 6000);
 
     const CONFIG_KEY   = 'mt5_remote_v3';
     const QUEUE_KEY    = 'mt5_cmd_queue_v2';
@@ -4218,6 +4251,9 @@
                 isEALive = true;
                 setConnStatus('connected', 'EA Online');
                 document.getElementById('eaOfflineBanner').classList.remove('show');
+                // Dismiss connecting splash
+                var _splash = document.getElementById('connectingSplash');
+                if (_splash) { _splash.style.opacity = '0'; setTimeout(function(){ _splash.style.display = 'none'; }, 400); }
             } else {
                 if (wasPreviouslyLive) {
                     sendBrowserNotif('EA Offline', 'EA stopped polling — commands will queue.');
@@ -4226,6 +4262,9 @@
                 wasPreviouslyLive = false;
                 isEALive = false;
                 setConnStatus('loading', 'Backend OK / EA Offline');
+                // Dismiss splash — backend is reachable, just EA not polling
+                var _splash2 = document.getElementById('connectingSplash');
+                if (_splash2) { _splash2.style.opacity = '0'; setTimeout(function(){ _splash2.style.display = 'none'; }, 400); }
                 document.getElementById('eaOfflineBanner').classList.add('show');
             }
 

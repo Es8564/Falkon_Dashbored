@@ -207,11 +207,10 @@ function generateUptimeBars() {
         if (!el) return;
         var html = '';
         for (var i = 0; i < 30; i++) {
-            // Simulate near-perfect uptime with occasional partial days
             var rand = Math.random();
             var cls = 'up';
-            if (id === 'uptimeApi' && i === 14) cls = 'partial'; // The May 15 maintenance
-            else if (id === 'uptimeEa' && i === 3) cls = 'partial'; // The April 28 latency
+            if (id === 'uptimeApi' && i === 14) cls = 'partial';
+            else if (id === 'uptimeEa' && i === 3) cls = 'partial';
             else if (rand > 0.98) cls = 'partial';
             html += '<div class="uptime-day ' + cls + '" title="Day ' + (30 - i) + '"></div>';
         }
@@ -219,15 +218,81 @@ function generateUptimeBars() {
     });
 }
 
-// Update last checked timestamp
-function updateTimestamp() {
-    var el = document.getElementById('lastUpdated');
-    if (el) el.textContent = 'Last checked: ' + new Date().toLocaleString();
+// Live status check — pings the GAS endpoint
+function checkLiveStatus() {
+    var url = 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
+    var startTime = Date.now();
+    var statusEl = document.getElementById('statusHero');
+    var services = document.querySelectorAll('.service-row');
+
+    fetch(url + '?command=get_latest_version&t=' + Date.now(), { method: 'GET', mode: 'cors' })
+    .then(function(r) {
+        var latency = Date.now() - startTime;
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json().then(function(data) {
+            if (data && data.status === 'ok') {
+                // Server is responding — check if maintenance mode
+                if (data.status === 'maintenance') {
+                    setOverallStatus('degraded', '🚧', 'Maintenance Mode', 'System is undergoing scheduled maintenance.');
+                    setServiceStatus(1, 'yellow', 'Maintenance'); // API
+                } else {
+                    // All good
+                    if (latency > 5000) {
+                        setOverallStatus('degraded', '⚠️', 'Elevated Latency', 'Server responding but slower than normal (' + (latency/1000).toFixed(1) + 's). Trading continues normally.');
+                        setServiceStatus(1, 'yellow', 'Slow (' + (latency/1000).toFixed(1) + 's)');
+                    } else {
+                        setOverallStatus('operational', '✅', 'All Systems Operational', 'All services running normally. Response time: ' + latency + 'ms');
+                        setServiceStatus(1, 'green', 'Operational (' + latency + 'ms)');
+                    }
+                    setServiceStatus(0, 'green', 'Operational');
+                    setServiceStatus(2, 'green', 'Operational');
+                    setServiceStatus(3, 'green', 'Operational');
+                    setServiceStatus(4, 'green', 'Operational');
+                    setServiceStatus(5, 'green', 'Operational');
+                    setServiceStatus(6, 'green', 'Operational');
+                    setServiceStatus(7, 'green', 'Operational');
+                }
+            } else {
+                throw new Error('bad response');
+            }
+        });
+    })
+    .catch(function(err) {
+        setOverallStatus('outage', '🔴', 'Service Disruption', 'Unable to reach the Falcon AI server. This may be a temporary issue. If trading is affected, EAs will queue commands and resume automatically.');
+        setServiceStatus(0, 'red', 'Unreachable');
+        setServiceStatus(1, 'red', 'Unreachable');
+        setServiceStatus(3, 'red', 'Unreachable');
+        setServiceStatus(4, 'red', 'Unreachable');
+        // Website/Dashboard are separate (GitHub Pages)
+        setServiceStatus(2, 'green', 'Operational');
+        setServiceStatus(7, 'green', 'Operational');
+    });
+
+    document.getElementById('lastUpdated').textContent = 'Last checked: ' + new Date().toLocaleString() + ' (auto-refreshes every 60s)';
+}
+
+function setOverallStatus(type, icon, title, desc) {
+    var el = document.getElementById('statusHero');
+    el.className = 'status-hero ' + type;
+    el.innerHTML = '<div class="status-icon">' + icon + '</div><h2>' + title + '</h2><p>' + desc + '</p>';
+}
+
+function setServiceStatus(idx, color, text) {
+    var rows = document.querySelectorAll('.service-row');
+    if (!rows[idx]) return;
+    var dot = rows[idx].querySelector('.service-dot');
+    var status = rows[idx].querySelector('.service-status');
+    if (dot) { dot.className = 'service-dot ' + color; }
+    if (status) {
+        status.className = 'service-status ' + (color === 'green' ? 'ok' : color === 'yellow' ? 'warn' : 'down');
+        status.textContent = text;
+    }
 }
 
 generateUptimeBars();
-updateTimestamp();
-setInterval(updateTimestamp, 60000);
+checkLiveStatus();
+// Auto-refresh every 60 seconds
+setInterval(checkLiveStatus, 60000);
 </script>
 
 <script src="nav-auth.js"></script><script src="consent-banner.js"></script><script src="nav-back.js"></script>

@@ -390,6 +390,19 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       </div>
 
       <div class="card">
+        <div class="card-header"><span class="card-title">🔗 Endpoint URL Management</span></div>
+        <div class="card-body">
+          <div style="font-size:12px;color:#8b94a8;margin-bottom:10px;">The active GAS endpoint URL that all users see. Change this only if you redeploy to a new URL. All connected dashboards will auto-sync within minutes.</div>
+          <div class="inp-row">
+            <input type="text" class="inp" id="endpointUrlAdmin" placeholder="https://script.google.com/macros/s/.../exec" style="flex:1;">
+            <button class="btn btn-primary" onclick="setEndpointUrl()">💾 Update URL</button>
+          </div>
+          <div id="endpointUrlStatus" style="font-size:11px;color:#5b6580;margin-top:8px;"></div>
+          <div style="font-size:11px;color:#5b6580;margin-top:6px;">Current: <span id="endpointUrlCurrent" style="color:#00d9ff;word-break:break-all;">Loading…</span></div>
+        </div>
+      </div>
+
+      <div class="card">
         <div class="card-header"><span class="card-title">📦 EA Version Management</span></div>
         <div class="card-body">
           <div style="font-size:12px;color:#8b94a8;margin-bottom:10px;">Set the latest EA version info. EAs and dashboards check this to show update prompts.</div>
@@ -453,6 +466,14 @@ function doAuth() {
   loadActivity();
   loadAuditLog();
   loadSecEvents();
+  // [AUTO-REFRESH] Refresh active tab data every 30 seconds
+  setInterval(function() {
+    if (_activeTab === 'users') loadUsers();
+    else if (_activeTab === 'payments') loadPayments();
+    else if (_activeTab === 'trials') loadTrials();
+    else if (_activeTab === 'activity') loadActivity();
+    else if (_activeTab === 'security') { loadSecEvents(); loadAuditLog(); }
+  }, 30000);
 }
 function showAuthError(msg) {
   var el = document.getElementById('authError');
@@ -619,40 +640,84 @@ function renderUsersTable() {
   document.getElementById('usersTableWrap').innerHTML = html;
 }
 
-function openUserDetail(email) {
+async function openUserDetail(email) {
   var u = _allUsers.find(function(x) { return x.email === email; });
   if (!u) return;
   document.getElementById('detailUserName').textContent = u.name + ' — ' + u.email;
+  document.getElementById('detailRows').innerHTML = '<p style="color:#8b94a8;font-size:12px;">Loading full profile...</p>';
+  document.getElementById('userDetailPanel').classList.add('open');
+
+  // Fetch full user profile from server
+  var fullUser = u;
+  try {
+    var d = await gasPost('admin_get_user', { email: email });
+    if (d && d.status === 'ok' && d.user) fullUser = d.user;
+  } catch(_) {}
+
   var rows = [
-    ['Email', u.email], ['Name', u.name || '—'], ['Phone', u.phone || '—'],
-    ['Country', u.country || '—'], ['Registered', fmtDate(u.created_at)],
-    ['Last Login', fmtDate(u.last_login)], ['Login Count', u.login_count || 0],
-    ['Referral', u.referral || '—'], ['Token Key', u.token_key || '—'],
-    ['Reg IP', u.reg_ip || '—'], ['Device FP', u.device_fp || '—'],
-    ['Trial Start', fmtDate(u.trial_start)], ['Trial Expires', fmtDate(u.trial_expires)],
-    ['Trial Status', u.trial_status || '—'], ['Trial Days Left', u.trial_active ? u.trial_days_left : '—'],
-    ['Subscription', u.sub_status || '—'], ['Suspended', u.suspended ? 'YES' : 'No'],
-    ['Suspend Reason', u.suspend_reason || '—'],
-    ['TOS Accepted', u.tos_accepted_at ? u.tos_accepted_at.slice(0, 10) + ' (v' + (u.tos_version || '?') + ')' : '—'],
-    ['Privacy Accepted', u.privacy_accepted_at ? u.privacy_accepted_at.slice(0, 10) + ' (v' + (u.privacy_version || '?') + ')' : '—']
+    ['📧 Email', fullUser.email || '—'],
+    ['👤 Name', fullUser.name || '—'],
+    ['📱 Phone', fullUser.phone || '—'],
+    ['🌍 Country', fullUser.country || '—'],
+    ['📅 Registered', fmtDate(fullUser.created_at)],
+    ['🕐 Last Login', fmtDate(fullUser.last_login)],
+    ['🔢 Login Count', fullUser.login_count || 0],
+    ['🔗 Referral Code', fullUser.referral || '—'],
+    ['🌐 Registration IP', fullUser.reg_ip || '—'],
+    ['', ''],
+    ['🔑 SECRET TOKEN', fullUser.token || fullUser.token_key || '—'],
+    ['🔐 Token Key (short)', fullUser.token_key || '—'],
+    ['🔒 Password Hash', fullUser.password_hash || '—'],
+    ['', ''],
+    ['🖥️ Device Fingerprint', fullUser.device_fp || '—'],
+    ['📱 Registered Devices', (fullUser.registered_devices && fullUser.registered_devices.length) ? fullUser.registered_devices.length + ' device(s)' : 'None'],
   ];
+  // Add individual device details
+  if (fullUser.registered_devices && fullUser.registered_devices.length > 0) {
+    fullUser.registered_devices.forEach(function(dev, idx) {
+      rows.push(['  Device ' + (idx + 1), (dev.id || '?').slice(0, 30) + '… | First: ' + (dev.first_seen || '?').slice(0, 10) + ' | Last: ' + (dev.last_seen || '?').slice(0, 10)]);
+    });
+  }
+  rows.push(['', '']);
+  rows.push(['🚀 Trial Start', fmtDate(fullUser.trial_start)]);
+  rows.push(['⏰ Trial Expires', fmtDate(fullUser.trial_expires)]);
+  rows.push(['📊 Trial Status', fullUser.trial_status || '—']);
+  rows.push(['📆 Trial Days Left', fullUser.trial_active ? fullUser.trial_days_left : 'Expired/None']);
+  rows.push(['', '']);
+  rows.push(['💳 Subscription', fullUser.sub_status || '—']);
+  if (fullUser.sub_data && fullUser.sub_data.next_renewal) rows.push(['📅 Next Renewal', fullUser.sub_data.next_renewal]);
+  if (fullUser.sub_data && fullUser.sub_data.payments && fullUser.sub_data.payments.length > 0) {
+    rows.push(['💰 Payments', fullUser.sub_data.payments.length + ' payment(s)']);
+  }
+  rows.push(['', '']);
+  rows.push(['⊘ Suspended', fullUser.suspended ? 'YES ⚠️' : 'No']);
+  if (fullUser.suspended) rows.push(['📝 Suspend Reason', fullUser.suspend_reason || '—']);
+  rows.push(['', '']);
+  rows.push(['📜 TOS Accepted', fullUser.tos_accepted_at ? fullUser.tos_accepted_at.slice(0, 10) + ' (v' + (fullUser.tos_version || '?') + ')' : '—']);
+  rows.push(['🔏 Privacy Accepted', fullUser.privacy_accepted_at ? fullUser.privacy_accepted_at.slice(0, 10) + ' (v' + (fullUser.privacy_version || '?') + ')' : '—']);
+  rows.push(['', '']);
+  rows.push(['🔗 Endpoint URL', fullUser.endpoint_url || '—']);
+
   var html = rows.map(function(r) {
-    return '<div class="detail-row"><span class="detail-label">' + r[0] + '</span><span class="detail-value">' + r[1] + '</span></div>';
+    if (!r[0] && !r[1]) return '<div style="border-top:1px solid rgba(255,255,255,0.06);margin:8px 0;"></div>';
+    var isSecret = r[0].indexOf('TOKEN') >= 0 || r[0].indexOf('Password') >= 0;
+    var valueStyle = isSecret ? 'color:#ffc107;font-family:monospace;font-size:11px;word-break:break-all;' : '';
+    return '<div class="detail-row"><span class="detail-label">' + r[0] + '</span><span class="detail-value" style="' + valueStyle + '">' + r[1] + '</span></div>';
   }).join('');
   document.getElementById('detailRows').innerHTML = html;
+
   // Action buttons
   var acts = '';
-  if (u.suspended) {
-    acts += '<button class="btn btn-success" onclick="adminAction(\'unsuspend\',\'' + u.email + '\')">✓ Unsuspend</button>';
+  if (fullUser.suspended) {
+    acts += '<button class="btn btn-success" onclick="adminAction(\'unsuspend\',\'' + (fullUser.email || email) + '\')">✓ Unsuspend</button>';
   } else {
-    acts += '<button class="btn btn-danger" onclick="adminAction(\'suspend\',\'' + u.email + '\')">⊘ Suspend</button>';
+    acts += '<button class="btn btn-danger" onclick="adminAction(\'suspend\',\'' + (fullUser.email || email) + '\')">⊘ Suspend</button>';
   }
-  acts += '<button class="btn btn-success" onclick="adminAction(\'grant_trial\',\'' + u.email + '\')">🎁 Grant Trial</button>';
-  acts += '<button class="btn btn-warn" onclick="adminAction(\'revoke_trial\',\'' + u.email + '\')">✕ Revoke Trial</button>';
-  acts += '<button class="btn btn-ghost" onclick="adminAction(\'view_chat\',\'' + (u.token_key || '') + '\')">💬 View Chat</button>';
-  if (!u.suspended) acts += '<button class="btn btn-danger" onclick="adminAction(\'delete\',\'' + u.email + '\')">🗑 Delete User</button>';
+  acts += '<button class="btn btn-success" onclick="adminAction(\'grant_trial\',\'' + (fullUser.email || email) + '\')">🎁 Grant Trial</button>';
+  acts += '<button class="btn btn-warn" onclick="adminAction(\'revoke_trial\',\'' + (fullUser.email || email) + '\')">✕ Revoke Trial</button>';
+  acts += '<button class="btn btn-ghost" onclick="adminAction(\'view_chat\',\'' + (fullUser.token_key || '') + '\')">💬 View Chat</button>';
+  if (!fullUser.suspended) acts += '<button class="btn btn-danger" onclick="adminAction(\'delete\',\'' + (fullUser.email || email) + '\')">🗑 Delete User</button>';
   document.getElementById('detailActions').innerHTML = acts;
-  document.getElementById('userDetailPanel').classList.add('open');
   document.getElementById('userDetailPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
@@ -931,6 +996,31 @@ async function setMaintenance(enable) {
     } else { el.style.color = '#ff6b6b'; el.textContent = d.error || 'Failed'; }
   } catch(e) { document.getElementById('maintStatus').textContent = 'Error: ' + e.message; }
 }
+
+async function setEndpointUrl() {
+  var url = document.getElementById('endpointUrlAdmin').value.trim();
+  if (!url) { document.getElementById('endpointUrlStatus').textContent = 'Please enter a URL'; document.getElementById('endpointUrlStatus').style.color = '#ff6b6b'; return; }
+  if (!url.startsWith('https://')) { document.getElementById('endpointUrlStatus').textContent = 'URL must start with https://'; document.getElementById('endpointUrlStatus').style.color = '#ff6b6b'; return; }
+  if (!confirm('Update the system endpoint URL? All users will auto-sync to the new URL.')) return;
+  try {
+    var d = await gasPost('admin_set_endpoint_url', { endpoint_url: url });
+    var el = document.getElementById('endpointUrlStatus');
+    if (d.status === 'ok') {
+      el.style.color = '#00ff88'; el.textContent = '✓ Endpoint URL updated successfully. Users will auto-sync on next login.';
+      document.getElementById('endpointUrlCurrent').textContent = url;
+    } else { el.style.color = '#ff6b6b'; el.textContent = d.error || 'Failed'; }
+  } catch(e) { document.getElementById('endpointUrlStatus').textContent = 'Error: ' + e.message; document.getElementById('endpointUrlStatus').style.color = '#ff6b6b'; }
+}
+
+// Load current endpoint URL on system tab
+(function() {
+  var _epEl = document.getElementById('endpointUrlCurrent');
+  var _epInput = document.getElementById('endpointUrlAdmin');
+  if (_epEl) {
+    var _stored = localStorage.getItem('falcon_admin_gas_url') || '';
+    if (_stored) { _epEl.textContent = _stored; _epInput.value = _stored; }
+  }
+})()
 
 async function setEaVersion() {
   var ver = document.getElementById('eaVerNum').value.trim();

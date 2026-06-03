@@ -295,7 +295,7 @@
     btn.textContent = '⏳ Checking access…';
     btn.style.opacity = '0.6';
 
-    fetch(url + '?token=' + encodeURIComponent(token) + '&command=sub_get_status&source=web_cmd&t=' + Date.now(), { method: 'GET', mode: 'cors' })
+    fetch(url + '?token=' + encodeURIComponent(token) + '&command=sub_get_status&source=web_cmd&device_id=' + encodeURIComponent(btoa((navigator.userAgent||'').slice(0,40)+'|'+screen.width+'x'+screen.height+'|'+(navigator.hardwareConcurrency||0)+'|'+(navigator.language||'')).replace(/[=+\/]/g,'').slice(0,40)) + '&t=' + Date.now(), { method: 'GET', mode: 'cors' })
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data && data.status === 'ok') {
