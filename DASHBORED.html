@@ -3809,7 +3809,7 @@
             .then(function(data) {
                 if (data && data.status === 'ok') {
                     var subStatus = data.sub_status || 'unpaid';
-                    if (subStatus !== 'active') {
+                    if (subStatus !== 'active' && !data.trial_active) {
                         // Show subscription required overlay
                         var overlay = document.createElement('div');
                         overlay.id = 'subGateOverlay';
@@ -3817,8 +3817,8 @@
                         overlay.innerHTML = '<div style="font-size:48px;margin-bottom:16px;">🔒</div>' +
                             '<h2 style="font-size:22px;font-weight:800;margin-bottom:8px;color:#e6edf3;">Subscription Required</h2>' +
                             '<p style="font-size:14px;color:#8b94a8;max-width:400px;margin-bottom:24px;">An active subscription is required to access the Trading Dashboard. Subscribe to unlock all features.</p>' +
-                            '<a href="pricing.html" style="display:inline-block;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;padding:14px 32px;border-radius:10px;font-weight:800;font-size:15px;text-decoration:none;margin-bottom:12px;">Subscribe Now — £400/month</a>' +
-                            '<a href="account.html" style="display:inline-block;color:#8b94a8;font-size:13px;text-decoration:none;">← Back to My Account</a>';
+                            '<a href="https://es8564.github.io/Falkon_Dashbored/pricing.html" style="display:inline-block;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;padding:14px 32px;border-radius:10px;font-weight:800;font-size:15px;text-decoration:none;margin-bottom:12px;">Subscribe Now — £400/month</a>' +
+                            '<a href="https://es8564.github.io/Falkon_Dashbored/account.html" style="display:inline-block;color:#8b94a8;font-size:13px;text-decoration:none;">← Back to My Account</a>';
                         document.body.appendChild(overlay);
                     }
                 }
