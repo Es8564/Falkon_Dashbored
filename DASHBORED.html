@@ -3804,10 +3804,35 @@
                         var t = document.getElementById('_setupToken').value.trim();
                         var u = document.getElementById('_setupUrl').value.trim();
                         if (!t) { alert('Please enter your token'); return; }
-                        var c = {}; try { c = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch(_) {}
-                        c.secretToken = t; if (u) c.endpointUrl = u;
-                        localStorage.setItem('falconConfig', JSON.stringify(c));
-                        window.location.reload();
+                        if (!u) { alert('Please enter the server URL'); return; }
+                        // Validate token with server before saving
+                        btn.textContent = '⏳ Validating...';
+                        btn.disabled = true;
+                        btn.style.opacity = '0.6';
+                        fetch(u + '?token=' + encodeURIComponent(t) + '&command=sub_get_status&source=web_cmd&t=' + Date.now(), { method: 'GET', mode: 'cors' })
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            if (data && data.status === 'ok') {
+                                // Token is valid — save and reload
+                                var c = {}; try { c = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch(_) {}
+                                c.secretToken = t; c.endpointUrl = u;
+                                localStorage.setItem('falconConfig', JSON.stringify(c));
+                                window.location.reload();
+                            } else {
+                                // Server rejected — invalid token
+                                btn.textContent = 'Connect Dashboard';
+                                btn.disabled = false;
+                                btn.style.opacity = '1';
+                                alert('❌ Invalid token. Please check your token on your Account page at falconquantai.com/account.html');
+                            }
+                        })
+                        .catch(function() {
+                            // Network error — cannot validate. Do NOT allow saving random tokens.
+                            btn.textContent = 'Connect Dashboard';
+                            btn.disabled = false;
+                            btn.style.opacity = '1';
+                            alert('❌ Cannot reach the server to validate your token. Please check your internet connection and try again.');
+                        });
                     };
                 }, 100);
                 return;
