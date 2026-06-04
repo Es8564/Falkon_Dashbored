@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Falcon AI — Admin Panel</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{height:100%;}
+body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;background:#080d14;color:#e6edf3;min-height:100vh;overflow-x:hidden;}
+:root{--cyan:#00d9ff;--green:#00ff88;--red:#ff4444;--yellow:#ffc107;--purple:#b48cff;--bg:#080d14;--card:#0f1520;--border:rgba(255,255,255,0.07);}
+
+/* ── AUTH SCREEN ── */
+#authScreen{position:fixed;inset:0;background:#080d14;display:flex;align-items:center;justify-content:center;z-index:9999;}
+.auth-box{width:100%;max-width:380px;background:#0f1520;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:40px 32px;text-align:center;}
+.auth-logo{font-size:26px;font-weight:900;background:linear-gradient(90deg,#00d9ff,#00ff88);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;}
+.auth-sub{font-size:13px;color:#5b6580;margin-bottom:28px;}
+.auth-input{width:100%;padding:12px 14px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e6edf3;font-size:14px;outline:none;font-family:inherit;margin-bottom:12px;}
+.auth-input:focus{border-color:#00d9ff;}
+.auth-btn{width:100%;padding:13px;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;border:none;border-radius:8px;font-weight:800;font-size:14px;cursor:pointer;}
+.auth-btn:hover{filter:brightness(1.08);}
+#authError{font-size:12px;color:#ff6b6b;margin-top:10px;display:none;}
+
+/* ── LAYOUT ── */
+#app{display:none;}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(8,13,20,0.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.topbar-logo{font-size:16px;font-weight:900;background:linear-gradient(90deg,#00d9ff,#00ff88);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.topbar-badge{font-size:9px;background:rgba(255,68,68,0.15);color:#ff6b6b;border:1px solid rgba(255,68,68,0.3);border-radius:4px;padding:2px 7px;font-weight:700;letter-spacing:0.05em;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.logout-btn{background:none;border:1px solid rgba(255,68,68,0.3);color:#ff6b6b;padding:5px 12px;border-radius:6px;font-size:11px;cursor:pointer;}
+.logout-btn:hover{background:rgba(255,68,68,0.1);}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;padding:10px 20px 0;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:9px 16px;font-size:12px;font-weight:600;color:#5b6580;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.2s;}
+.tab:hover{color:#c8d0df;}
+.tab.active{color:#00d9ff;border-bottom-color:#00d9ff;}
+
+/* ── CONTENT ── */
+.content{padding:20px;max-width:1200px;margin:0 auto;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* ── STAT CARDS ── */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.stat-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.35);margin-bottom:6px;}
+.stat-value{font-size:26px;font-weight:800;color:#e6edf3;font-variant-numeric:tabular-nums;}
+.stat-value.cyan{color:#00d9ff;} .stat-value.green{color:#00ff88;} .stat-value.yellow{color:#ffc107;} .stat-value.red{color:#ff4444;}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);}
+.card-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.4);}
+.card-body{padding:14px 16px;}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{padding:8px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:rgba(255,255,255,0.35);border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,0.04);color:#c8d0df;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,0.02);}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;white-space:nowrap;}
+.badge-green{background:rgba(0,255,136,0.12);color:#00ff88;border:1px solid rgba(0,255,136,0.25);}
+.badge-cyan{background:rgba(0,217,255,0.12);color:#00d9ff;border:1px solid rgba(0,217,255,0.25);}
+.badge-yellow{background:rgba(255,193,7,0.12);color:#ffc107;border:1px solid rgba(255,193,7,0.25);}
+.badge-red{background:rgba(255,68,68,0.12);color:#ff6b6b;border:1px solid rgba(255,68,68,0.25);}
+.badge-gray{background:rgba(255,255,255,0.06);color:#8b94a8;border:1px solid rgba(255,255,255,0.1);}
+.badge-purple{background:rgba(180,140,255,0.12);color:#b48cff;border:1px solid rgba(180,140,255,0.25);}
+
+/* ── BUTTONS ── */
+.btn{padding:6px 12px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
+.btn-primary{background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;}
+.btn-primary:hover:not(:disabled){filter:brightness(1.08);}
+.btn-ghost{background:rgba(255,255,255,0.06);color:#c8d0df;border:1px solid rgba(255,255,255,0.1);}
+.btn-ghost:hover:not(:disabled){background:rgba(255,255,255,0.1);}
+.btn-danger{background:rgba(255,68,68,0.15);color:#ff6b6b;border:1px solid rgba(255,68,68,0.3);}
+.btn-danger:hover:not(:disabled){background:rgba(255,68,68,0.25);}
+.btn-warn{background:rgba(255,193,7,0.15);color:#ffc107;border:1px solid rgba(255,193,7,0.3);}
+.btn-warn:hover:not(:disabled){background:rgba(255,193,7,0.25);}
+.btn-success{background:rgba(0,255,136,0.15);color:#00ff88;border:1px solid rgba(0,255,136,0.3);}
+.btn-success:hover:not(:disabled){background:rgba(0,255,136,0.25);}
+.btn-sm{padding:4px 9px;font-size:10px;}
+
+/* ── INPUTS ── */
+.inp{padding:8px 12px;background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.1);border-radius:7px;color:#e6edf3;font-size:12px;font-family:inherit;outline:none;}
+.inp:focus{border-color:#00d9ff;}
+.inp-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+
+/* ── FILTER BAR ── */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+.filter-btn{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#8b94a8;transition:all 0.15s;}
+.filter-btn.active{background:rgba(0,217,255,0.12);color:#00d9ff;border-color:rgba(0,217,255,0.3);}
+.filter-btn:hover{background:rgba(255,255,255,0.08);color:#e6edf3;}
+
+/* ── DETAIL PANEL ── */
+.detail-panel{background:#060b12;border:1px solid rgba(0,217,255,0.15);border-radius:10px;padding:16px;margin-top:12px;display:none;}
+.detail-panel.open{display:block;}
+.detail-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;}
+.detail-row:last-child{border-bottom:none;}
+.detail-label{color:#5b6580;}
+.detail-value{color:#c8d0df;font-weight:500;text-align:right;max-width:60%;word-break:break-all;}
+
+/* ── ALERT ── */
+.alert{padding:10px 14px;border-radius:8px;font-size:12px;font-weight:600;margin-bottom:12px;display:none;}
+.alert.show{display:block;}
+.alert-success{background:rgba(0,255,136,0.08);color:#00ff88;border:1px solid rgba(0,255,136,0.2);}
+.alert-error{background:rgba(255,68,68,0.08);color:#ff6b6b;border:1px solid rgba(255,68,68,0.2);}
+.alert-info{background:rgba(0,217,255,0.08);color:#00d9ff;border:1px solid rgba(0,217,255,0.2);}
+
+/* ── LOADING ── */
+.loading{text-align:center;padding:40px;color:#5b6580;font-size:13px;}
+.spin{display:inline-block;width:20px;height:20px;border:2px solid rgba(0,217,255,0.2);border-top-color:#00d9ff;border-radius:50%;animation:spin 0.8s linear infinite;margin-right:8px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── SEARCH ── */
+.search-inp{padding:8px 12px;background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.1);border-radius:7px;color:#e6edf3;font-size:12px;font-family:inherit;outline:none;width:220px;}
+.search-inp:focus{border-color:#00d9ff;}
+
+/* ── DOWNLOAD CARD ── */
+.dl-card{background:rgba(0,217,255,0.04);border:1px solid rgba(0,217,255,0.15);border-radius:10px;padding:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:12px;}
+.dl-info h3{font-size:14px;font-weight:700;margin-bottom:4px;}
+.dl-info p{font-size:12px;color:#5b6580;}
+.dl-btn{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;padding:10px 20px;border-radius:8px;font-weight:800;font-size:13px;text-decoration:none;border:none;cursor:pointer;}
+.dl-btn:hover{filter:brightness(1.08);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){.stat-row{grid-template-columns:1fr 1fr;}.content{padding:12px;}.tabs{padding:8px 12px 0;}}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen">
+  <div class="auth-box">
+    <div class="auth-logo">◈ FALCON AI</div>
+    <div class="auth-sub">Admin Panel — Private Access Only</div>
+    <input type="password" class="auth-input" id="masterTokenInput" placeholder="Enter master token…" autocomplete="off">
+    <input type="text" class="auth-input" id="gasUrlInput" placeholder="Google Apps Script URL" autocomplete="off">
+    <button class="auth-btn" onclick="doAuth()">Access Admin Panel →</button>
+    <div id="authError"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="topbar-logo">◈ FALCON AI</span>
+      <span class="topbar-badge">ADMIN</span>
+    </div>
+    <div class="topbar-right">
+      <span id="topbarTime" style="font-size:11px;color:#5b6580;"></span>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="users" onclick="switchTab('users')">👥 Users</button>
+    <button class="tab" data-tab="payments" onclick="switchTab('payments')">💳 Payments</button>
+    <button class="tab" data-tab="trials" onclick="switchTab('trials')">🔬 Trials</button>
+    <button class="tab" data-tab="activity" onclick="switchTab('activity')">📊 Activity</button>
+    <button class="tab" data-tab="security" onclick="switchTab('security')">🔒 Security</button>
+    <button class="tab" data-tab="downloads" onclick="switchTab('downloads')">📥 Downloads</button>
+    <button class="tab" data-tab="system" onclick="switchTab('system')">⚙️ System</button>
+  </div>
+
+  <div class="content">
+    <div id="globalAlert" class="alert"></div>
+
+    <!-- ══ USERS TAB ══ -->
+    <div id="tab-users" class="tab-panel active">
+      <div class="stat-row" id="userStats">
+        <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-value cyan" id="statTotal">—</div></div>
+        <div class="stat-card"><div class="stat-label">Active Trials</div><div class="stat-value green" id="statTrials">—</div></div>
+        <div class="stat-card"><div class="stat-label">Subscribed</div><div class="stat-value green" id="statSubs">—</div></div>
+        <div class="stat-card"><div class="stat-label">Expired</div><div class="stat-value yellow" id="statExpired">—</div></div>
+        <div class="stat-card"><div class="stat-label">Suspended</div><div class="stat-value red" id="statSuspended">—</div></div>
+        <div class="stat-card"><div class="stat-label">Pending Payment</div><div class="stat-value yellow" id="statPending">—</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">All Users</span>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input type="text" class="search-inp" id="userSearch" placeholder="Search name / email…" oninput="filterUsers()">
+            <button class="btn btn-ghost btn-sm" onclick="loadUsers()">↻ Refresh</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:10px 0;">
+          <div class="filter-bar" style="padding:0 16px;">
+            <button class="filter-btn active" onclick="setUserFilter('all',this)">All</button>
+            <button class="filter-btn" onclick="setUserFilter('trial',this)">Trial</button>
+            <button class="filter-btn" onclick="setUserFilter('subscribed',this)">Subscribed</button>
+            <button class="filter-btn" onclick="setUserFilter('expired',this)">Expired</button>
+            <button class="filter-btn" onclick="setUserFilter('suspended',this)">Suspended</button>
+            <button class="filter-btn" onclick="setUserFilter('pending',this)">Pending</button>
+          </div>
+          <div id="usersTableWrap" class="tbl-wrap">
+            <div class="loading"><span class="spin"></span>Loading users…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- User detail panel -->
+      <div id="userDetailPanel" class="detail-panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <span style="font-size:13px;font-weight:700;color:#00d9ff;" id="detailUserName">User Detail</span>
+          <button class="btn btn-ghost btn-sm" onclick="closeUserDetail()">✕ Close</button>
+        </div>
+        <div id="detailRows"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;" id="detailActions"></div>
+      </div>
+    </div>
+
+    <!-- ══ PAYMENTS TAB ══ -->
+    <div id="tab-payments" class="tab-panel">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">⏳ Pending Approvals</span>
+          <button class="btn btn-ghost btn-sm" onclick="loadPayments()">↻ Refresh</button>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div id="pendingPaymentsWrap" class="tbl-wrap">
+            <div class="loading"><span class="spin"></span>Loading…</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">⚙️ Payment Configuration</span></div>
+        <div class="card-body">
+          <div class="inp-row">
+            <input type="text" class="inp" id="stripeUrlInp" placeholder="Stripe Payment Link URL" style="flex:1;">
+            <input type="text" class="inp" id="paypalUrlInp" placeholder="PayPal Payment URL" style="flex:1;">
+            <button class="btn btn-primary" onclick="savePaymentConfig()">Save</button>
+          </div>
+          <div id="payConfigStatus" style="font-size:11px;color:#5b6580;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TRIALS TAB ══ -->
+    <div id="tab-trials" class="tab-panel">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Active Trials</span>
+          <button class="btn btn-ghost btn-sm" onclick="loadTrials()">↻ Refresh</button>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div id="trialsTableWrap" class="tbl-wrap">
+            <div class="loading"><span class="spin"></span>Loading…</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">🛡️ Device Fingerprint Registry</span></div>
+        <div class="card-body" style="padding:0;">
+          <div style="padding:10px 16px 6px;font-size:11px;color:#5b6580;">Devices that have used a free trial. Clear a fingerprint to allow a legitimate user to register again.</div>
+          <div id="fpTableWrap" class="tbl-wrap">
+            <div class="loading"><span class="spin"></span>Loading…</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">🎁 Grant / Revoke Trial</span></div>
+        <div class="card-body">
+          <div class="inp-row">
+            <input type="email" class="inp" id="trialEmail" placeholder="user@example.com" style="flex:1;">
+            <input type="number" class="inp" id="trialDays" value="7" min="1" max="90" style="width:70px;">
+            <button class="btn btn-success" onclick="grantTrial()">Grant Trial</button>
+            <button class="btn btn-danger" onclick="revokeTrial()">Revoke Trial</button>
+          </div>
+          <div id="trialActionStatus" style="font-size:11px;color:#5b6580;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ACTIVITY TAB ══ -->
+    <div id="tab-activity" class="tab-panel">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Login Activity</span>
+          <div style="display:flex;gap:8px;">
+            <input type="email" class="search-inp" id="activityEmailFilter" placeholder="Filter by email…" style="width:180px;">
+            <button class="btn btn-ghost btn-sm" onclick="loadActivity()">↻ Refresh</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div id="activityTableWrap" class="tbl-wrap">
+            <div class="loading"><span class="spin"></span>Loading…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SECURITY TAB ══ -->
+    <div id="tab-security" class="tab-panel">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🔐 Admin Audit Log</span>
+          <button class="btn btn-ghost btn-sm" onclick="loadAuditLog()">↻ Refresh</button>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div id="auditTableWrap" class="tbl-wrap">
+            <div class="loading"><span class="spin"></span>Loading…</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">🚨 EA Security Events</span></div>
+        <div class="card-body" style="padding:0;">
+          <div id="secEventsWrap" class="tbl-wrap">
+            <div class="loading"><span class="spin"></span>Loading…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ DOWNLOADS TAB ══ -->
+    <div id="tab-downloads" class="tab-panel">
+      <div style="background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:#00ff88;">
+        ✓ Admin bypass active — downloads are unrestricted for you.
+      </div>
+      <div class="dl-card">
+        <div class="dl-info">
+          <h3>Falcon AI EA — MetaTrader 5</h3>
+          <p>Version 4.0 • .ex5 format • ~150 KB</p>
+        </div>
+        <a href="https://falconquantai.com/FalconAI_EA_v4.ex5" class="dl-btn" download>📥 Download EA</a>
+      </div>
+      <div class="dl-card">
+        <div class="dl-info">
+          <h3>Customer Dashboard</h3>
+          <p>Version 4.0 • .html format • ~500 KB</p>
+        </div>
+        <a href="https://falconquantai.com/DASHBORED.html" class="dl-btn" download style="background:linear-gradient(135deg,#00ff88,#00d9ff);">📥 Download Dashboard</a>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">⚙️ Update Download URLs</span></div>
+        <div class="card-body">
+          <div class="inp-row">
+            <input type="text" class="inp" id="dlEaUrl" placeholder="EA download URL (.ex5)" style="flex:1;">
+            <button class="btn btn-primary" onclick="saveDlUrl('ea')">Save EA URL</button>
+          </div>
+          <div class="inp-row">
+            <input type="text" class="inp" id="dlDashUrl" placeholder="Dashboard download URL (.html)" style="flex:1;">
+            <button class="btn btn-primary" onclick="saveDlUrl('dash')">Save Dashboard URL</button>
+          </div>
+          <div id="dlUrlStatus" style="font-size:11px;color:#5b6580;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SYSTEM TAB ══ -->
+    <div id="tab-system" class="tab-panel">
+      <div class="stat-row" id="systemStats">
+        <div class="stat-card"><div class="stat-label">GAS Endpoint</div><div style="font-size:11px;color:#00d9ff;margin-top:4px;word-break:break-all;" id="sysEndpoint">—</div></div>
+        <div class="stat-card"><div class="stat-label">Server Time</div><div class="stat-value" style="font-size:14px;" id="sysTime">—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">📢 Broadcast Message to All Users</span></div>
+        <div class="card-body">
+          <div class="inp-row">
+            <input type="text" class="inp" id="broadcastMsg" placeholder="Message to broadcast to all customer dashboards…" style="flex:1;">
+            <button class="btn btn-primary" onclick="sendBroadcast()">Send Broadcast</button>
+          </div>
+          <div id="broadcastStatus" style="font-size:11px;color:#5b6580;"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">🚧 Maintenance Mode</span></div>
+        <div class="card-body">
+          <div style="font-size:12px;color:#8b94a8;margin-bottom:10px;">When enabled, all non-admin API calls return "under maintenance". EAs stop receiving commands. Admin panel continues working.</div>
+          <div class="inp-row">
+            <input type="text" class="inp" id="maintMsg" placeholder="Custom maintenance message (optional)" style="flex:1;" value="System is under maintenance. Please try again shortly.">
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-danger" onclick="setMaintenance(true)">🚧 Enable Maintenance</button>
+            <button class="btn btn-success" onclick="setMaintenance(false)">✓ Disable Maintenance</button>
+          </div>
+          <div id="maintStatus" style="font-size:11px;color:#5b6580;margin-top:8px;"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span class="card-title">🔗 Endpoint URL Management</span></div>
+        <div class="card-body">
+          <div style="font-size:12px;color:#8b94a8;margin-bottom:10px;">The active GAS endpoint URL that all users see. Change this only if you redeploy to a new URL. All connected dashboards will auto-sync within minutes.</div>
+          <div class="inp-row">
+            <input type="text" class="inp" id="endpointUrlAdmin" placeholder="https://script.google.com/macros/s/.../exec" style="flex:1;">
+            <button class="btn btn-primary" onclick="setEndpointUrl()">💾 Update URL</button>
+          </div>
+          <div id="endpointUrlStatus" style="font-size:11px;color:#5b6580;margin-top:8px;"></div>
+          <div style="font-size:11px;color:#5b6580;margin-top:6px;">Current: <span id="endpointUrlCurrent" style="color:#00d9ff;word-break:break-all;">Loading…</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span class="card-title">📦 EA Version Management</span></div>
+        <div class="card-body">
+          <div style="font-size:12px;color:#8b94a8;margin-bottom:10px;">Set the latest EA version info. EAs and dashboards check this to show update prompts.</div>
+          <div class="inp-row">
+            <input type="text" class="inp" id="eaVerNum" placeholder="Version (e.g. 4.0)" style="width:100px;">
+            <input type="text" class="inp" id="eaVerDate" placeholder="Release date (YYYY-MM-DD)" style="width:150px;">
+            <input type="text" class="inp" id="eaVerNotes" placeholder="Release notes (short)" style="flex:1;">
+          </div>
+          <div class="inp-row">
+            <input type="text" class="inp" id="eaVerUrl" placeholder="Download URL for new version" style="flex:1;">
+            <button class="btn btn-primary" onclick="setEaVersion()">Save Version</button>
+            <button class="btn btn-ghost" onclick="getEaVersion()">Check Current</button>
+          </div>
+          <div id="eaVerStatus" style="font-size:11px;color:#5b6580;margin-top:4px;"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span class="card-title">🔑 HMAC Strict Mode</span></div>
+        <div class="card-body">
+          <div style="font-size:12px;color:#8b94a8;margin-bottom:10px;">Controls whether unsigned EA requests are rejected. Default: ON (strict).</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-success" onclick="setHmac(true)">Enable Strict</button>
+            <button class="btn btn-warn" onclick="setHmac(false)">Disable (Lenient)</button>
+            <button class="btn btn-ghost" onclick="getHmac()">Check Status</button>
+          </div>
+          <div id="hmacStatus" style="font-size:11px;color:#5b6580;margin-top:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+var _GAS_URL = '';
+var _MASTER_TOKEN = '';
+var _allUsers = [];
+var _userFilter = 'all';
+var _activeTab = 'users';
+
+// ── AUTH ───────────────────────────────────────────────────────────────────
+function doAuth() {
+  var tok = document.getElementById('masterTokenInput').value.trim();
+  var url = document.getElementById('gasUrlInput').value.trim();
+  if (!tok) { showAuthError('Please enter your master token.'); return; }
+  if (!url || url.indexOf('script.google') < 0) { showAuthError('Please enter a valid Google Apps Script URL.'); return; }
+  _MASTER_TOKEN = tok;
+  _GAS_URL = url;
+  // Save to sessionStorage (cleared when tab closes)
+  try { sessionStorage.setItem('falcon_admin_token', tok); sessionStorage.setItem('falcon_admin_url', url); } catch(_) {}
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('sysEndpoint').textContent = url.slice(0, 60) + '…';
+  startClock();
+  loadUsers();
+  loadPayments();
+  loadTrials();
+  loadFp();
+  loadActivity();
+  loadAuditLog();
+  loadSecEvents();
+  // [AUTO-REFRESH] Refresh active tab data every 30 seconds
+  setInterval(function() {
+    if (_activeTab === 'users') loadUsers();
+    else if (_activeTab === 'payments') loadPayments();
+    else if (_activeTab === 'trials') loadTrials();
+    else if (_activeTab === 'activity') loadActivity();
+    else if (_activeTab === 'security') { loadSecEvents(); loadAuditLog(); }
+  }, 30000);
+}
+function showAuthError(msg) {
+  var el = document.getElementById('authError');
+  el.textContent = msg; el.style.display = 'block';
+}
+function doLogout() {
+  try { sessionStorage.clear(); } catch(_) {}
+  location.reload();
+}
+// Auto-restore session
+(function() {
+  try {
+    var tok = sessionStorage.getItem('falcon_admin_token');
+    var url = sessionStorage.getItem('falcon_admin_url');
+    if (tok && url) {
+      document.getElementById('masterTokenInput').value = tok;
+      document.getElementById('gasUrlInput').value = url;
+    }
+  } catch(_) {}
+})();
+
+// ── CLOCK ──────────────────────────────────────────────────────────────────
+function startClock() {
+  function tick() {
+    var el = document.getElementById('topbarTime');
+    if (el) el.textContent = new Date().toLocaleString();
+  }
+  tick(); setInterval(tick, 1000);
+}
+
+// ── TAB SWITCHING ──────────────────────────────────────────────────────────
+function switchTab(name) {
+  _activeTab = name;
+  document.querySelectorAll('.tab').forEach(function(t) {
+    t.classList.toggle('active', t.getAttribute('data-tab') === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(function(p) {
+    p.classList.toggle('active', p.id === 'tab-' + name);
+  });
+}
+
+// ── GAS CALL ───────────────────────────────────────────────────────────────
+// Admin commands require POST (they are in ADMIN_ONLY_COMMANDS which blocks GET).
+// GAS doPost parses the body as JSON when Content-Type is text/plain.
+async function gasPost(cmd, extra) {
+  var body = Object.assign({ command: cmd, master_token: _MASTER_TOKEN }, extra || {});
+  // Try POST first (required for all admin_* commands)
+  try {
+    var r = await fetch(_GAS_URL, {
+      method: 'POST',
+      mode: 'cors',
+      cache: 'no-cache',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  } catch(postErr) {
+    // Fallback to GET for read-only commands that support it (audit log, hmac status, etc.)
+    var qs = Object.keys(body).map(function(k) {
+      return encodeURIComponent(k) + '=' + encodeURIComponent(body[k] == null ? '' : body[k]);
+    }).join('&');
+    var r2 = await fetch(_GAS_URL + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors', cache: 'no-cache' });
+    if (!r2.ok) throw new Error('HTTP ' + r2.status);
+    return r2.json();
+  }
+}
+
+// ── GLOBAL ALERT ───────────────────────────────────────────────────────────
+function showAlert(msg, type) {
+  var el = document.getElementById('globalAlert');
+  el.textContent = msg;
+  el.className = 'alert show alert-' + (type || 'info');
+  clearTimeout(el._t);
+  el._t = setTimeout(function() { el.classList.remove('show'); }, 4000);
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────────────
+function fmtDate(iso) {
+  if (!iso) return '—';
+  try { return new Date(iso).toLocaleString(); } catch(_) { return iso; }
+}
+function fmtDateShort(iso) {
+  if (!iso) return '—';
+  try { return new Date(iso).toLocaleDateString(); } catch(_) { return iso; }
+}
+function statusBadge(user) {
+  if (user.suspended) return '<span class="badge badge-red">Suspended</span>';
+  if (user.sub_status === 'active') return '<span class="badge badge-green">Subscribed</span>';
+  if (user.sub_status === 'pending_approval') return '<span class="badge badge-yellow">Pending</span>';
+  if (user.trial_active) return '<span class="badge badge-cyan">Trial (' + user.trial_days_left + 'd)</span>';
+  if (user.trial_status === 'expired') return '<span class="badge badge-yellow">Trial Expired</span>';
+  return '<span class="badge badge-gray">No Access</span>';
+}
+
+// ── USERS ──────────────────────────────────────────────────────────────────
+async function loadUsers() {
+  document.getElementById('usersTableWrap').innerHTML = '<div class="loading"><span class="spin"></span>Loading users…</div>';
+  try {
+    var d = await gasPost('admin_list_users', { filter: 'all' });
+    if (d.status !== 'ok') { showAlert(d.error || 'Failed to load users', 'error'); return; }
+    _allUsers = d.users || [];
+    updateUserStats();
+    renderUsersTable();
+  } catch(e) { showAlert('Error: ' + e.message, 'error'); }
+}
+
+function updateUserStats() {
+  var total = _allUsers.length;
+  var trials = _allUsers.filter(function(u) { return u.trial_active; }).length;
+  var subs = _allUsers.filter(function(u) { return u.sub_status === 'active'; }).length;
+  var expired = _allUsers.filter(function(u) { return u.trial_status === 'expired' && u.sub_status !== 'active'; }).length;
+  var suspended = _allUsers.filter(function(u) { return u.suspended; }).length;
+  var pending = _allUsers.filter(function(u) { return u.sub_status === 'pending_approval'; }).length;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statTrials').textContent = trials;
+  document.getElementById('statSubs').textContent = subs;
+  document.getElementById('statExpired').textContent = expired;
+  document.getElementById('statSuspended').textContent = suspended;
+  document.getElementById('statPending').textContent = pending;
+}
+
+function setUserFilter(f, btn) {
+  _userFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  renderUsersTable();
+}
+
+function filterUsers() { renderUsersTable(); }
+
+function renderUsersTable() {
+  var search = (document.getElementById('userSearch').value || '').toLowerCase();
+  var list = _allUsers.filter(function(u) {
+    if (_userFilter === 'trial' && !u.trial_active) return false;
+    if (_userFilter === 'subscribed' && u.sub_status !== 'active') return false;
+    if (_userFilter === 'expired' && (u.trial_status !== 'expired' || u.sub_status === 'active')) return false;
+    if (_userFilter === 'suspended' && !u.suspended) return false;
+    if (_userFilter === 'pending' && u.sub_status !== 'pending_approval') return false;
+    if (search) {
+      var hay = (u.name + u.email + u.phone + u.country).toLowerCase();
+      if (hay.indexOf(search) < 0) return false;
+    }
+    return true;
+  });
+  if (!list.length) {
+    document.getElementById('usersTableWrap').innerHTML = '<div class="loading" style="color:#5b6580;">No users found.</div>';
+    return;
+  }
+  var html = '<table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Country</th><th>Registered</th><th>Status</th><th>Last Login</th><th>Actions</th></tr></thead><tbody>';
+  list.forEach(function(u) {
+    html += '<tr>';
+    html += '<td style="font-weight:600;">' + (u.name || '—') + '</td>';
+    html += '<td style="color:#00d9ff;">' + u.email + '</td>';
+    html += '<td>' + (u.phone || '—') + '</td>';
+    html += '<td>' + (u.country || '—') + '</td>';
+    html += '<td>' + fmtDateShort(u.created_at) + '</td>';
+    html += '<td>' + statusBadge(u) + '</td>';
+    html += '<td>' + (u.last_login ? fmtDateShort(u.last_login) : '—') + '</td>';
+    html += '<td><button class="btn btn-ghost btn-sm" onclick="openUserDetail(\'' + u.email + '\')">Detail</button></td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('usersTableWrap').innerHTML = html;
+}
+
+async function openUserDetail(email) {
+  var u = _allUsers.find(function(x) { return x.email === email; });
+  if (!u) return;
+  document.getElementById('detailUserName').textContent = u.name + ' — ' + u.email;
+  document.getElementById('detailRows').innerHTML = '<p style="color:#8b94a8;font-size:12px;">Loading full profile...</p>';
+  document.getElementById('userDetailPanel').classList.add('open');
+
+  // Fetch full user profile from server
+  var fullUser = u;
+  try {
+    var d = await gasPost('admin_get_user', { email: email });
+    if (d && d.status === 'ok' && d.user) fullUser = d.user;
+  } catch(_) {}
+
+  var rows = [
+    ['📧 Email', fullUser.email || '—'],
+    ['👤 Name', fullUser.name || '—'],
+    ['📱 Phone', fullUser.phone || '—'],
+    ['🌍 Country', fullUser.country || '—'],
+    ['📅 Registered', fmtDate(fullUser.created_at)],
+    ['🕐 Last Login', fmtDate(fullUser.last_login)],
+    ['🔢 Login Count', fullUser.login_count || 0],
+    ['🔗 Referral Code', fullUser.referral || '—'],
+    ['🌐 Registration IP', fullUser.reg_ip || '—'],
+    ['', ''],
+    ['🔑 SECRET TOKEN', fullUser.token || fullUser.token_key || '—'],
+    ['🔐 Token Key (short)', fullUser.token_key || '—'],
+    ['🔒 Password Hash', fullUser.password_hash || '—'],
+    ['', ''],
+    ['🖥️ Device Fingerprint', fullUser.device_fp || '—'],
+    ['📱 Registered Devices', (fullUser.registered_devices && fullUser.registered_devices.length) ? fullUser.registered_devices.length + ' device(s)' : 'None'],
+  ];
+  // Add individual device details
+  if (fullUser.registered_devices && fullUser.registered_devices.length > 0) {
+    fullUser.registered_devices.forEach(function(dev, idx) {
+      rows.push(['  Device ' + (idx + 1), (dev.id || '?').slice(0, 30) + '… | First: ' + (dev.first_seen || '?').slice(0, 10) + ' | Last: ' + (dev.last_seen || '?').slice(0, 10)]);
+    });
+  }
+  rows.push(['', '']);
+  rows.push(['🚀 Trial Start', fmtDate(fullUser.trial_start)]);
+  rows.push(['⏰ Trial Expires', fmtDate(fullUser.trial_expires)]);
+  rows.push(['📊 Trial Status', fullUser.trial_status || '—']);
+  rows.push(['📆 Trial Days Left', fullUser.trial_active ? fullUser.trial_days_left : 'Expired/None']);
+  rows.push(['', '']);
+  rows.push(['💳 Subscription', fullUser.sub_status || '—']);
+  if (fullUser.sub_data && fullUser.sub_data.next_renewal) rows.push(['📅 Next Renewal', fullUser.sub_data.next_renewal]);
+  if (fullUser.sub_data && fullUser.sub_data.payments && fullUser.sub_data.payments.length > 0) {
+    rows.push(['💰 Payments', fullUser.sub_data.payments.length + ' payment(s)']);
+  }
+  rows.push(['', '']);
+  rows.push(['⊘ Suspended', fullUser.suspended ? 'YES ⚠️' : 'No']);
+  if (fullUser.suspended) rows.push(['📝 Suspend Reason', fullUser.suspend_reason || '—']);
+  rows.push(['', '']);
+  rows.push(['📜 TOS Accepted', fullUser.tos_accepted_at ? fullUser.tos_accepted_at.slice(0, 10) + ' (v' + (fullUser.tos_version || '?') + ')' : '—']);
+  rows.push(['🔏 Privacy Accepted', fullUser.privacy_accepted_at ? fullUser.privacy_accepted_at.slice(0, 10) + ' (v' + (fullUser.privacy_version || '?') + ')' : '—']);
+  rows.push(['', '']);
+  rows.push(['🔗 Endpoint URL', fullUser.endpoint_url || '—']);
+
+  var html = rows.map(function(r) {
+    if (!r[0] && !r[1]) return '<div style="border-top:1px solid rgba(255,255,255,0.06);margin:8px 0;"></div>';
+    var isSecret = r[0].indexOf('TOKEN') >= 0 || r[0].indexOf('Password') >= 0;
+    var valueStyle = isSecret ? 'color:#ffc107;font-family:monospace;font-size:11px;word-break:break-all;' : '';
+    return '<div class="detail-row"><span class="detail-label">' + r[0] + '</span><span class="detail-value" style="' + valueStyle + '">' + r[1] + '</span></div>';
+  }).join('');
+  document.getElementById('detailRows').innerHTML = html;
+
+  // Action buttons
+  var acts = '';
+  if (fullUser.suspended) {
+    acts += '<button class="btn btn-success" onclick="adminAction(\'unsuspend\',\'' + (fullUser.email || email) + '\')">✓ Unsuspend</button>';
+  } else {
+    acts += '<button class="btn btn-danger" onclick="adminAction(\'suspend\',\'' + (fullUser.email || email) + '\')">⊘ Suspend</button>';
+  }
+  acts += '<button class="btn btn-success" onclick="adminAction(\'grant_trial\',\'' + (fullUser.email || email) + '\')">🎁 Grant Trial</button>';
+  acts += '<button class="btn btn-warn" onclick="adminAction(\'revoke_trial\',\'' + (fullUser.email || email) + '\')">✕ Revoke Trial</button>';
+  acts += '<button class="btn btn-ghost" onclick="adminAction(\'view_chat\',\'' + (fullUser.token_key || '') + '\')">💬 View Chat</button>';
+  if (!fullUser.suspended) acts += '<button class="btn btn-danger" onclick="adminAction(\'delete\',\'' + (fullUser.email || email) + '\')">🗑 Delete User</button>';
+  document.getElementById('detailActions').innerHTML = acts;
+  document.getElementById('userDetailPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closeUserDetail() {
+  document.getElementById('userDetailPanel').classList.remove('open');
+}
+
+async function adminAction(action, target) {
+  try {
+    var d;
+    if (action === 'suspend') {
+      var reason = prompt('Reason for suspension (optional):') || 'Suspended by admin';
+      d = await gasPost('admin_suspend_user', { email: target, reason: reason });
+    } else if (action === 'unsuspend') {
+      d = await gasPost('admin_unsuspend_user', { email: target });
+    } else if (action === 'grant_trial') {
+      var days = prompt('Trial days to grant:', '7');
+      if (!days) return;
+      d = await gasPost('admin_grant_trial', { email: target, days: days });
+    } else if (action === 'revoke_trial') {
+      if (!confirm('Revoke trial for ' + target + '?')) return;
+      d = await gasPost('admin_revoke_trial', { email: target });
+    } else if (action === 'view_chat') {
+      showAlert('Open ADMIN_DASHBORED.html to view chat for token key: ' + target, 'info');
+      return;
+    } else if (action === 'delete') {
+      if (!confirm('PERMANENTLY DELETE user ' + target + '? This cannot be undone.')) return;
+      d = await gasPost('admin_delete_user', { email: target });
+    }
+    if (d && d.status === 'ok') {
+      showAlert('✓ Action completed: ' + action, 'success');
+      closeUserDetail();
+      loadUsers();
+    } else {
+      showAlert((d && d.error) || 'Action failed', 'error');
+    }
+  } catch(e) { showAlert('Error: ' + e.message, 'error'); }
+}
+</script>
+
+<script>
+// ── PAYMENTS ───────────────────────────────────────────────────────────────
+async function loadPayments() {
+  document.getElementById('pendingPaymentsWrap').innerHTML = '<div class="loading"><span class="spin"></span>Loading…</div>';
+  try {
+    var d = await gasPost('admin_list_payments');
+    if (d.status !== 'ok') { document.getElementById('pendingPaymentsWrap').innerHTML = '<div class="loading" style="color:#ff6b6b;">' + (d.error || 'Failed') + '</div>'; return; }
+    var pending = d.pending || [];
+    if (!pending.length) { document.getElementById('pendingPaymentsWrap').innerHTML = '<div class="loading" style="color:#5b6580;">No pending payments.</div>'; return; }
+    var html = '<table><thead><tr><th>Token Key</th><th>Method</th><th>Amount</th><th>Initiated</th><th>Actions</th></tr></thead><tbody>';
+    pending.forEach(function(p) {
+      html += '<tr>';
+      html += '<td style="font-family:monospace;font-size:11px;">' + (p.token_key || '—') + '</td>';
+      html += '<td>' + (p.method || '—') + '</td>';
+      html += '<td style="color:#00ff88;font-weight:700;">' + (p.amount || '—') + '</td>';
+      html += '<td>' + fmtDate(p.initiated_at) + '</td>';
+      html += '<td style="display:flex;gap:6px;">';
+      html += '<button class="btn btn-success btn-sm" onclick="approvePayment(\'' + p.token_key + '\')">✓ Approve</button>';
+      html += '<button class="btn btn-danger btn-sm" onclick="rejectPayment(\'' + p.token_key + '\')">✕ Reject</button>';
+      html += '</td></tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('pendingPaymentsWrap').innerHTML = html;
+  } catch(e) { document.getElementById('pendingPaymentsWrap').innerHTML = '<div class="loading" style="color:#ff6b6b;">Error: ' + e.message + '</div>'; }
+}
+
+async function approvePayment(tokenKey) {
+  if (!confirm('Approve payment for ' + tokenKey + '? This will activate a 30-day subscription.')) return;
+  try {
+    var d = await gasPost('admin_approve_payment', { token_key: tokenKey });
+    if (d.status === 'ok') { showAlert('✓ Payment approved — subscription activated', 'success'); loadPayments(); loadUsers(); }
+    else showAlert(d.error || 'Failed', 'error');
+  } catch(e) { showAlert('Error: ' + e.message, 'error'); }
+}
+
+async function rejectPayment(tokenKey) {
+  if (!confirm('Reject payment for ' + tokenKey + '?')) return;
+  try {
+    var d = await gasPost('admin_reject_payment', { token_key: tokenKey });
+    if (d.status === 'ok') { showAlert('Payment rejected', 'info'); loadPayments(); }
+    else showAlert(d.error || 'Failed', 'error');
+  } catch(e) { showAlert('Error: ' + e.message, 'error'); }
+}
+
+async function savePaymentConfig() {
+  var stripe = document.getElementById('stripeUrlInp').value.trim();
+  var paypal = document.getElementById('paypalUrlInp').value.trim();
+  try {
+    var d = await gasPost('admin_set_payment_config', { stripe_url: stripe, paypal_url: paypal });
+    document.getElementById('payConfigStatus').textContent = d.status === 'ok' ? '✓ Saved' : (d.error || 'Failed');
+    document.getElementById('payConfigStatus').style.color = d.status === 'ok' ? '#00ff88' : '#ff6b6b';
+  } catch(e) { document.getElementById('payConfigStatus').textContent = 'Error: ' + e.message; }
+}
+
+// ── TRIALS ─────────────────────────────────────────────────────────────────
+async function loadTrials() {
+  document.getElementById('trialsTableWrap').innerHTML = '<div class="loading"><span class="spin"></span>Loading…</div>';
+  try {
+    var d = await gasPost('admin_list_users', { filter: 'trial' });
+    if (d.status !== 'ok') { document.getElementById('trialsTableWrap').innerHTML = '<div class="loading" style="color:#ff6b6b;">' + (d.error || 'Failed') + '</div>'; return; }
+    var list = d.users || [];
+    if (!list.length) { document.getElementById('trialsTableWrap').innerHTML = '<div class="loading" style="color:#5b6580;">No active trials.</div>'; return; }
+    var html = '<table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Country</th><th>Trial Expires</th><th>Days Left</th><th>Reg IP</th><th>Actions</th></tr></thead><tbody>';
+    list.forEach(function(u) {
+      var urgency = u.trial_days_left <= 2 ? 'color:#ffc107;font-weight:700;' : 'color:#00ff88;';
+      html += '<tr>';
+      html += '<td>' + (u.name || '—') + '</td>';
+      html += '<td style="color:#00d9ff;">' + u.email + '</td>';
+      html += '<td>' + (u.phone || '—') + '</td>';
+      html += '<td>' + (u.country || '—') + '</td>';
+      html += '<td>' + fmtDateShort(u.trial_expires) + '</td>';
+      html += '<td style="' + urgency + '">' + u.trial_days_left + 'd</td>';
+      html += '<td style="font-size:10px;color:#5b6580;">' + (u.reg_ip || '—') + '</td>';
+      html += '<td><button class="btn btn-warn btn-sm" onclick="adminAction(\'revoke_trial\',\'' + u.email + '\')">Revoke</button></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('trialsTableWrap').innerHTML = html;
+  } catch(e) { document.getElementById('trialsTableWrap').innerHTML = '<div class="loading" style="color:#ff6b6b;">Error: ' + e.message + '</div>'; }
+}
+
+async function loadFp() {
+  document.getElementById('fpTableWrap').innerHTML = '<div class="loading"><span class="spin"></span>Loading…</div>';
+  try {
+    var d = await gasPost('admin_list_trial_fingerprints');
+    if (d.status !== 'ok') { document.getElementById('fpTableWrap').innerHTML = '<div class="loading" style="color:#ff6b6b;">' + (d.error || 'Failed') + '</div>'; return; }
+    var list = d.fingerprints || [];
+    if (!list.length) { document.getElementById('fpTableWrap').innerHTML = '<div class="loading" style="color:#5b6580;">No fingerprints recorded yet.</div>'; return; }
+    var html = '<table><thead><tr><th>Fingerprint</th><th>Email</th><th>Registered</th><th>IP</th><th>Actions</th></tr></thead><tbody>';
+    list.forEach(function(fp) {
+      html += '<tr>';
+      html += '<td style="font-family:monospace;font-size:11px;">' + fp.fp_preview + '</td>';
+      html += '<td style="color:#00d9ff;">' + (fp.email || '—') + '</td>';
+      html += '<td>' + fmtDateShort(fp.registered_at) + '</td>';
+      html += '<td style="font-size:10px;color:#5b6580;">' + (fp.ip || '—') + '</td>';
+      html += '<td><button class="btn btn-danger btn-sm" onclick="clearFp(\'' + fp.fp_full + '\')">Clear</button></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('fpTableWrap').innerHTML = html;
+  } catch(e) { document.getElementById('fpTableWrap').innerHTML = '<div class="loading" style="color:#ff6b6b;">Error: ' + e.message + '</div>'; }
+}
+
+async function clearFp(fp) {
+  if (!confirm('Clear this fingerprint? The user will be able to register a new trial from this device.')) return;
+  try {
+    var d = await gasPost('admin_clear_trial_fingerprint', { fp: fp });
+    if (d.status === 'ok') { showAlert('✓ Fingerprint cleared', 'success'); loadFp(); }
+    else showAlert(d.error || 'Failed', 'error');
+  } catch(e) { showAlert('Error: ' + e.message, 'error'); }
+}
+
+async function grantTrial() {
+  var email = document.getElementById('trialEmail').value.trim();
+  var days = document.getElementById('trialDays').value || '7';
+  if (!email) { document.getElementById('trialActionStatus').textContent = 'Please enter an email.'; return; }
+  try {
+    var d = await gasPost('admin_grant_trial', { email: email, days: days });
+    var el = document.getElementById('trialActionStatus');
+    if (d.status === 'ok') { el.style.color = '#00ff88'; el.textContent = '✓ Trial granted until ' + fmtDateShort(d.trial_expires); loadTrials(); loadUsers(); }
+    else { el.style.color = '#ff6b6b'; el.textContent = d.error || 'Failed'; }
+  } catch(e) { document.getElementById('trialActionStatus').textContent = 'Error: ' + e.message; }
+}
+
+async function revokeTrial() {
+  var email = document.getElementById('trialEmail').value.trim();
+  if (!email) { document.getElementById('trialActionStatus').textContent = 'Please enter an email.'; return; }
+  if (!confirm('Revoke trial for ' + email + '?')) return;
+  try {
+    var d = await gasPost('admin_revoke_trial', { email: email });
+    var el = document.getElementById('trialActionStatus');
+    if (d.status === 'ok') { el.style.color = '#ffc107'; el.textContent = '✓ Trial revoked for ' + email; loadTrials(); loadUsers(); }
+    else { el.style.color = '#ff6b6b'; el.textContent = d.error || 'Failed'; }
+  } catch(e) { document.getElementById('trialActionStatus').textContent = 'Error: ' + e.message; }
+}
+
+// ── ACTIVITY ───────────────────────────────────────────────────────────────
+async function loadActivity() {
+  document.getElementById('activityTableWrap').innerHTML = '<div class="loading"><span class="spin"></span>Loading…</div>';
+  var filterEmail = document.getElementById('activityEmailFilter').value.trim();
+  try {
+    var d = await gasPost('admin_list_login_activity', filterEmail ? { email: filterEmail } : {});
+    if (d.status !== 'ok') { document.getElementById('activityTableWrap').innerHTML = '<div class="loading" style="color:#ff6b6b;">' + (d.error || 'Failed') + '</div>'; return; }
+    var list = d.activity || [];
+    if (!list.length) { document.getElementById('activityTableWrap').innerHTML = '<div class="loading" style="color:#5b6580;">No activity recorded.</div>'; return; }
+    var html = '<table><thead><tr><th>Email</th><th>Name</th><th>Time</th><th>IP</th></tr></thead><tbody>';
+    list.forEach(function(a) {
+      html += '<tr>';
+      html += '<td style="color:#00d9ff;">' + (a.email || '—') + '</td>';
+      html += '<td>' + (a.name || '—') + '</td>';
+      html += '<td>' + fmtDate(a.ts) + '</td>';
+      html += '<td style="font-size:10px;color:#5b6580;">' + (a.ip || '—') + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('activityTableWrap').innerHTML = html;
+  } catch(e) { document.getElementById('activityTableWrap').innerHTML = '<div class="loading" style="color:#ff6b6b;">Error: ' + e.message + '</div>'; }
+}
+
+// ── SECURITY ───────────────────────────────────────────────────────────────
+async function loadAuditLog() {
+  document.getElementById('auditTableWrap').innerHTML = '<div class="loading"><span class="spin"></span>Loading…</div>';
+  try {
+    var d = await gasPost('admin_get_audit_log');
+    if (d.status !== 'ok') { document.getElementById('auditTableWrap').innerHTML = '<div class="loading" style="color:#ff6b6b;">' + (d.error || 'Failed') + '</div>'; return; }
+    var list = (d.log || []).slice().reverse().slice(0, 100);
+    if (!list.length) { document.getElementById('auditTableWrap').innerHTML = '<div class="loading" style="color:#5b6580;">No audit entries.</div>'; return; }
+    var html = '<table><thead><tr><th>Time</th><th>Action</th><th>Target</th><th>By</th></tr></thead><tbody>';
+    list.forEach(function(a) {
+      html += '<tr><td>' + fmtDate(a.ts) + '</td><td style="color:#00d9ff;">' + (a.action || '—') + '</td><td>' + (a.target || '—') + '</td><td>' + (a.by || '—') + '</td></tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('auditTableWrap').innerHTML = html;
+  } catch(e) { document.getElementById('auditTableWrap').innerHTML = '<div class="loading" style="color:#ff6b6b;">Error: ' + e.message + '</div>'; }
+}
+
+async function loadSecEvents() {
+  document.getElementById('secEventsWrap').innerHTML = '<div class="loading"><span class="spin"></span>Loading…</div>';
+  try {
+    var d = await gasPost('admin_get_sec_summary');
+    if (d.status !== 'ok') { document.getElementById('secEventsWrap').innerHTML = '<div class="loading" style="color:#ff6b6b;">' + (d.error || 'Failed') + '</div>'; return; }
+    var accounts = d.accounts || [];
+    if (!accounts.length) { document.getElementById('secEventsWrap').innerHTML = '<div class="loading" style="color:#5b6580;">No security events.</div>'; return; }
+    var html = '<table><thead><tr><th>Account</th><th>Events</th><th>Worst Severity</th><th>Last Event</th></tr></thead><tbody>';
+    accounts.forEach(function(a) {
+      var sevClass = a.worst_sev === 'critical' ? 'badge-red' : a.worst_sev === 'warning' ? 'badge-yellow' : 'badge-gray';
+      html += '<tr><td style="font-size:11px;">' + (a.token_key || '—') + '</td><td>' + (a.count || 0) + '</td>';
+      html += '<td><span class="badge ' + sevClass + '">' + (a.worst_sev || '—') + '</span></td>';
+      html += '<td>' + fmtDate(a.last_ts) + '</td></tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('secEventsWrap').innerHTML = html;
+  } catch(e) { document.getElementById('secEventsWrap').innerHTML = '<div class="loading" style="color:#ff6b6b;">Error: ' + e.message + '</div>'; }
+}
+
+// ── SYSTEM ─────────────────────────────────────────────────────────────────
+async function sendBroadcast() {
+  var msg = document.getElementById('broadcastMsg').value.trim();
+  if (!msg) return;
+  if (!confirm('Send broadcast to ALL customers: "' + msg + '"?')) return;
+  try {
+    var d = await gasPost('chat_admin_broadcast', { body: msg, sender_name: 'Falcon AI Admin' });
+    var el = document.getElementById('broadcastStatus');
+    if (d.status === 'ok') { el.style.color = '#00ff88'; el.textContent = '✓ Broadcast sent'; document.getElementById('broadcastMsg').value = ''; }
+    else { el.style.color = '#ff6b6b'; el.textContent = d.error || 'Failed'; }
+  } catch(e) { document.getElementById('broadcastStatus').textContent = 'Error: ' + e.message; }
+}
+
+async function setHmac(strict) {
+  try {
+    var d = await gasPost('admin_set_hmac_strict', { enabled: strict ? '1' : '0' });
+    var el = document.getElementById('hmacStatus');
+    if (d.status === 'ok') { el.style.color = '#00ff88'; el.textContent = '✓ HMAC strict mode: ' + (strict ? 'ENABLED' : 'DISABLED'); }
+    else { el.style.color = '#ff6b6b'; el.textContent = d.error || 'Failed'; }
+  } catch(e) { document.getElementById('hmacStatus').textContent = 'Error: ' + e.message; }
+}
+
+async function getHmac() {
+  try {
+    var d = await gasPost('admin_get_hmac_strict');
+    var el = document.getElementById('hmacStatus');
+    if (d.status === 'ok') { el.style.color = '#00d9ff'; el.textContent = 'HMAC strict mode is currently: ' + (d.strict ? 'ENABLED' : 'DISABLED'); }
+    else { el.style.color = '#ff6b6b'; el.textContent = d.error || 'Failed'; }
+  } catch(e) { document.getElementById('hmacStatus').textContent = 'Error: ' + e.message; }
+}
+
+async function setMaintenance(enable) {
+  var msg = document.getElementById('maintMsg').value.trim();
+  if (enable && !confirm('Enable maintenance mode? All customer/EA requests will be blocked until you disable it.')) return;
+  try {
+    var d = await gasPost('admin_set_maintenance', { enabled: enable ? '1' : '0', message: msg });
+    var el = document.getElementById('maintStatus');
+    if (d.status === 'ok') {
+      el.style.color = enable ? '#ffc107' : '#00ff88';
+      el.textContent = enable ? '🚧 Maintenance mode ENABLED — all non-admin requests blocked' : '✓ Maintenance mode disabled — system is live';
+    } else { el.style.color = '#ff6b6b'; el.textContent = d.error || 'Failed'; }
+  } catch(e) { document.getElementById('maintStatus').textContent = 'Error: ' + e.message; }
+}
+
+async function setEndpointUrl() {
+  var url = document.getElementById('endpointUrlAdmin').value.trim();
+  if (!url) { document.getElementById('endpointUrlStatus').textContent = 'Please enter a URL'; document.getElementById('endpointUrlStatus').style.color = '#ff6b6b'; return; }
+  if (!url.startsWith('https://')) { document.getElementById('endpointUrlStatus').textContent = 'URL must start with https://'; document.getElementById('endpointUrlStatus').style.color = '#ff6b6b'; return; }
+  if (!confirm('Update the system endpoint URL? All users will auto-sync to the new URL.')) return;
+  try {
+    var d = await gasPost('admin_set_endpoint_url', { endpoint_url: url });
+    var el = document.getElementById('endpointUrlStatus');
+    if (d.status === 'ok') {
+      el.style.color = '#00ff88'; el.textContent = '✓ Endpoint URL updated successfully. Users will auto-sync on next login.';
+      document.getElementById('endpointUrlCurrent').textContent = url;
+    } else { el.style.color = '#ff6b6b'; el.textContent = d.error || 'Failed'; }
+  } catch(e) { document.getElementById('endpointUrlStatus').textContent = 'Error: ' + e.message; document.getElementById('endpointUrlStatus').style.color = '#ff6b6b'; }
+}
+
+// Load current endpoint URL on system tab
+(function() {
+  var _epEl = document.getElementById('endpointUrlCurrent');
+  var _epInput = document.getElementById('endpointUrlAdmin');
+  if (_epEl) {
+    var _stored = localStorage.getItem('falcon_admin_gas_url') || '';
+    if (_stored) { _epEl.textContent = _stored; _epInput.value = _stored; }
+  }
+})()
+
+async function setEaVersion() {
+  var ver = document.getElementById('eaVerNum').value.trim();
+  var date = document.getElementById('eaVerDate').value.trim();
+  var notes = document.getElementById('eaVerNotes').value.trim();
+  var url = document.getElementById('eaVerUrl').value.trim();
+  if (!ver) { document.getElementById('eaVerStatus').textContent = 'Version number required.'; return; }
+  try {
+    var d = await gasPost('admin_set_ea_version', { version: ver, release_date: date, notes: notes, download_url: url });
+    var el = document.getElementById('eaVerStatus');
+    if (d.status === 'ok') { el.style.color = '#00ff88'; el.textContent = '✓ Version set to ' + ver; }
+    else { el.style.color = '#ff6b6b'; el.textContent = d.error || 'Failed'; }
+  } catch(e) { document.getElementById('eaVerStatus').textContent = 'Error: ' + e.message; }
+}
+
+async function getEaVersion() {
+  try {
+    var d = await gasPost('get_latest_version');
+    var el = document.getElementById('eaVerStatus');
+    if (d.status === 'ok') {
+      el.style.color = '#00d9ff';
+      el.textContent = 'Current: v' + d.latest_version + ' (' + (d.release_date || '—') + ') — ' + (d.notes || 'No notes');
+      document.getElementById('eaVerNum').value = d.latest_version || '';
+      document.getElementById('eaVerDate').value = d.release_date || '';
+      document.getElementById('eaVerNotes').value = d.notes || '';
+      document.getElementById('eaVerUrl').value = d.download_url || '';
+    } else { el.style.color = '#ff6b6b'; el.textContent = d.error || 'Failed'; }
+  } catch(e) { document.getElementById('eaVerStatus').textContent = 'Error: ' + e.message; }
+}
+
+async function saveDlUrl(type) {
+  var url = type === 'ea' ? document.getElementById('dlEaUrl').value.trim() : document.getElementById('dlDashUrl').value.trim();
+  if (!url) return;
+  try {
+    // GAS admin_set_download_url reads args.download_url and args.download_note
+    var d = await gasPost('admin_set_download_url', { download_url: url, download_note: type === 'ea' ? 'EA v4' : 'Dashboard' });
+    var el = document.getElementById('dlUrlStatus');
+    if (d.status === 'ok') { el.style.color = '#00ff88'; el.textContent = '✓ URL saved'; }
+    else { el.style.color = '#ff6b6b'; el.textContent = d.error || 'Failed'; }
+  } catch(e) { document.getElementById('dlUrlStatus').textContent = 'Error: ' + e.message; }
+}
+
+// ── SYSTEM TIME ────────────────────────────────────────────────────────────
+setInterval(function() {
+  var el = document.getElementById('sysTime');
+  if (el) el.textContent = new Date().toLocaleTimeString();
+}, 1000);
+</script>
+</body>
+</html>

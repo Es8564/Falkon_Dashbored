@@ -1,0 +1,50 @@
+# Falcon AI — robots.txt
+# Controls which pages search engines can crawl
+
+User-agent: *
+Allow: /
+
+# Public pages (indexable)
+Allow: /index.html
+Allow: /features.html
+Allow: /pricing.html
+Allow: /about.html
+Allow: /contact.html
+Allow: /support.html
+Allow: /blog.html
+Allow: /testimonials.html
+Allow: /docs.html
+Allow: /changelog.html
+Allow: /status.html
+Allow: /download.html
+Allow: /security.html
+Allow: /terms.html
+Allow: /privacy.html
+Allow: /refund.html
+Allow: /login.html
+Allow: /register.html
+Allow: /account.html
+Allow: /affiliate.html
+Allow: /compare.html
+Allow: /falcon-promo.html
+
+# Private/admin pages (not indexed)
+Disallow: /DASHBORED.html
+Disallow: /ADMIN_DASHBORED.html
+Disallow: /falcon-admin.html
+Disallow: /404.html
+Disallow: /GOOGLE_APPS_SCRIPT.js
+Disallow: /offline_license_generator*
+Disallow: /RemoteControlIntegration*
+Disallow: /FALCON.HIGH*
+Disallow: /FALCON%20AI*
+Disallow: /mt5_ea_trainer*
+Disallow: /manifest_admin.json
+
+# Assets (allow)
+Allow: /icon.svg
+Allow: /sw.js
+Allow: /manifest.json
+
+# Sitemap
+Sitemap: https://falconai.trade/sitemap.xml

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Features — Falcon AI</title>
+    <meta name="description" content="Explore Falcon AI features — AI trading, remote control, daily targets, risk management, live chat, and more.">
+    <meta name="theme-color" content="#0d1117">
+    <meta property="og:title" content="Features — Falcon AI">
+    <meta property="og:description" content="AI trading, remote control, daily targets, risk management, live chat — a complete trading ecosystem.">
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #0d1117; color: #e6edf3; line-height: 1.6; overflow-x: hidden; }
+        .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(13,17,23,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { font-size: 20px; font-weight: 900; background: linear-gradient(90deg, #00d9ff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-decoration: none; }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { color: #8b94a8; text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: #e6edf3; }
+        .nav-cta { background: linear-gradient(135deg, #00d9ff, #00ff88); color: #0d1117; padding: 8px 18px; border-radius: 8px; font-weight: 700; font-size: 13px; text-decoration: none; }
+        .nav-mobile { display: none; background: none; border: none; color: #e6edf3; font-size: 24px; cursor: pointer; }
+        @media (max-width: 768px) { .nav-links { display: none; } .nav-mobile { display: block; } .nav-links.open { display: flex; flex-direction: column; position: absolute; top: 56px; left: 0; right: 0; background: #0d1117; padding: 20px; border-bottom: 1px solid #2a3142; } }
+
+        .page { max-width: 900px; margin: 0 auto; padding: 100px 24px 60px; }
+        .page-title { font-size: 36px; font-weight: 900; text-align: center; margin-bottom: 12px; }
+        .page-sub { font-size: 16px; color: #8b94a8; text-align: center; max-width: 600px; margin: 0 auto 48px; }
+
+        .feature-block { margin-bottom: 48px; padding: 32px; background: rgba(22,27,34,0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; }
+        .feature-block h2 { font-size: 20px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+        .feature-block h2 .icon { font-size: 28px; }
+        .feature-block p { font-size: 14px; color: #c8d0df; margin-bottom: 12px; line-height: 1.7; }
+        .feature-block ul { list-style: none; margin-top: 12px; }
+        .feature-block ul li { padding: 6px 0; font-size: 13px; color: #8b94a8; display: flex; align-items: center; gap: 8px; }
+        .feature-block ul li::before { content: '•'; color: #00d9ff; font-size: 18px; }
+
+        .cta-box { text-align: center; margin-top: 48px; padding: 40px; background: rgba(0,217,255,0.04); border: 1px solid rgba(0,217,255,0.15); border-radius: 14px; }
+        .cta-box h2 { font-size: 22px; font-weight: 800; margin-bottom: 12px; }
+        .cta-box p { font-size: 14px; color: #8b94a8; margin-bottom: 20px; }
+        .btn-primary { display: inline-block; background: linear-gradient(135deg, #00d9ff, #00ff88); color: #0d1117; padding: 14px 32px; border-radius: 10px; font-weight: 800; font-size: 15px; text-decoration: none; }
+
+        .footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 40px 24px; text-align: center; font-size: 13px; color: #5b6580; margin-top: 60px; }
+        .footer a { color: #8b94a8; text-decoration: none; margin: 0 10px; }
+        .footer a:hover { color: #e6edf3; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="index.html" class="nav-logo">◈ FALCON AI</a>
+    <div class="nav-links" id="navLinks">
+        <a href="index.html">Home</a>
+        <a href="features.html">Features</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="about.html">About</a>
+        <a href="support.html">Support</a>
+        <a href="contact.html">Contact</a>
+        <a href="account.html" class="nav-cta">My Account</a>
+    </div>
+    <button class="nav-mobile" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+</nav>
+
+<div class="page">
+    <h1 class="page-title">Features</h1>
+    <p class="page-sub">A complete trading ecosystem — not just an EA.</p>
+
+    <div class="feature-block">
+        <h2><span class="icon">🧠</span> AI-Powered Trading Engine</h2>
+        <p>Falcon AI uses a self-learning algorithm that continuously adapts to changing market conditions. Unlike static EAs with fixed rules, our AI analyzes patterns, learns from outcomes, and improves its decision-making over time.</p>
+        <ul>
+            <li>Adaptive strategy that evolves with the market</li>
+            <li>Pattern recognition across multiple timeframes</li>
+            <li>Self-healing: detects and corrects its own mistakes</li>
+            <li>Cognitive state monitoring (learning, adapting, innovating)</li>
+            <li>Health score tracking for AI performance</li>
+        </ul>
+    </div>
+
+    <div class="feature-block">
+        <h2><span class="icon">📱</span> Remote Control Dashboard</h2>
+        <p>Control your EA from anywhere in the world. Enable, disable, pause, or adjust settings from your phone, tablet, or computer — no need to be at your MT5 terminal.</p>
+        <ul>
+            <li>Real-time EA status monitoring</li>
+            <li>Enable/disable trading with one tap</li>
+            <li>Per-symbol control (pause, resume, disable individual pairs)</li>
+            <li>Emergency stop button</li>
+            <li>Works on iPhone, Android, Windows, Mac</li>
+            <li>Installable as a mobile app (PWA)</li>
+        </ul>
+    </div>
+
+    <div class="feature-block">
+        <h2><span class="icon">🎯</span> Daily Profit Targets</h2>
+        <p>Set a daily profit goal and Falcon AI automatically stops trading when it's reached. This protects your gains and prevents overtrading — one of the biggest account killers.</p>
+        <ul>
+            <li>Configurable daily target percentage</li>
+            <li>Auto-stop when target is hit</li>
+            <li>Progress bar showing real-time P&L vs target</li>
+            <li>Admin can override targets remotely</li>
+            <li>Notification when target is reached</li>
+        </ul>
+    </div>
+
+    <div class="feature-block">
+        <h2><span class="icon">🛡️</span> Risk Management Suite</h2>
+        <p>Multiple layers of protection ensure your capital is never at excessive risk. From position sizing to drawdown limits, every trade is managed with precision.</p>
+        <ul>
+            <li>Maximum drawdown protection</li>
+            <li>Dynamic position sizing based on account equity</li>
+            <li>Per-trade stop loss and take profit</li>
+            <li>Emergency stop (kills all trading instantly)</li>
+            <li>Admin lock (admin can freeze any account remotely)</li>
+            <li>Local lock (EA self-locks on critical errors)</li>
+        </ul>
+    </div>
+
+    <div class="feature-block">
+        <h2><span class="icon">💬</span> Live Support & Messaging</h2>
+        <p>Built-in chat system connects you directly with the admin team. No emails, no tickets lost in spam — instant communication right inside your dashboard.</p>
+        <ul>
+            <li>Real-time chat with admin</li>
+            <li>File and image sharing</li>
+            <li>Support ticket system</li>
+            <li>Broadcast announcements from admin</li>
+            <li>Email notifications for new messages</li>
+            <li>Chat history preserved across sessions</li>
+        </ul>
+    </div>
+
+    <div class="feature-block">
+        <h2><span class="icon">🔐</span> Enterprise Security</h2>
+        <p>Your account is protected by the same security standards used by financial institutions. Every communication is signed, every account is isolated.</p>
+        <ul>
+            <li>HMAC-SHA256 signed requests (replay-proof)</li>
+            <li>Per-token account isolation</li>
+            <li>Brute-force protection on admin access</li>
+            <li>Anti-tamper detection</li>
+            <li>Audit trail for all admin actions</li>
+            <li>Private file storage (no public links)</li>
+        </ul>
+    </div>
+
+    <div class="feature-block">
+        <h2><span class="icon">📊</span> Account Monitoring</h2>
+        <p>See your account performance at a glance — open positions, floating P&L, win rate, and more. All updated in real-time from your EA.</p>
+        <ul>
+            <li>Live account balance and equity</li>
+            <li>Open position count and floating P&L</li>
+            <li>Today's wins, losses, and win rate</li>
+            <li>Session peak and drawdown tracking</li>
+            <li>Per-symbol performance stats</li>
+        </ul>
+    </div>
+
+    <div class="feature-block">
+        <h2><span class="icon">🌍</span> Multi-Language & Accessibility</h2>
+        <p>Use Falcon AI in your preferred language. Full RTL support for Arabic and Farsi speakers.</p>
+        <ul>
+            <li>English, Farsi (فارسی), Arabic (العربية), Turkish (Türkçe)</li>
+            <li>Right-to-left (RTL) layout support</li>
+            <li>Auto-detects browser language</li>
+            <li>Saves preference across sessions</li>
+        </ul>
+    </div>
+
+    <div class="cta-box">
+        <h2>Ready to Experience Falcon AI?</h2>
+        <p>Join professional traders who trust Falcon AI for intelligent, automated trading.</p>
+        <a href="register.html" class="btn-primary">Get Started →</a>
+    </div>
+</div>
+
+<footer class="footer">
+    <a href="index.html">Home</a> <a href="pricing.html">Pricing</a> <a href="about.html">About</a> <a href="privacy.html">Privacy</a> <a href="terms.html">Terms</a> <a href="contact.html">Contact</a>
+    <p style="margin-top:16px;">© 2024–2026 Falcon AI. All rights reserved.</p>
+</footer>
+
+<script src="nav-auth.js"></script><script src="consent-banner.js"></script><script src="nav-back.js"></script><script>
+(function(){var c=JSON.parse(localStorage.getItem('falconConfig')||'{}');var n=localStorage.getItem('falcon_user_name');if(c.secretToken&&n){var links=document.querySelectorAll('.nav-links');if(links.length){var nav=links[0];var badge=document.createElement('span');badge.style.cssText='width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;';badge.textContent=n.charAt(0).toUpperCase();badge.title=n+' (logged in)';badge.onclick=function(){window.location.href='account.html';};nav.appendChild(badge);}}})();
+</script>
+</body>
+</html>

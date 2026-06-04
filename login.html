@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — Falcon AI</title>
+    <meta name="description" content="Login to your Falcon AI trading dashboard.">
+    <meta name="theme-color" content="#0d1117">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+        body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(0,217,255,0.06) 0%, transparent 60%); pointer-events: none; }
+        .card { position: relative; width: 100%; max-width: 400px; background: rgba(22,27,34,0.9); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 40px 32px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; background: linear-gradient(90deg, #00d9ff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px; }
+        .subtitle { font-size: 14px; color: #8b94a8; margin-bottom: 32px; }
+        .form-group { margin-bottom: 16px; text-align: left; }
+        .form-group label { display: block; font-size: 12px; color: #8b94a8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .form-group input { width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e6edf3; font-size: 14px; outline: none; transition: border-color 0.2s; font-family: inherit; }
+        .form-group input:focus { border-color: #00d9ff; }
+        .btn-primary { display: block; width: 100%; background: linear-gradient(135deg, #00d9ff, #00ff88); color: #0d1117; padding: 14px; border-radius: 10px; font-weight: 800; font-size: 15px; border: none; cursor: pointer; margin-top: 8px; transition: filter 0.2s; }
+        .btn-primary:hover { filter: brightness(1.1); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .help-text { font-size: 12px; color: #5b6580; margin-top: 16px; }
+        .help-text a { color: #00d9ff; text-decoration: none; }
+        .help-text a:hover { text-decoration: underline; }
+        #loginStatus { margin-top: 12px; font-size: 13px; display: none; }
+        .back-link { position: absolute; top: 16px; left: 16px; color: #5b6580; text-decoration: none; font-size: 13px; }
+        .back-link:hover { color: #e6edf3; }
+        .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
+        .divider span { font-size: 11px; color: #5b6580; text-transform: uppercase; }
+        .forgot-link { display: block; text-align: right; font-size: 12px; color: #00d9ff; text-decoration: none; margin-top: -8px; margin-bottom: 8px; }
+        .forgot-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <a href="#" class="back-link" onclick="event.preventDefault();window.history.length>1?window.history.back():window.location.href='index.html'">← Back</a>
+    <div class="logo">◈ FALCON AI</div>
+    <div class="subtitle">Login to your account</div>
+
+    <!-- Email + Password Login -->
+    <div id="loginForm">
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password">
+        </div>
+        <a href="#" class="forgot-link" onclick="showForgotPassword();return false;">Forgot password?</a>
+        <button class="btn-primary" onclick="doLogin()">Login →</button>
+    </div>
+
+    <!-- Forgot Password -->
+    <div id="forgotForm" style="display:none;">
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="forgotEmail" placeholder="Enter your registered email" autocomplete="email">
+        </div>
+        <button class="btn-primary" onclick="doForgotPassword()">Send Reset Code →</button>
+        <div style="margin-top:12px;text-align:center;">
+            <a href="#" style="font-size:12px;color:#00d9ff;text-decoration:none;" onclick="showLoginForm();return false;">← Back to login</a>
+        </div>
+    </div>
+
+    <!-- Reset Password (enter code + new password) -->
+    <div id="resetForm" style="display:none;">
+        <div style="text-align:center;margin-bottom:16px;">
+            <div style="font-size:32px;margin-bottom:8px;">🔑</div>
+            <p style="font-size:13px;color:#8b94a8;">Enter the 6-digit code sent to your email and choose a new password.</p>
+        </div>
+        <div class="form-group">
+            <label>Reset Code</label>
+            <input type="text" id="resetCode" placeholder="000000" maxlength="6" style="text-align:center;font-size:22px;letter-spacing:6px;font-weight:700;" autocomplete="one-time-code">
+        </div>
+        <div class="form-group">
+            <label>New Password</label>
+            <input type="password" id="resetNewPass" placeholder="Minimum 8 characters" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+            <label>Confirm New Password</label>
+            <input type="password" id="resetNewPass2" placeholder="Repeat new password" autocomplete="new-password">
+        </div>
+        <button class="btn-primary" onclick="doResetPassword()">Reset Password →</button>
+        <div style="margin-top:12px;text-align:center;">
+            <a href="#" style="font-size:12px;color:#00d9ff;text-decoration:none;" onclick="showLoginForm();return false;">← Back to login</a>
+        </div>
+    </div>
+
+    <div id="loginStatus"></div>
+
+    <div class="divider"><span>or</span></div>
+
+    <div class="help-text">
+        <p>Don't have an account? <a href="register.html">Register here</a></p>
+    </div>
+</div>
+
+<script>
+function _showStatus(msg, color) {
+    var el = document.getElementById('loginStatus');
+    el.style.display = 'block'; el.style.color = color || '#8b94a8'; el.textContent = msg;
+}
+
+async function doLogin() {
+    var email = document.getElementById('loginEmail').value.trim();
+    var password = document.getElementById('loginPassword').value;
+
+    if (!email || email.indexOf('@') < 1) { _showStatus('Please enter your email address.', '#ff6b6b'); return; }
+    if (!password) { _showStatus('Please enter your password.', '#ff6b6b'); return; }
+
+    _showStatus('Logging in…', '#8b94a8');
+
+    try {
+        var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
+        var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
+
+        var data = null;
+
+        // Try GET first (reliable with current GAS deployment)
+        try {
+            var qs = 'command=auth_login&email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password) + '&t=' + Date.now();
+            var r = await fetch(url + '?' + qs, { method: 'GET', mode: 'cors', cache: 'no-cache' });
+            if (r.ok) data = await r.json();
+        } catch (_) {}
+
+        // If GET failed, try POST
+        if (!data) {
+            try {
+                var r2 = await fetch(url, {
+                    method: 'POST',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ command: 'auth_login', email: email, password: password })
+                });
+                if (r2.ok) data = await r2.json();
+            } catch (_) {}
+        }
+
+        if (data && data.status === 'ok' && data.token) {
+            // Save token and user info
+            cfg.secretToken = data.token;
+            if (!cfg.endpointUrl) cfg.endpointUrl = url;
+            localStorage.setItem('falconConfig', JSON.stringify(cfg));
+            if (data.name) localStorage.setItem('falcon_user_name', data.name);
+            localStorage.setItem('falcon_email', email);
+            // Persist trial state from login response
+            if (data.trial_active) {
+                localStorage.setItem('falcon_trial_active', 'true');
+                if (data.trial_expires) localStorage.setItem('falcon_trial_expires', data.trial_expires);
+                if (data.trial_days_left) localStorage.setItem('falcon_trial_days_left', String(data.trial_days_left));
+            }
+            _showStatus('✓ Login successful! Redirecting…', '#00ff88');
+            setTimeout(function() { window.location.href = 'account.html'; }, 800);
+        } else if (data && data.error) {
+            _showStatus(data.error, '#ff6b6b');
+        } else {
+            _showStatus('Login failed. Please check your email and password.', '#ff6b6b');
+        }
+    } catch (e) {
+        _showStatus('Connection error. Please try again.', '#ff6b6b');
+    }
+}
+
+function showForgotPassword() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('forgotForm').style.display = 'block';
+    document.getElementById('resetForm').style.display = 'none';
+    document.getElementById('loginStatus').style.display = 'none';
+    document.querySelector('.divider').style.display = 'none';
+    document.querySelector('.help-text').style.display = 'none';
+}
+
+function showLoginForm() {
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('forgotForm').style.display = 'none';
+    document.getElementById('resetForm').style.display = 'none';
+    document.getElementById('loginStatus').style.display = 'none';
+    document.querySelector('.divider').style.display = '';
+    document.querySelector('.help-text').style.display = '';
+}
+
+var _resetEmail = '';
+
+async function doForgotPassword() {
+    var email = document.getElementById('forgotEmail').value.trim();
+    if (!email || email.indexOf('@') < 1) { _showStatus('Please enter your email.', '#ff6b6b'); return; }
+    _showStatus('Sending reset code…', '#8b94a8');
+    _resetEmail = email;
+
+    try {
+        var url = 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
+        var params = { command: 'auth_forgot_password', email: email };
+        var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+        try { await fetch(url + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors' }); } catch (_) {}
+        // Show reset form regardless (don't reveal if email exists)
+        document.getElementById('forgotForm').style.display = 'none';
+        document.getElementById('resetForm').style.display = 'block';
+        document.querySelector('.divider').style.display = 'none';
+        document.querySelector('.help-text').style.display = 'none';
+        _showStatus('✓ If this email is registered, a reset code has been sent. Check your inbox.', '#00ff88');
+    } catch (_) {
+        document.getElementById('forgotForm').style.display = 'none';
+        document.getElementById('resetForm').style.display = 'block';
+        document.querySelector('.divider').style.display = 'none';
+        document.querySelector('.help-text').style.display = 'none';
+        _showStatus('✓ If this email is registered, a reset code has been sent.', '#00ff88');
+    }
+}
+
+async function doResetPassword() {
+    var code = document.getElementById('resetCode').value.trim();
+    var pass = document.getElementById('resetNewPass').value;
+    var pass2 = document.getElementById('resetNewPass2').value;
+
+    if (!code || code.length !== 6) { _showStatus('Please enter the 6-digit reset code.', '#ff6b6b'); return; }
+    if (pass.length < 8) { _showStatus('Password must be at least 8 characters.', '#ff6b6b'); return; }
+    if (pass !== pass2) { _showStatus('Passwords do not match.', '#ff6b6b'); return; }
+
+    _showStatus('Resetting password…', '#8b94a8');
+
+    try {
+        var url = 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
+        var data = null;
+
+        // Try GET first (reliable)
+        try {
+            var params = { command: 'auth_reset_password', email: _resetEmail, code: code, new_password: pass };
+            var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+            var r = await fetch(url + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors', cache: 'no-cache' });
+            if (r.ok) data = await r.json();
+        } catch (_) {}
+
+        // If GET failed, try POST
+        if (!data) {
+            try {
+                var r2 = await fetch(url, {
+                    method: 'POST',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ command: 'auth_reset_password', email: _resetEmail, code: code, new_password: pass })
+                });
+                if (r2.ok) data = await r2.json();
+            } catch (_) {}
+        }
+
+        if (data && data.status === 'ok') {
+            _showStatus('✓ Password reset successful! You can now login with your new password.', '#00ff88');
+            setTimeout(function() { showLoginForm(); }, 2000);
+        } else {
+            _showStatus((data && data.error) || 'Reset failed. Code may be expired or incorrect.', '#ff6b6b');
+        }
+    } catch (e) {
+        _showStatus('Connection error. Please try again.', '#ff6b6b');
+    }
+}
+
+// Enter key support
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        if (document.getElementById('loginForm').style.display !== 'none') doLogin();
+        else if (document.getElementById('forgotForm').style.display !== 'none') doForgotPassword();
+        else if (document.getElementById('resetForm').style.display !== 'none') doResetPassword();
+    }
+});
+</script>
+
+<script src="consent-banner.js"></script>
+</body>
+</html>
