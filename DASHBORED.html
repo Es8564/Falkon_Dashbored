@@ -2754,16 +2754,6 @@
     <!-- ALERT BANNER (floats over windows) -->
     <div class="alert-banner" id="alertBanner"></div>
 
-    <!-- CONNECTING SPLASH — shown while waiting for EA -->
-    <div id="connectingSplash" style="position:absolute;inset:0;z-index:9000;background:rgba(13,17,23,0.96);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:opacity 0.4s ease;">
-        <div style="font-size:36px;font-weight:900;background:linear-gradient(90deg,#00d9ff,#00ff88);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px;">◈ FALCON AI</div>
-        <div style="width:40px;height:40px;border:3px solid rgba(0,217,255,0.2);border-top-color:#00d9ff;border-radius:50%;animation:splashSpin 0.8s linear infinite;margin-bottom:20px;"></div>
-        <h2 style="font-size:18px;font-weight:700;color:#e6edf3;margin-bottom:8px;">Connecting to Trading Engine...</h2>
-        <p style="font-size:13px;color:#8b94a8;max-width:360px;">Setting up your dashboard. This may take a moment if the EA is starting up.</p>
-        <button onclick="document.getElementById('connectingSplash').style.display='none'" style="margin-top:24px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#8b94a8;padding:8px 18px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;">Skip — Show Dashboard</button>
-    </div>
-    <style>@keyframes splashSpin{to{transform:rotate(360deg)}}</style>
-
     <!-- DESKTOP / WINDOW AREA -->
     <main class="os-windows" id="osWindows">
 
@@ -3793,30 +3783,42 @@
         var cfg = {};
         try { cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch (_) {}
         var token = cfg.secretToken || '';
-        // If no token at all, show setup prompt (don't redirect — file may be opened locally)
+        // If no token — show setup prompt for local files, redirect for online
         if (!token) {
-            if (window.location.protocol === 'file:') {
-                // Opened locally — show inline token setup
-                document.body.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:Segoe UI,sans-serif;background:#0d1117;color:#e6edf3;padding:24px;text-align:center;">'
-                    + '<div style="font-size:28px;font-weight:900;background:linear-gradient(90deg,#00d9ff,#00ff88);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px;">◈ FALCON AI</div>'
-                    + '<h2 style="margin-bottom:8px;">Dashboard Setup</h2>'
-                    + '<p style="color:#8b94a8;max-width:420px;margin-bottom:20px;">Enter your account token to connect. You can find it in your Account page after logging in.</p>'
+            if (window.location.protocol === 'file:' || window.location.protocol === 'content:') {
+                // Local file — show inline setup (don't replace body, use overlay so dashboard still loads behind)
+                var _setupDiv = document.createElement('div');
+                _setupDiv.id = '_falconSetup';
+                _setupDiv.style.cssText = 'position:fixed;inset:0;z-index:999999;background:#0d1117;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;';
+                _setupDiv.innerHTML = '<div style="font-size:28px;font-weight:900;background:linear-gradient(90deg,#00d9ff,#00ff88);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px;">◈ FALCON AI</div>'
+                    + '<h2 style="color:#e6edf3;margin-bottom:8px;">Dashboard Setup</h2>'
+                    + '<p style="color:#8b94a8;max-width:420px;margin-bottom:20px;">Enter your account token to connect.</p>'
                     + '<input id="_setupToken" type="text" placeholder="Paste your secret token here" style="width:100%;max-width:400px;padding:12px 14px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e6edf3;font-size:14px;margin-bottom:10px;outline:none;font-family:inherit;">'
                     + '<input id="_setupUrl" type="text" placeholder="GAS endpoint URL" value="https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec" style="width:100%;max-width:400px;padding:12px 14px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e6edf3;font-size:11px;margin-bottom:16px;outline:none;font-family:inherit;">'
-                    + '<button onclick="(function(){var t=document.getElementById(\'_setupToken\').value.trim();var u=document.getElementById(\'_setupUrl\').value.trim();if(!t){alert(\'Please enter your token\');return;}var c={};try{c=JSON.parse(localStorage.getItem(\'falconConfig\')||\'{}\')}catch(_){}c.secretToken=t;if(u)c.endpointUrl=u;localStorage.setItem(\'falconConfig\',JSON.stringify(c));window.location.reload();})()" style="background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;padding:14px 32px;border-radius:10px;font-weight:800;font-size:15px;border:none;cursor:pointer;">Connect Dashboard</button>'
-                    + '<p style="color:#5b6580;font-size:11px;margin-top:16px;max-width:400px;">Don\'t have a token? <a href="https://falconquantai.com/register.html" style="color:#00d9ff;text-decoration:none;">Register here</a> or <a href="https://falconquantai.com/login.html" style="color:#00d9ff;text-decoration:none;">login to your account</a> to get your token.</p>'
-                    + '</div>';
+                    + '<button id="_setupBtn" style="background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;padding:14px 32px;border-radius:10px;font-weight:800;font-size:15px;border:none;cursor:pointer;">Connect Dashboard</button>'
+                    + '<p style="color:#5b6580;font-size:11px;margin-top:16px;max-width:400px;">Find your token at <a href="https://falconquantai.com/account.html" style="color:#00d9ff;text-decoration:none;">falconquantai.com/account</a></p>';
+                document.body.appendChild(_setupDiv);
+                setTimeout(function() {
+                    var btn = document.getElementById('_setupBtn');
+                    if (btn) btn.onclick = function() {
+                        var t = document.getElementById('_setupToken').value.trim();
+                        var u = document.getElementById('_setupUrl').value.trim();
+                        if (!t) { alert('Please enter your token'); return; }
+                        var c = {}; try { c = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch(_) {}
+                        c.secretToken = t; if (u) c.endpointUrl = u;
+                        localStorage.setItem('falconConfig', JSON.stringify(c));
+                        window.location.reload();
+                    };
+                }, 100);
                 return;
             }
             window.location.href = 'login.html';
             return;
         }
-        // Check subscription status — enforced for ALL access (online and local files)
-        // For local files: if server is unreachable or returns error, allow access
-        // (the EA itself enforces server-side, dashboard is just a remote control)
+        // Online version: check subscription (local files skip this entirely)
+        if (window.location.protocol === 'file:' || window.location.protocol === 'content:') return;
         var url = (cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec').trim();
         if (url) {
-            // [DEVICE-BINDING] Generate simple device fingerprint for binding
             var _devFp = '';
             try { _devFp = btoa((navigator.userAgent||'').slice(0,40) + '|' + screen.width + 'x' + screen.height + '|' + (navigator.hardwareConcurrency||0) + '|' + (navigator.language||'')).replace(/[=+/]/g,'').slice(0,40); } catch(_){}
             fetch(url + '?token=' + encodeURIComponent(token) + '&command=sub_get_status&source=web_cmd&device_id=' + encodeURIComponent(_devFp) + '&t=' + Date.now(), { method: 'GET', mode: 'cors' })
@@ -3825,38 +3827,23 @@
                 if (data && data.status === 'ok') {
                     var subStatus = data.sub_status || 'unpaid';
                     if (subStatus === 'device_limit') {
-                        _showSubGate('🚫', 'Device Limit Reached', 'Maximum 3 devices allowed per account. This device is not authorized. Contact support if you need to reset your devices.', 'support.html');
+                        _showSubGate('🚫', 'Device Limit Reached', 'Maximum 3 devices allowed per account.', 'support.html');
                     } else if (subStatus !== 'active' && !data.trial_active && !data.has_access) {
-                        // Only block if server explicitly confirms no access
-                        // AND we're not on a local file (local file = graceful pass)
-                        if (window.location.protocol !== 'file:') {
-                            _showSubGate('🔒', 'Subscription Required', 'Your free trial has expired. Subscribe to continue using the Trading Dashboard.', 'pricing.html');
-                        }
+                        _showSubGate('🔒', 'Subscription Required', 'Your free trial has expired. Subscribe to continue.', 'pricing.html');
                     }
                 }
-            }).catch(function() {
-                // Network error — allow access (EA enforces server-side anyway)
-            });
+            }).catch(function() {});
         }
         function _showSubGate(icon, title, msg, linkPage) {
             var overlay = document.createElement('div');
             overlay.id = 'subGateOverlay';
             overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(13,17,23,0.97);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;';
-            overlay.innerHTML = '<div style="font-size:48px;margin-bottom:16px;">' + icon + '</div>' +
-                '<h2 style="font-size:22px;font-weight:800;margin-bottom:8px;color:#e6edf3;">' + title + '</h2>' +
-                '<p style="font-size:14px;color:#8b94a8;max-width:400px;margin-bottom:24px;">' + msg + '</p>' +
-                '<a href="https://falconquantai.com/' + linkPage + '" style="display:inline-block;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;padding:14px 32px;border-radius:10px;font-weight:800;font-size:15px;text-decoration:none;margin-bottom:12px;">Subscribe Now — £400/month</a>' +
-                '<a href="https://falconquantai.com/account.html" style="display:inline-block;color:#8b94a8;font-size:13px;text-decoration:none;">← Back to My Account</a>';
+            overlay.innerHTML = '<div style="font-size:48px;margin-bottom:16px;">' + icon + '</div><h2 style="font-size:22px;font-weight:800;margin-bottom:8px;color:#e6edf3;">' + title + '</h2><p style="font-size:14px;color:#8b94a8;max-width:400px;margin-bottom:24px;">' + msg + '</p><a href="https://falconquantai.com/' + linkPage + '" style="display:inline-block;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;padding:14px 32px;border-radius:10px;font-weight:800;font-size:15px;text-decoration:none;">Subscribe Now — £400/month</a>';
             document.body.appendChild(overlay);
-        }
         }
     })();
 
-    // Auto-dismiss connecting splash after 3 seconds (guaranteed, no server dependency)
-    setTimeout(function() {
-        var _sp = document.getElementById('connectingSplash');
-        if (_sp && _sp.style.display !== 'none') { _sp.style.opacity = '0'; setTimeout(function(){ _sp.style.display = 'none'; }, 400); }
-    }, 3000);
+    // Auto-dismiss connecting splash removed — splash deleted
 
     const CONFIG_KEY   = 'mt5_remote_v3';
     const QUEUE_KEY    = 'mt5_cmd_queue_v2';
@@ -4224,6 +4211,23 @@
                 window._gasFinalUrl = resp.url; // shared with chat module
             }
             const data = await resp.json();
+            // [ACCESS-REVOKE] Handle server-side access revocation
+            if (data.error === 'access_revoked' || data.error === 'subscription_expired') {
+                var _revokeOverlay = document.getElementById('accessRevokedOverlay');
+                if (!_revokeOverlay) {
+                    _revokeOverlay = document.createElement('div');
+                    _revokeOverlay.id = 'accessRevokedOverlay';
+                    _revokeOverlay.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(13,17,23,0.98);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;';
+                    _revokeOverlay.innerHTML = '<div style="font-size:48px;margin-bottom:16px;">🔒</div>' +
+                        '<h2 style="font-size:22px;font-weight:800;margin-bottom:8px;color:#e6edf3;">Access Expired</h2>' +
+                        '<p style="font-size:14px;color:#8b94a8;max-width:400px;margin-bottom:24px;">' + (data.message || 'Your subscription has expired. Renew to continue using the Trading Dashboard.') + '</p>' +
+                        '<a href="https://falconquantai.com/pricing.html" style="display:inline-block;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;padding:14px 32px;border-radius:10px;font-weight:800;font-size:15px;text-decoration:none;margin-bottom:12px;">Renew Subscription</a>' +
+                        '<a href="https://falconquantai.com/account.html" style="display:inline-block;color:#8b94a8;font-size:13px;text-decoration:none;margin-top:8px;">← My Account</a>';
+                    document.body.appendChild(_revokeOverlay);
+                }
+                setConnStatus('disconnected', 'Access Expired');
+                return;
+            }
             if (data.status !== 'ok') throw new Error(data.error || 'Bad response');
 
             consecutiveFails = 0;
@@ -4250,9 +4254,6 @@
                 isEALive = true;
                 setConnStatus('connected', 'EA Online');
                 document.getElementById('eaOfflineBanner').classList.remove('show');
-                // Dismiss connecting splash
-                var _splash = document.getElementById('connectingSplash');
-                if (_splash) { _splash.style.opacity = '0'; setTimeout(function(){ _splash.style.display = 'none'; }, 400); }
             } else {
                 if (wasPreviouslyLive) {
                     sendBrowserNotif('EA Offline', 'EA stopped polling — commands will queue.');
@@ -4261,9 +4262,6 @@
                 wasPreviouslyLive = false;
                 isEALive = false;
                 setConnStatus('loading', 'Backend OK / EA Offline');
-                // Dismiss splash — backend is reachable, just EA not polling
-                var _splash2 = document.getElementById('connectingSplash');
-                if (_splash2) { _splash2.style.opacity = '0'; setTimeout(function(){ _splash2.style.display = 'none'; }, 400); }
                 document.getElementById('eaOfflineBanner').classList.add('show');
             }
 

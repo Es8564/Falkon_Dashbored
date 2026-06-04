@@ -148,8 +148,12 @@
         <div class="step">
             <div class="step-num">3</div>
             <div class="step-content">
-                <h4>Enable WebRequest</h4>
-                <p>In MT5: Tools → Options → Expert Advisors → Check "Allow WebRequest" and add the Google Apps Script URL.</p>
+                <h4>⚠️ Enable WebRequest (CRITICAL)</h4>
+                <p>In MT5: <strong>Tools → Options → Expert Advisors</strong></p>
+                <p>Check ✅ <strong>"Allow WebRequest for listed URL"</strong></p>
+                <p>Click the <strong>"+ add new URL"</strong> line and type exactly:</p>
+                <p style="background:rgba(0,217,255,0.08);border:1px solid rgba(0,217,255,0.25);border-radius:6px;padding:8px 12px;font-family:monospace;font-size:12px;color:#00d9ff;margin:8px 0;">https://script.google.com</p>
+                <p style="color:#ff6b6b;font-size:11px;font-weight:700;">⚠️ Without this step, the EA cannot communicate with the server. The dashboard, remote control, and all trading features will NOT work.</p>
             </div>
         </div>
         <div class="step">

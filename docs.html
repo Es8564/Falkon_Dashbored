@@ -140,15 +140,26 @@
             </div>
         </div>
 
-        <div class="doc-article" data-search="webrequest url allow enable permissions">
-            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>Enabling WebRequest in MT5</h4></div>
+        <div class="doc-article" data-search="webrequest url allow enable permissions critical mandatory">
+            <div class="doc-article-header" onclick="toggleDoc(this)"><h4>⚠️ Enabling WebRequest in MT5 (MANDATORY)</h4></div>
             <div class="doc-article-body">
-                <p>The EA needs permission to communicate with the server. Without this, all remote features are disabled.</p>
-                <div class="step-box"><span class="step-num">1</span> In MT5: <strong>Tools</strong> → <strong>Options</strong> → <strong>Expert Advisors</strong></div>
-                <div class="step-box"><span class="step-num">2</span> Check <code>Allow WebRequest for listed URL</code></div>
-                <div class="step-box"><span class="step-num">3</span> Click <strong>Add</strong> and paste: <code>https://script.google.com</code></div>
-                <div class="step-box"><span class="step-num">4</span> Click <strong>OK</strong> and restart the EA.</div>
-                <div class="warning">⚠️ Without this step, the EA cannot receive remote commands or report telemetry.</div>
+                <div style="background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.3);border-radius:8px;padding:14px;margin-bottom:16px;">
+                    <p style="color:#ff6b6b;font-weight:700;font-size:14px;margin-bottom:6px;">⚠️ CRITICAL — This step is MANDATORY</p>
+                    <p style="color:#c8d0df;font-size:13px;">Without enabling WebRequest, the entire Falcon system will NOT function. The EA cannot communicate with the server, the Customer Dashboard will show "Offline", and no remote control features will work. This is the #1 cause of connection issues.</p>
+                </div>
+                <p><strong>Follow these steps exactly:</strong></p>
+                <div class="step-box"><span class="step-num">1</span> Open MetaTrader 5</div>
+                <div class="step-box"><span class="step-num">2</span> Go to: <strong>Tools</strong> → <strong>Options</strong> → Click the <strong>Expert Advisors</strong> tab</div>
+                <div class="step-box"><span class="step-num">3</span> Check ✅ <strong>"Allow algorithmic trading"</strong></div>
+                <div class="step-box"><span class="step-num">4</span> Check ✅ <strong>"Allow WebRequest for listed URL"</strong></div>
+                <div class="step-box"><span class="step-num">5</span> Click the <strong>"+ add new URL"</strong> line in the URL list</div>
+                <div class="step-box"><span class="step-num">6</span> Type exactly: <code style="background:rgba(0,217,255,0.1);padding:3px 8px;border-radius:4px;color:#00d9ff;font-size:13px;">https://script.google.com</code></div>
+                <div class="step-box"><span class="step-num">7</span> Click <strong>OK</strong> to save</div>
+                <div class="step-box"><span class="step-num">8</span> Restart the EA (remove from chart and re-attach, or restart MT5)</div>
+                <div style="background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:8px;padding:12px;margin-top:14px;">
+                    <p style="color:#00ff88;font-size:12px;font-weight:600;">✓ After this, your EA will connect to the server and the dashboard will show "Connected" or "Backend OK".</p>
+                </div>
+                <div class="warning" style="margin-top:12px;">⚠️ Common mistakes: Forgetting the "https://" prefix, adding the full deployment URL instead of just "https://script.google.com", or not checking the "Allow WebRequest" checkbox.</div>
             </div>
         </div>
 
