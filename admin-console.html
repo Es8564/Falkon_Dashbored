@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Falcon AI — Master Admin Console</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="manifest" href="manifest_admin_console.json">
+    <meta name="theme-color" content="#0a0d14">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0a0d14;
+            --bg-secondary: #0f1319;
+            --bg-card: #141920;
+            --bg-hover: #1a2030;
+            --border: rgba(255,255,255,0.06);
+            --border-active: rgba(0,217,255,0.4);
+            --text-primary: #e6edf3;
+            --text-secondary: #8b94a8;
+            --text-muted: #5b6580;
+            --accent: #00d9ff;
+            --accent-green: #00ff88;
+            --accent-red: #ff4444;
+            --accent-yellow: #ffc107;
+            --sidebar-width: 240px;
+        }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+        .sidebar-header {
+            padding: 20px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-logo {
+            font-size: 18px;
+            font-weight: 900;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .sidebar-subtitle {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 4px;
+        }
+        .sidebar-nav { padding: 12px 0; flex: 1; }
+        .nav-section-label {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            padding: 16px 18px 6px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 18px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+        .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .nav-item.active {
+            background: rgba(0,217,255,0.06);
+            color: var(--accent);
+            border-left-color: var(--accent);
+        }
+        .nav-item .icon { font-size: 15px; width: 20px; text-align: center; }
+        .nav-item .badge {
+            margin-left: auto;
+            background: var(--accent-red);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+        .sidebar-footer {
+            padding: 14px 18px;
+            border-top: 1px solid var(--border);
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .sidebar-footer .status-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        .sidebar-footer .status-dot.online { background: var(--accent-green); }
+        .sidebar-footer .status-dot.offline { background: var(--accent-red); }
+
+        /* ── MAIN CONTENT ── */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .topbar {
+            height: 52px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            flex-shrink: 0;
+        }
+        .topbar-title { font-size: 15px; font-weight: 700; }
+        .topbar-actions { display: flex; align-items: center; gap: 12px; }
+        .topbar-btn {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            transition: all 0.15s;
+        }
+        .topbar-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .topbar-btn.primary {
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
+            color: #0a0d14;
+            border: none;
+            font-weight: 700;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        /* ── CARDS ── */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+
+        /* ── KPI GRID ── */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 18px;
+        }
+        .kpi-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .kpi-value {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+        }
+        .kpi-value.green { color: var(--accent-green); }
+        .kpi-value.blue { color: var(--accent); }
+        .kpi-value.red { color: var(--accent-red); }
+        .kpi-value.yellow { color: var(--accent-yellow); }
+        .kpi-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* ── DATA TABLE ── */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .data-table th {
+            text-align: left;
+            padding: 10px 12px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+            position: sticky;
+            top: 0;
+        }
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        .data-table tr:hover td { background: var(--bg-hover); }
+        .data-table .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+        .status-badge.active { background: rgba(0,255,136,0.12); color: #00ff88; }
+        .status-badge.expired { background: rgba(255,68,68,0.12); color: #ff6b6b; }
+        .status-badge.trial { background: rgba(0,217,255,0.12); color: #00d9ff; }
+        .status-badge.suspended { background: rgba(255,193,7,0.12); color: #ffc107; }
+        .status-badge.unpaid { background: rgba(255,255,255,0.06); color: #8b94a8; }
+
+        /* ── FORMS ── */
+        .form-row { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-end; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .form-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .form-input {
+            padding: 9px 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus { border-color: var(--accent); }
+        .form-input::placeholder { color: var(--text-muted); }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.15s;
+        }
+        .btn-primary { background: linear-gradient(135deg, #00d9ff, #00ff88); color: #0a0d14; }
+        .btn-primary:hover { filter: brightness(1.1); }
+        .btn-danger { background: rgba(255,68,68,0.15); color: #ff6b6b; border: 1px solid rgba(255,68,68,0.3); }
+        .btn-danger:hover { background: rgba(255,68,68,0.25); }
+        .btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+        /* ── PANELS (shown/hidden) ── */
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        /* ── LOGIN SCREEN ── */
+        .login-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .login-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 40px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+        .login-box h1 {
+            font-size: 22px;
+            font-weight: 900;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+        .login-box p { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+        .login-box .form-input { width: 100%; margin-bottom: 12px; }
+        .login-box .btn { width: 100%; padding: 12px; font-size: 14px; }
+        .login-error {
+            font-size: 12px;
+            color: var(--accent-red);
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
+        /* ── LOADING ── */
+        .loading { text-align: center; padding: 40px; color: var(--text-muted); font-size: 13px; }
+        .spin { animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="loginScreen">
+    <div class="login-box">
+        <h1>◈ FALCON AI</h1>
+        <p>Master Admin Console</p>
+        <input type="password" class="form-input" id="loginToken" placeholder="Enter admin master token">
+        <input type="text" class="form-input" id="loginEndpoint" placeholder="GAS Endpoint URL" value="https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec">
+        <button class="btn btn-primary" onclick="adminLogin()">🔐 Authenticate</button>
+        <div class="login-error" id="loginError"></div>
+    </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<aside class="sidebar" id="sidebarEl" style="display:none;">
+    <div class="sidebar-header">
+        <div class="sidebar-logo">◈ FALCON AI</div>
+        <div class="sidebar-subtitle">Master Admin Console</div>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-section-label">Overview</div>
+        <div class="nav-item active" data-panel="dashboard"><span class="icon">📊</span> Dashboard</div>
+
+        <div class="nav-section-label">Management</div>
+        <div class="nav-item" data-panel="users"><span class="icon">👥</span> Users<span class="badge" id="badgeUsers" style="display:none;"></span></div>
+        <div class="nav-item" data-panel="licenses"><span class="icon">🔑</span> Licenses</div>
+        <div class="nav-item" data-panel="payments"><span class="icon">💳</span> Payments<span class="badge" id="badgePay" style="display:none;"></span></div>
+        <div class="nav-item" data-panel="subscriptions"><span class="icon">📋</span> Subscriptions</div>
+
+        <div class="nav-section-label">Communication</div>
+        <div class="nav-item" data-panel="chat"><span class="icon">💬</span> Support Inbox</div>
+        <div class="nav-item" data-panel="messages"><span class="icon">📢</span> Announcements</div>
+        <div class="nav-item" data-panel="email"><span class="icon">✉️</span> Email</div>
+
+        <div class="nav-section-label">Security</div>
+        <div class="nav-item" data-panel="security"><span class="icon">🛡️</span> Security Monitor</div>
+        <div class="nav-item" data-panel="integrity"><span class="icon">🔒</span> EA Integrity</div>
+        <div class="nav-item" data-panel="locks"><span class="icon">⛔</span> Account Locks</div>
+
+        <div class="nav-section-label">System</div>
+        <div class="nav-item" data-panel="settings"><span class="icon">⚙️</span> Settings</div>
+        <div class="nav-item" data-panel="kb"><span class="icon">📚</span> Knowledge Base</div>
+        <div class="nav-item" data-panel="referrals"><span class="icon">🤝</span> Referrals</div>
+        <div class="nav-item" data-panel="audit"><span class="icon">📜</span> Audit Log</div>
+        <div class="nav-item" data-panel="backup"><span class="icon">💾</span> Backup</div>
+    </nav>
+    <div class="sidebar-footer">
+        <span class="status-dot online" id="serverDot"></span>
+        <span id="serverStatus">Connected</span>
+        <div style="margin-top:6px;font-size:10px;">v1.0 — Super Admin</div>
+    </div>
+</aside>
+
+<main class="main" id="mainEl" style="display:none;">
+    <div class="topbar">
+        <div class="topbar-title" id="topbarTitle">Dashboard</div>
+        <div class="topbar-actions">
+            <button class="topbar-btn" onclick="refreshCurrentPanel()">🔄 Refresh</button>
+            <button class="topbar-btn" onclick="adminLogout()">🚪 Logout</button>
+        </div>
+    </div>
+    <div class="content" id="contentArea">
+        <!-- DASHBOARD PANEL -->
+        <div class="panel active" id="panel-dashboard">
+            <div class="kpi-grid" id="kpiGrid">
+                <div class="kpi-card"><div class="kpi-label">Total Users</div><div class="kpi-value blue" id="kpiUsers">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Active Trials</div><div class="kpi-value green" id="kpiTrials">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Active Subscriptions</div><div class="kpi-value green" id="kpiSubs">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Pending Payments</div><div class="kpi-value yellow" id="kpiPending">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">EAs Online</div><div class="kpi-value green" id="kpiEAs">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Locked Accounts</div><div class="kpi-value red" id="kpiLocks">—</div></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Recent Activity</div>
+                <div id="recentActivity"><div class="loading">Loading...</div></div>
+            </div>
+        </div>
+
+        <!-- USERS PANEL -->
+        <div class="panel" id="panel-users">
+            <div class="form-row" style="margin-bottom:16px;">
+                <div class="form-group">
+                    <input type="text" class="form-input" id="userSearch" placeholder="Search by name or email..." oninput="filterUsers()">
+                </div>
+                <button class="btn btn-primary" onclick="loadUsers()">🔄 Load Users</button>
+            </div>
+            <div class="card" style="padding:0;overflow:auto;max-height:calc(100vh - 220px);">
+                <table class="data-table" id="usersTable">
+                    <thead>
+                        <tr><th>Name</th><th>Email</th><th>Status</th><th>Trial</th><th>Registered</th><th>Last Login</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="usersBody"><tr><td colspan="7" class="loading">Click "Load Users" to fetch data</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PAYMENTS PANEL -->
+        <div class="panel" id="panel-payments">
+            <div class="card">
+                <div class="card-title">Pending Payments (Awaiting Approval)</div>
+                <div id="pendingPayments"><div class="loading">Loading...</div></div>
+            </div>
+        </div>
+
+        <!-- LICENSES PANEL -->
+        <div class="panel" id="panel-licenses">
+            <div class="card">
+                <div class="card-title">License Registry</div>
+                <div id="licensesList"><div class="loading">Loading...</div></div>
+            </div>
+        </div>
+
+        <!-- LOCKS PANEL -->
+        <div class="panel" id="panel-locks">
+            <div class="card">
+                <div class="card-title">Account Locks</div>
+                <div id="locksList"><div class="loading">Loading...</div></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Lock an Account</div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Server</label><input type="text" class="form-input" id="lockServer" placeholder="e.g. MetaQuotes-Demo"></div>
+                    <div class="form-group"><label class="form-label">Login</label><input type="text" class="form-input" id="lockLogin" placeholder="e.g. 12345678"></div>
+                    <div class="form-group"><label class="form-label">Reason</label><input type="text" class="form-input" id="lockReason" placeholder="Reason for lock"></div>
+                    <button class="btn btn-danger" onclick="lockAccount()">⛔ Lock</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SETTINGS PANEL -->
+        <div class="panel" id="panel-settings">
+            <div class="card">
+                <div class="card-title">System Settings</div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Maintenance Mode</label>
+                        <select class="form-input" id="settMaintenance"><option value="0">Off</option><option value="1">On</option></select>
+                    </div>
+                    <button class="btn btn-primary" onclick="setMaintenance()">Save</button>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Stripe Payment URL</label><input type="text" class="form-input" id="settStripe" placeholder="Stripe payment link"></div>
+                    <div class="form-group"><label class="form-label">PayPal Payment URL</label><input type="text" class="form-input" id="settPaypal" placeholder="PayPal payment link"></div>
+                    <button class="btn btn-primary" onclick="savePaymentConfig()">Save</button>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">System Endpoint URL</label><input type="text" class="form-input" id="settEndpoint" placeholder="GAS endpoint URL"></div>
+                    <button class="btn btn-primary" onclick="setEndpointUrl()">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- AUDIT PANEL -->
+        <div class="panel" id="panel-audit">
+            <div class="card">
+                <div class="card-title">Admin Audit Log</div>
+                <div id="auditList"><div class="loading">Loading...</div></div>
+            </div>
+        </div>
+
+        <!-- BACKUP PANEL -->
+        <div class="panel" id="panel-backup">
+            <div class="card">
+                <div class="card-title">System Backup</div>
+                <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Create a full backup of all system data and save to Google Drive.</p>
+                <button class="btn btn-primary" onclick="createBackup()">💾 Create Backup Now</button>
+                <div id="backupResult" style="margin-top:12px;"></div>
+            </div>
+        </div>
+
+        <!-- MESSAGES PANEL -->
+        <div class="panel" id="panel-messages">
+            <div class="card">
+                <div class="card-title">Send Announcement</div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Title</label><input type="text" class="form-input" id="annTitle" placeholder="Announcement title"></div>
+                    <div class="form-group"><label class="form-label">Severity</label>
+                        <select class="form-input" id="annSeverity"><option value="info">Info</option><option value="warning">Warning</option><option value="critical">Critical</option></select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Body</label><input type="text" class="form-input" id="annBody" placeholder="Message body"></div>
+                    <button class="btn btn-primary" onclick="sendAnnouncement()">📢 Send</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PLACEHOLDER PANELS -->
+        <div class="panel" id="panel-chat"><div class="card"><div class="card-title">Support Inbox</div><p style="color:var(--text-muted);">Use the existing Admin Dashboard for live chat. Full integration coming in Phase 2.</p></div></div>
+        <div class="panel" id="panel-subscriptions"><div class="card"><div class="card-title">Subscriptions</div><div id="subsList"><div class="loading">Loading...</div></div></div></div>
+        <div class="panel" id="panel-security"><div class="card"><div class="card-title">Security Monitor</div><p style="color:var(--text-muted);">Use the existing Admin Dashboard for real-time security events. Full integration coming in Phase 2.</p></div></div>
+        <div class="panel" id="panel-integrity"><div class="card"><div class="card-title">EA Integrity</div><p style="color:var(--text-muted);">Use the existing Admin Dashboard for build management. Full integration coming in Phase 2.</p></div></div>
+        <div class="panel" id="panel-email"><div class="card"><div class="card-title">Email System</div><p style="color:var(--text-muted);">Email configuration available in Settings panel. Per-customer emails via Support Inbox.</p></div></div>
+        <div class="panel" id="panel-kb"><div class="card"><div class="card-title">Knowledge Base</div><p style="color:var(--text-muted);">Use the existing Admin Dashboard KB editor. Full integration coming in Phase 2.</p></div></div>
+        <div class="panel" id="panel-referrals"><div class="card"><div class="card-title">Referral System</div><div id="refList"><div class="loading">Loading...</div></div></div></div>
+    </div>
+</main>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// FALCON AI — MASTER ADMIN CONSOLE
+// ═══════════════════════════════════════════════════════════
+
+let _masterToken = '';
+let _endpoint = '';
+let _usersCache = [];
+
+// ── AUTH ──
+function adminLogin() {
+    const token = document.getElementById('loginToken').value.trim();
+    const endpoint = document.getElementById('loginEndpoint').value.trim();
+    if (!token || !endpoint) { showLoginError('Enter both token and endpoint'); return; }
+
+    _masterToken = token;
+    _endpoint = endpoint;
+
+    // Test connection with a simple admin command
+    callAdmin({ command: 'admin_list_locks' }).then(function(data) {
+        if (data && data.status === 'ok') {
+            // Save session
+            sessionStorage.setItem('ac_token', token);
+            sessionStorage.setItem('ac_endpoint', endpoint);
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('sidebarEl').style.display = 'flex';
+            document.getElementById('mainEl').style.display = 'flex';
+            loadDashboard();
+        } else {
+            showLoginError(data && data.error ? data.error : 'Authentication failed');
+        }
+    }).catch(function(e) {
+        showLoginError('Connection failed: ' + e.message);
+    });
+}
+
+function adminLogout() {
+    sessionStorage.removeItem('ac_token');
+    sessionStorage.removeItem('ac_endpoint');
+    location.reload();
+}
+
+function showLoginError(msg) {
+    var el = document.getElementById('loginError');
+    el.textContent = '❌ ' + msg;
+    el.style.display = 'block';
+}
+
+// ── AUTO-LOGIN FROM SESSION ──
+(function() {
+    var t = sessionStorage.getItem('ac_token');
+    var e = sessionStorage.getItem('ac_endpoint');
+    if (t && e) {
+        _masterToken = t;
+        _endpoint = e;
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('sidebarEl').style.display = 'flex';
+        document.getElementById('mainEl').style.display = 'flex';
+        loadDashboard();
+    }
+})();
+
+// ── API CALL ──
+function callAdmin(payload) {
+    payload.master_token = _masterToken;
+    payload.token = payload.token || 'admin-console';
+    return fetch(_endpoint, {
+        method: 'POST',
+        mode: 'cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+    }).then(function(r) { return r.json(); });
+}
+
+// ── NAVIGATION ──
+document.querySelectorAll('.nav-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+        document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+        item.classList.add('active');
+        var panel = item.getAttribute('data-panel');
+        document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+        var target = document.getElementById('panel-' + panel);
+        if (target) target.classList.add('active');
+        document.getElementById('topbarTitle').textContent = item.textContent.trim();
+        // Auto-load panel data
+        if (panel === 'dashboard') loadDashboard();
+        else if (panel === 'users') loadUsers();
+        else if (panel === 'payments') loadPayments();
+        else if (panel === 'locks') loadLocks();
+        else if (panel === 'audit') loadAudit();
+        else if (panel === 'referrals') loadReferrals();
+    });
+});
+
+function refreshCurrentPanel() {
+    var active = document.querySelector('.nav-item.active');
+    if (active) active.click();
+}
+
+// ── DASHBOARD ──
+function loadDashboard() {
+    // Load multiple data points in parallel
+    Promise.all([
+        callAdmin({ command: 'admin_list_users' }),
+        callAdmin({ command: 'admin_list_payments' }),
+        callAdmin({ command: 'admin_list_locks' }),
+        callAdmin({ command: 'admin_get_audit_log' })
+    ]).then(function(results) {
+        var usersData = results[0];
+        var paymentsData = results[1];
+        var locksData = results[2];
+        var auditData = results[3];
+
+        // KPIs
+        var users = (usersData && usersData.users) || [];
+        _usersCache = users;
+        var activeTrials = users.filter(function(u) { return u.trial_status === 'active'; }).length;
+        var activeSubs = users.filter(function(u) { return u.sub_status === 'active'; }).length;
+        var pending = (paymentsData && paymentsData.pending) ? paymentsData.pending.length : 0;
+        var locks = (locksData && locksData.locks) ? Object.keys(locksData.locks).length : 0;
+
+        document.getElementById('kpiUsers').textContent = users.length;
+        document.getElementById('kpiTrials').textContent = activeTrials;
+        document.getElementById('kpiSubs').textContent = activeSubs;
+        document.getElementById('kpiPending').textContent = pending;
+        document.getElementById('kpiLocks').textContent = locks;
+        document.getElementById('kpiEAs').textContent = '—'; // Requires live polling
+
+        if (pending > 0) {
+            document.getElementById('badgePay').textContent = pending;
+            document.getElementById('badgePay').style.display = 'inline';
+        }
+
+        // Recent activity from audit log
+        var logs = (auditData && auditData.log) || [];
+        var recent = logs.slice(-15).reverse();
+        var html = '<table class="data-table"><thead><tr><th>Time</th><th>Action</th><th>Target</th><th>By</th></tr></thead><tbody>';
+        recent.forEach(function(l) {
+            html += '<tr><td>' + (l.ts || '').slice(0, 19).replace('T', ' ') + '</td><td>' + (l.action || '') + '</td><td>' + (l.target || '') + '</td><td>' + (l.by || '') + '</td></tr>';
+        });
+        html += '</tbody></table>';
+        if (!recent.length) html = '<p style="color:var(--text-muted);padding:12px;">No recent activity</p>';
+        document.getElementById('recentActivity').innerHTML = html;
+
+    }).catch(function(e) {
+        document.getElementById('recentActivity').innerHTML = '<p style="color:var(--accent-red);">Error loading: ' + e.message + '</p>';
+    });
+}
+
+// ── USERS ──
+function loadUsers() {
+    callAdmin({ command: 'admin_list_users' }).then(function(data) {
+        var users = (data && data.users) || [];
+        _usersCache = users;
+        renderUsers(users);
+    });
+}
+
+function renderUsers(users) {
+    var html = '';
+    users.forEach(function(u) {
+        var statusClass = u.suspended ? 'suspended' : (u.sub_status === 'active' ? 'active' : (u.trial_status === 'active' ? 'trial' : (u.trial_status === 'expired' ? 'expired' : 'unpaid')));
+        var statusText = u.suspended ? 'Suspended' : (u.sub_status === 'active' ? 'Active' : (u.trial_status === 'active' ? 'Trial' : (u.trial_status === 'expired' ? 'Expired' : 'Unpaid')));
+        html += '<tr>' +
+            '<td style="color:var(--text-primary);font-weight:600;">' + (u.name || '—') + '</td>' +
+            '<td>' + (u.email || '') + '</td>' +
+            '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>' +
+            '<td>' + (u.trial_days_left > 0 ? u.trial_days_left + 'd left' : '—') + '</td>' +
+            '<td>' + (u.created_at || '').slice(0, 10) + '</td>' +
+            '<td>' + (u.last_login || '—').slice(0, 10) + '</td>' +
+            '<td><button class="btn btn-ghost" style="padding:4px 8px;font-size:10px;" onclick="viewUser(\'' + (u.email || '').replace(/'/g, "\\'") + '\')">View</button></td>' +
+            '</tr>';
+    });
+    if (!users.length) html = '<tr><td colspan="7" style="color:var(--text-muted);text-align:center;">No users found</td></tr>';
+    document.getElementById('usersBody').innerHTML = html;
+}
+
+function filterUsers() {
+    var q = document.getElementById('userSearch').value.toLowerCase();
+    if (!q) { renderUsers(_usersCache); return; }
+    var filtered = _usersCache.filter(function(u) {
+        return (u.name || '').toLowerCase().indexOf(q) > -1 || (u.email || '').toLowerCase().indexOf(q) > -1;
+    });
+    renderUsers(filtered);
+}
+
+function viewUser(email) {
+    alert('User details panel for: ' + email + '\n\nFull profile view coming in Phase 2.\nUse existing Admin Dashboard for detailed user actions.');
+}
+
+// ── PAYMENTS ──
+function loadPayments() {
+    callAdmin({ command: 'admin_list_payments' }).then(function(data) {
+        var pending = (data && data.pending) || [];
+        var html = '';
+        if (!pending.length) {
+            html = '<p style="color:var(--text-muted);">No pending payments.</p>';
+        } else {
+            html = '<table class="data-table"><thead><tr><th>Token Key</th><th>Method</th><th>Amount</th><th>Time</th><th>Actions</th></tr></thead><tbody>';
+            pending.forEach(function(p) {
+                html += '<tr><td style="font-family:monospace;font-size:11px;">' + (p.token_key || '') + '</td><td>' + (p.method || '') + '</td><td>' + (p.amount || '£400') + '</td><td>' + (p.initiated_at || '').slice(0, 19).replace('T', ' ') + '</td>' +
+                    '<td><button class="btn btn-primary" style="padding:4px 10px;font-size:10px;" onclick="approvePayment(\'' + p.token_key + '\')">✓ Approve</button> ' +
+                    '<button class="btn btn-danger" style="padding:4px 10px;font-size:10px;" onclick="rejectPayment(\'' + p.token_key + '\')">✗ Reject</button></td></tr>';
+            });
+            html += '</tbody></table>';
+        }
+        document.getElementById('pendingPayments').innerHTML = html;
+    });
+}
+
+function approvePayment(tk) {
+    if (!confirm('Approve payment for ' + tk + '? This will activate their subscription for 30 days.')) return;
+    callAdmin({ command: 'admin_approve_payment', token_key: tk }).then(function(data) {
+        if (data && data.status === 'ok') { alert('✓ Payment approved. Subscription activated.'); loadPayments(); }
+        else alert('Error: ' + (data && data.error || 'unknown'));
+    });
+}
+
+function rejectPayment(tk) {
+    if (!confirm('Reject payment for ' + tk + '?')) return;
+    callAdmin({ command: 'admin_reject_payment', token_key: tk }).then(function(data) {
+        if (data && data.status === 'ok') { alert('Payment rejected.'); loadPayments(); }
+        else alert('Error: ' + (data && data.error || 'unknown'));
+    });
+}
+
+// ── LOCKS ──
+function loadLocks() {
+    callAdmin({ command: 'admin_list_locks' }).then(function(data) {
+        var locks = (data && data.locks) || {};
+        var keys = Object.keys(locks);
+        var html = '';
+        if (!keys.length) {
+            html = '<p style="color:var(--text-muted);">No locked accounts.</p>';
+        } else {
+            html = '<table class="data-table"><thead><tr><th>Account</th><th>Reason</th><th>Locked At</th><th>Actions</th></tr></thead><tbody>';
+            keys.forEach(function(k) {
+                var l = locks[k];
+                html += '<tr><td style="font-family:monospace;">' + k + '</td><td>' + (l.reason || l.msg || '') + '</td><td>' + (l.at || '').slice(0, 19).replace('T', ' ') + '</td>' +
+                    '<td><button class="btn btn-ghost" style="padding:4px 10px;font-size:10px;" onclick="unlockAccount(\'' + k.replace(/'/g, "\\'") + '\')">🔓 Unlock</button></td></tr>';
+            });
+            html += '</tbody></table>';
+        }
+        document.getElementById('locksList').innerHTML = html;
+    });
+}
+
+function lockAccount() {
+    var server = document.getElementById('lockServer').value.trim();
+    var login = document.getElementById('lockLogin').value.trim();
+    var reason = document.getElementById('lockReason').value.trim();
+    if (!login) { alert('Login is required'); return; }
+    callAdmin({ command: 'admin_lock', server: server, login: login, reason: reason, msg: 'Locked by admin: ' + reason, force: true }).then(function(data) {
+        if (data && data.status === 'ok') { alert('✓ Account locked.'); loadLocks(); }
+        else alert('Error: ' + (data && data.error || 'unknown'));
+    });
+}
+
+function unlockAccount(key) {
+    if (!confirm('Unlock ' + key + '?')) return;
+    var parts = key.split('|');
+    callAdmin({ command: 'admin_unlock', server: parts[0] || '', login: parts[1] || '' }).then(function(data) {
+        if (data && data.status === 'ok') { alert('✓ Account unlocked.'); loadLocks(); }
+        else alert('Error: ' + (data && data.error || 'unknown'));
+    });
+}
+
+// ── SETTINGS ──
+function setMaintenance() {
+    var enabled = document.getElementById('settMaintenance').value === '1';
+    callAdmin({ command: 'admin_set_maintenance', enabled: enabled }).then(function(data) {
+        if (data && data.status === 'ok') alert('✓ Maintenance mode ' + (enabled ? 'enabled' : 'disabled'));
+        else alert('Error: ' + (data && data.error || 'unknown'));
+    });
+}
+
+function savePaymentConfig() {
+    var stripe = document.getElementById('settStripe').value.trim();
+    var paypal = document.getElementById('settPaypal').value.trim();
+    callAdmin({ command: 'admin_set_payment_config', stripe_url: stripe, paypal_url: paypal }).then(function(data) {
+        if (data && data.status === 'ok') alert('✓ Payment URLs saved.');
+        else alert('Error: ' + (data && data.error || 'unknown'));
+    });
+}
+
+function setEndpointUrl() {
+    var url = document.getElementById('settEndpoint').value.trim();
+    if (!url) { alert('URL required'); return; }
+    callAdmin({ command: 'admin_set_endpoint_url', endpoint_url: url }).then(function(data) {
+        if (data && data.status === 'ok') alert('✓ Endpoint URL updated.');
+        else alert('Error: ' + (data && data.error || 'unknown'));
+    });
+}
+
+// ── ANNOUNCEMENTS ──
+function sendAnnouncement() {
+    var title = document.getElementById('annTitle').value.trim();
+    var body = document.getElementById('annBody').value.trim();
+    var severity = document.getElementById('annSeverity').value;
+    if (!body) { alert('Body is required'); return; }
+    callAdmin({ command: 'admin_send_message', target: '*', title: title, body: body, severity: severity }).then(function(data) {
+        if (data && data.status === 'ok') { alert('✓ Announcement sent to all users.'); document.getElementById('annTitle').value = ''; document.getElementById('annBody').value = ''; }
+        else alert('Error: ' + (data && data.error || 'unknown'));
+    });
+}
+
+// ── AUDIT ──
+function loadAudit() {
+    callAdmin({ command: 'admin_get_audit_log' }).then(function(data) {
+        var logs = (data && data.log) || [];
+        var recent = logs.slice(-50).reverse();
+        var html = '<table class="data-table"><thead><tr><th>Time</th><th>Action</th><th>Target</th><th>By</th><th>Details</th></tr></thead><tbody>';
+        recent.forEach(function(l) {
+            var details = '';
+            if (l.extra) { try { details = JSON.stringify(l.extra).slice(0, 60); } catch(_){} }
+            html += '<tr><td>' + (l.ts || '').slice(0, 19).replace('T', ' ') + '</td><td style="color:var(--accent);">' + (l.action || '') + '</td><td>' + (l.target || '') + '</td><td>' + (l.by || '') + '</td><td style="font-size:10px;color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;">' + details + '</td></tr>';
+        });
+        html += '</tbody></table>';
+        if (!recent.length) html = '<p style="color:var(--text-muted);">No audit entries.</p>';
+        document.getElementById('auditList').innerHTML = html;
+    });
+}
+
+// ── REFERRALS ──
+function loadReferrals() {
+    callAdmin({ command: 'admin_ref_list' }).then(function(data) {
+        var refs = (data && data.referrals) || [];
+        var html = '<table class="data-table"><thead><tr><th>Token Key</th><th>Code</th><th>Referrals</th><th>Earned</th><th>Referred By</th></tr></thead><tbody>';
+        refs.forEach(function(r) {
+            html += '<tr><td style="font-family:monospace;font-size:11px;">' + (r.token_key || '') + '</td><td style="color:var(--accent);font-weight:700;">' + (r.code || '') + '</td><td>' + (r.referral_count || 0) + '</td><td>£' + (r.total_earned || 0) + '</td><td>' + (r.referred_by || '—') + '</td></tr>';
+        });
+        html += '</tbody></table>';
+        if (!refs.length) html = '<p style="color:var(--text-muted);">No referral data.</p>';
+        document.getElementById('refList').innerHTML = html;
+    });
+}
+
+// ── BACKUP ──
+function createBackup() {
+    document.getElementById('backupResult').innerHTML = '<span class="spin">⏳</span> Creating backup...';
+    callAdmin({ command: 'admin_backup_to_drive' }).then(function(data) {
+        if (data && data.status === 'ok') {
+            document.getElementById('backupResult').innerHTML = '<p style="color:var(--accent-green);font-weight:700;">✓ Backup created!</p><p style="font-size:12px;color:var(--text-secondary);margin-top:6px;">File: ' + (data.file_name || '') + '<br>Size: ' + Math.round((data.size_bytes || 0) / 1024) + ' KB<br><a href="' + (data.file_url || '#') + '" target="_blank" style="color:var(--accent);">Open in Drive →</a></p>';
+        } else {
+            document.getElementById('backupResult').innerHTML = '<p style="color:var(--accent-red);">Error: ' + (data && data.error || 'unknown') + '</p>';
+        }
+    }).catch(function(e) {
+        document.getElementById('backupResult').innerHTML = '<p style="color:var(--accent-red);">Failed: ' + e.message + '</p>';
+    });
+}
+</script>
+</body>
+</html>

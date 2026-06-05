@@ -1,0 +1,32 @@
+{
+  "name": "Falcon AI — Master Admin Console",
+  "short_name": "Falcon Admin",
+  "description": "Enterprise admin control panel for Falcon AI platform",
+  "start_url": "./admin-console.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#0a0d14",
+  "background_color": "#0a0d14",
+  "categories": ["business", "utilities"],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
