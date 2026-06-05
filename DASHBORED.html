@@ -3794,7 +3794,7 @@
                     + '<h2 style="color:#e6edf3;margin-bottom:8px;">Dashboard Setup</h2>'
                     + '<p style="color:#8b94a8;max-width:420px;margin-bottom:20px;">Enter your account token to connect.</p>'
                     + '<input id="_setupToken" type="text" placeholder="Paste your secret token here" style="width:100%;max-width:400px;padding:12px 14px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e6edf3;font-size:14px;margin-bottom:10px;outline:none;font-family:inherit;">'
-                    + '<input id="_setupUrl" type="text" placeholder="GAS endpoint URL" value="https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec" style="width:100%;max-width:400px;padding:12px 14px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e6edf3;font-size:11px;margin-bottom:16px;outline:none;font-family:inherit;">'
+                    + '<input id="_setupUrl" type="text" placeholder="GAS endpoint URL" value="' + DEFAULT_ENDPOINT + '" style="width:100%;max-width:400px;padding:12px 14px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e6edf3;font-size:11px;margin-bottom:16px;outline:none;font-family:inherit;">'
                     + '<button id="_setupBtn" style="background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;padding:14px 32px;border-radius:10px;font-weight:800;font-size:15px;border:none;cursor:pointer;">Connect Dashboard</button>'
                     + '<p style="color:#5b6580;font-size:11px;margin-top:16px;max-width:400px;">Find your token at <a href="https://falconquantai.com/account.html" style="color:#00d9ff;text-decoration:none;">falconquantai.com/account</a></p>';
                 document.body.appendChild(_setupDiv);
@@ -3812,14 +3812,30 @@
                         fetch(u + '?token=' + encodeURIComponent(t) + '&command=sub_get_status&source=web_cmd&t=' + Date.now(), { method: 'GET', mode: 'cors' })
                         .then(function(r) { return r.json(); })
                         .then(function(data) {
-                            if (data && data.status === 'ok') {
-                                // Token is valid — save and reload
+                            // FIX: status === 'ok' alone is NOT enough — GAS returns ok for any request.
+                            // We require user identity confirmation to verify this token belongs to a real account.
+                            var tokenVerified = data && data.status === 'ok' &&
+                                (data.user_found === true ||
+                                 (data.login && String(data.login).length > 0) ||
+                                 (data.email && data.email.indexOf('@') > 0) ||
+                                 data.sub_status === 'active' ||
+                                 data.sub_status === 'pending_approval' ||
+                                 data.sub_status === 'expired' ||
+                                 data.trial_active === true);
+                            if (tokenVerified) {
+                                // Token confirmed — belongs to a real user
                                 var c = {}; try { c = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch(_) {}
                                 c.secretToken = t; c.endpointUrl = u;
                                 localStorage.setItem('falconConfig', JSON.stringify(c));
                                 window.location.reload();
+                            } else if (data && data.status === 'ok') {
+                                // Server replied ok but no user identity — token not recognised
+                                btn.textContent = 'Connect Dashboard';
+                                btn.disabled = false;
+                                btn.style.opacity = '1';
+                                alert('❌ Token not recognised. Please copy your exact Secret Token from your Account page at falconquantai.com/account.html and try again.');
                             } else {
-                                // Server rejected — invalid token
+                                // Server explicitly rejected
                                 btn.textContent = 'Connect Dashboard';
                                 btn.disabled = false;
                                 btn.style.opacity = '1';
@@ -3842,7 +3858,7 @@
         }
         // Online version: check subscription (local files skip this entirely)
         if (window.location.protocol === 'file:' || window.location.protocol === 'content:') return;
-        var url = (cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec').trim();
+        var url = (cfg.endpointUrl || DEFAULT_ENDPOINT).trim();
         if (url) {
             var _devFp = '';
             try { _devFp = btoa((navigator.userAgent||'').slice(0,40) + '|' + screen.width + 'x' + screen.height + '|' + (navigator.hardwareConcurrency||0) + '|' + (navigator.language||'')).replace(/[=+/]/g,'').slice(0,40); } catch(_){}
@@ -3898,7 +3914,7 @@
     }
 
     const DEFAULT_ENDPOINT = 'https://script.google.com/macros/s/AKfycby8AZfFNa7dT8_IDKWOR8JoUe2pGRNwCezbYkC_H5MszLYm93jm3QgcyT5YFCPR3wCnAQ/exec';
-    const DEFAULT_TOKEN    = 'James1986!?';
+    const DEFAULT_TOKEN    = '';
 
     /* ── Runtime state ── */
     let currentState      = null;

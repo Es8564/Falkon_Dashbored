@@ -1,30 +1,23 @@
-/**
- * FALCON AI — Service Worker
- * Handles: app shell caching, offline fallback, file/image caching
- */
+// FALCON AI — Service Worker
+// Enables PWA install on both Customer Dashboard and Admin Dashboard.
+// Strategy: Cache-first for static assets, network-first for GAS API calls.
 
-const CACHE_VERSION = 'falcon-v1';
-const APP_SHELL_CACHE = CACHE_VERSION + '-shell';
-const FILE_CACHE = CACHE_VERSION + '-files';
+const CACHE_NAME = 'falcon-ai-v1';
 
-// App shell files to pre-cache on install
-const APP_SHELL_FILES = [
-  './',
+// Files to pre-cache on install (core shell)
+const PRECACHE_URLS = [
   './DASHBORED.html',
   './ADMIN_DASHBORED.html',
-  './icon.svg',
   './manifest.json',
-  './manifest_admin.json'
+  './manifest_admin.json',
+  './icon.svg'
 ];
 
 // Install: pre-cache the app shell
 self.addEventListener('install', function (event) {
   event.waitUntil(
-    caches.open(APP_SHELL_CACHE).then(function (cache) {
-      return cache.addAll(APP_SHELL_FILES).catch(function () {
-        // Non-fatal: some files might not exist yet
-        return Promise.resolve();
-      });
+    caches.open(CACHE_NAME).then(function (cache) {
+      return cache.addAll(PRECACHE_URLS);
     }).then(function () {
       return self.skipWaiting();
     })
@@ -36,11 +29,8 @@ self.addEventListener('activate', function (event) {
   event.waitUntil(
     caches.keys().then(function (keys) {
       return Promise.all(
-        keys.filter(function (key) {
-          return key.startsWith('falcon-') && key !== APP_SHELL_CACHE && key !== FILE_CACHE;
-        }).map(function (key) {
-          return caches.delete(key);
-        })
+        keys.filter(function (key) { return key !== CACHE_NAME; })
+            .map(function (key) { return caches.delete(key); })
       );
     }).then(function () {
       return self.clients.claim();
@@ -48,91 +38,36 @@ self.addEventListener('activate', function (event) {
   );
 });
 
-// Fetch strategy:
-// - App shell (HTML/CSS/JS): Network-first, fall back to cache
-// - API calls (google apps script): Network-only (never cache API responses)
-// - Chat file data (data: URLs from chat_file_get): Cache after first load
+// Fetch: serve from cache, fall back to network
 self.addEventListener('fetch', function (event) {
-  var url = new URL(event.request.url);
+  var url = event.request.url;
 
-  // Never cache API calls to Google Apps Script
-  if (url.hostname.includes('script.google') ||
-      url.hostname.includes('googleusercontent') ||
-      url.search.includes('command=')) {
-    return; // Let the browser handle it normally
-  }
-
-  // For app shell files: network-first with cache fallback
-  if (event.request.mode === 'navigate' ||
-      APP_SHELL_FILES.some(function (f) { return url.pathname.endsWith(f.replace('./', '')); })) {
+  // Always go network-first for Google Apps Script API calls
+  if (url.indexOf('script.google.com') !== -1) {
     event.respondWith(
-      fetch(event.request).then(function (response) {
-        // Cache the fresh response
-        var clone = response.clone();
-        caches.open(APP_SHELL_CACHE).then(function (cache) {
-          cache.put(event.request, clone);
-        });
-        return response;
-      }).catch(function () {
-        // Offline: serve from cache
-        return caches.match(event.request).then(function (cached) {
-          return cached || new Response('Offline — please reconnect to use Falcon AI.', {
-            status: 503,
-            headers: { 'Content-Type': 'text/plain' }
-          });
+      fetch(event.request).catch(function () {
+        return new Response(JSON.stringify({ status: 'error', message: 'offline' }), {
+          headers: { 'Content-Type': 'application/json' }
         });
       })
     );
     return;
   }
 
-  // For everything else: cache-first (icons, fonts, etc.)
+  // Cache-first for everything else
   event.respondWith(
     caches.match(event.request).then(function (cached) {
       if (cached) return cached;
       return fetch(event.request).then(function (response) {
-        if (response.ok) {
-          var clone = response.clone();
-          caches.open(FILE_CACHE).then(function (cache) {
-            cache.put(event.request, clone);
-          });
+        if (!response || response.status !== 200 || response.type !== 'basic') {
+          return response;
         }
+        var toCache = response.clone();
+        caches.open(CACHE_NAME).then(function (cache) {
+          cache.put(event.request, toCache);
+        });
         return response;
       });
-    })
-  );
-});
-
-// Handle messages from the main thread (e.g., cache file data)
-self.addEventListener('message', function (event) {
-  if (event.data && event.data.type === 'CACHE_FILE') {
-    // Cache a file's base64 data for offline access
-    var fileId = event.data.fileId;
-    var data = event.data.data;
-    if (fileId && data) {
-      caches.open(FILE_CACHE).then(function (cache) {
-        var response = new Response(JSON.stringify({ data: data }), {
-          headers: { 'Content-Type': 'application/json' }
-        });
-        cache.put('/_falcon_file_/' + fileId, response);
-      });
-    }
-  }
-});
-
-// Notification click handler
-self.addEventListener('notificationclick', function (event) {
-  event.notification.close();
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
-      // Focus existing window if open
-      for (var i = 0; i < clientList.length; i++) {
-        if (clientList[i].url.indexOf('DASHBORED') >= 0) {
-          return clientList[i].focus();
-        }
-      }
-      // Otherwise open a new window
-      return clients.openWindow('./DASHBORED.html');
     })
   );
 });
