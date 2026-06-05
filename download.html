@@ -93,8 +93,8 @@
         <p style="font-size:11px;color:#5b6580;margin-top:12px;">File size: ~150 KB • .ex5 format • Windows / VPS</p>
     </div>
 
-    <!-- Step 2: Dashboard Download -->
-    <div class="download-card" id="dashCard" style="margin-top:20px;opacity:0.5;pointer-events:none;" >
+    <!-- Step 2: Dashboard Install -->
+    <div class="download-card" id="dashCard" style="margin-top:20px;">
         <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;">
             <span style="background:linear-gradient(135deg,#00ff88,#00d9ff);color:#0d1117;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;">2</span>
             <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.08em;">Step 2 — Install Dashboard</span>
@@ -102,9 +102,15 @@
         <h2>Falcon AI Customer Dashboard</h2>
         <div class="version">Version 4.0 • Latest Release</div>
         <p>Remote control, monitoring, AI chat, and support. Install on any device.</p>
-        <a href="#" class="btn-download" id="downloadDashBtn" style="background:linear-gradient(135deg,#00ff88,#00d9ff);">📥 Download Dashboard</a>
-        <p style="font-size:11px;color:#5b6580;margin-top:12px;">File size: ~500 KB • .html format • Works on mobile, PC & laptop</p>
-        <p id="dashLockMsg" style="font-size:11px;color:#ffc107;margin-top:8px;">⚠️ Download the EA first (Step 1) to unlock this step</p>
+        <a href="https://falconquantai.com/DASHBORED.html" class="btn-download" id="downloadDashBtn" style="background:linear-gradient(135deg,#00ff88,#00d9ff);">📲 Open & Install Dashboard</a>
+        <p style="font-size:11px;color:#5b6580;margin-top:12px;">Opens in your browser — click "Install" to add to your device as an app</p>
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:12px 16px;margin-top:16px;text-align:left;">
+            <p style="font-size:11px;font-weight:700;color:#8b94a8;margin-bottom:8px;">📱 Installation Tips:</p>
+            <p style="font-size:11px;color:#5b6580;margin-bottom:4px;">• <strong style="color:#8b94a8;">Chrome (PC/Android):</strong> Click the install icon in the address bar or the popup at the bottom</p>
+            <p style="font-size:11px;color:#5b6580;margin-bottom:4px;">• <strong style="color:#8b94a8;">iPhone/iPad:</strong> Tap the Share button (⬆️) → "Add to Home Screen"</p>
+            <p style="font-size:11px;color:#5b6580;">• <strong style="color:#8b94a8;">After install:</strong> Open from your home screen or desktop — works offline</p>
+        </div>
+        <p style="font-size:11px;color:#5b6580;margin-top:12px;"><a href="https://drive.google.com/uc?export=download&id=16r3Rsxe-MdPSfAaeva_rT4TAaStTPt6v" style="color:#8b94a8;text-decoration:underline;" download="DASHBORED.html">Or download the file manually</a> (for VPS/offline use)</p>
     </div>
 
     <div class="requirements">
@@ -212,15 +218,11 @@
     try { cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch (_) {}
     var token = cfg.secretToken || '';
     var btn = document.getElementById('downloadBtn');
-    var dashBtn = document.getElementById('downloadDashBtn');
-    var dashCard = document.getElementById('dashCard');
-    var dashLockMsg = document.getElementById('dashLockMsg');
     var accessBanner = document.getElementById('accessBanner');
     var accessBadge = document.getElementById('accessBadge');
     var accessInfo = document.getElementById('accessInfo');
 
     var EA_URL = 'https://drive.google.com/uc?export=download&id=1r8aTCmXruuCTZaioy0oxMMYNMK_9amaV';
-    var DASH_URL = 'https://drive.google.com/uc?export=download&id=16r3Rsxe-MdPSfAaeva_rT4TAaStTPt6v';
 
     function showAccessStatus(type, daysLeft) {
         accessBanner.style.display = 'block';
@@ -235,15 +237,6 @@
         }
     }
 
-    function unlockDashboard() {
-        dashCard.style.opacity = '1';
-        dashCard.style.pointerEvents = 'auto';
-        dashLockMsg.style.display = 'none';
-        dashBtn.textContent = '📥 Download Dashboard';
-        dashBtn.href = DASH_URL;
-        dashBtn.setAttribute('download', 'DASHBORED.html');
-    }
-
     function grantAccess(type, daysLeft) {
         // Show access badge
         if (type) showAccessStatus(type, daysLeft);
@@ -252,43 +245,17 @@
         btn.textContent = '📥 Download EA File';
         btn.style.opacity = '1';
         btn.href = EA_URL;
-
-        // Check if EA was already downloaded (unlock dashboard immediately)
-        var eaDownloaded = localStorage.getItem('falcon_ea_downloaded') === 'true';
-        if (eaDownloaded) {
-            unlockDashboard();
-        }
-
-        // Track EA download click to unlock Dashboard
-        btn.addEventListener('click', function() {
-            localStorage.setItem('falcon_ea_downloaded', 'true');
-            // Small delay to allow download to start, then unlock dashboard
-            setTimeout(function() {
-                unlockDashboard();
-            }, 1000);
-        });
     }
 
     function lockAccess() {
         btn.textContent = '🔒 Subscribe to Download';
         btn.href = 'pricing.html';
         btn.style.opacity = '1';
-        if (dashBtn) {
-            dashBtn.textContent = '🔒 Subscribe to Download';
-            dashBtn.href = 'pricing.html';
-        }
-        dashCard.style.opacity = '0.5';
-        dashCard.style.pointerEvents = 'none';
-        dashLockMsg.textContent = '🔒 Subscription or free trial required';
-        dashLockMsg.style.color = '#ff6b6b';
     }
 
     if (!token) {
         btn.textContent = '🔒 Login Required';
         btn.href = 'login.html';
-        if (dashBtn) { dashBtn.textContent = '🔒 Login Required'; dashBtn.href = 'login.html'; }
-        dashLockMsg.textContent = '🔒 Please log in to access downloads';
-        dashLockMsg.style.color = '#ff6b6b';
         return;
     }
 
