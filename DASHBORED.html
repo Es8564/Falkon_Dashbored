@@ -3778,6 +3778,10 @@
        FALCON AI Dashboard v4.0
     ====================================================================== */
 
+    // ── CONSTANTS (defined here so _subGateCheck can reference them) ──
+    const DEFAULT_ENDPOINT = 'https://script.google.com/macros/s/AKfycby8AZfFNa7dT8_IDKWOR8JoUe2pGRNwCezbYkC_H5MszLYm93jm3QgcyT5YFCPR3wCnAQ/exec';
+    const DEFAULT_TOKEN    = '';
+
     // ── SUBSCRIPTION GATE: Check if user has active subscription ──
     (function _subGateCheck() {
         var cfg = {};
@@ -3906,10 +3910,7 @@
         return out;
     }
 
-    const DEFAULT_ENDPOINT = 'https://script.google.com/macros/s/AKfycby8AZfFNa7dT8_IDKWOR8JoUe2pGRNwCezbYkC_H5MszLYm93jm3QgcyT5YFCPR3wCnAQ/exec';
-    const DEFAULT_TOKEN    = '';
-
-    /* ── Runtime state ── */
+    const CONFIG_KEY   = 'mt5_remote_v3';
     let currentState      = null;
     let isConnected       = false;
     let isEALive          = false;
