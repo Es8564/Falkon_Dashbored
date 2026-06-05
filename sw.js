@@ -8,8 +8,10 @@ const CACHE_NAME = 'falcon-ai-v1';
 const PRECACHE_URLS = [
   './DASHBORED.html',
   './ADMIN_DASHBORED.html',
+  './admin-console.html',
   './manifest.json',
   './manifest_admin.json',
+  './manifest_admin_console.json',
   './icon.svg'
 ];
 

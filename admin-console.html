@@ -548,6 +548,16 @@
 </main>
 
 <script>
+// ── SERVICE WORKER for PWA install ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js').then(function(reg) {
+      setInterval(function() { reg.update(); }, 60 * 60 * 1000);
+    }).catch(function() {});
+  });
+}
+</script>
+<script>
 // ═══════════════════════════════════════════════════════════
 // FALCON AI — MASTER ADMIN CONSOLE
 // ═══════════════════════════════════════════════════════════
