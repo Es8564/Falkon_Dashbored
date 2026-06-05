@@ -3853,11 +3853,17 @@
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (data && data.status === 'ok') {
-                    var subStatus = data.sub_status || 'unpaid';
+                    var subStatus = data.sub_status || '';
+                    // Only block when GAS EXPLICITLY signals a problem.
+                    // If sub_status is absent/empty we assume access is valid —
+                    // older GAS deployments may not return this field at all.
                     if (subStatus === 'device_limit') {
                         _showSubGate('🚫', 'Device Limit Reached', 'Maximum 3 devices allowed per account.', 'support.html');
-                    } else if (subStatus !== 'active' && !data.trial_active && !data.has_access) {
-                        _showSubGate('🔒', 'Subscription Required', 'Your free trial has expired. Subscribe to continue.', 'pricing.html');
+                    } else if (subStatus === 'unpaid' || subStatus === 'revoked' || subStatus === 'banned') {
+                        // Only block on explicit negative statuses — never on missing/empty field
+                        if (!data.trial_active && !data.has_access) {
+                            _showSubGate('🔒', 'Subscription Required', 'Your free trial has expired. Subscribe to continue.', 'pricing.html');
+                        }
                     }
                 }
             }).catch(function() {});
