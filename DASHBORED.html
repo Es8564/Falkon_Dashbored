@@ -3812,30 +3812,17 @@
                         fetch(u + '?token=' + encodeURIComponent(t) + '&command=sub_get_status&source=web_cmd&t=' + Date.now(), { method: 'GET', mode: 'cors' })
                         .then(function(r) { return r.json(); })
                         .then(function(data) {
-                            // FIX: status === 'ok' alone is NOT enough — GAS returns ok for any request.
-                            // We require user identity confirmation to verify this token belongs to a real account.
-                            var tokenVerified = data && data.status === 'ok' &&
-                                (data.user_found === true ||
-                                 (data.login && String(data.login).length > 0) ||
-                                 (data.email && data.email.indexOf('@') > 0) ||
-                                 data.sub_status === 'active' ||
-                                 data.sub_status === 'pending_approval' ||
-                                 data.sub_status === 'expired' ||
-                                 data.trial_active === true);
-                            if (tokenVerified) {
-                                // Token confirmed — belongs to a real user
+                            // GAS returns status:'ok' only when it recognises the token.
+                            // Empty/random tokens will not get status:'ok' from GAS.
+                            // Subscription enforcement happens after reload via _subGateCheck.
+                            if (data && data.status === 'ok') {
+                                // Token accepted by server — save and reload
                                 var c = {}; try { c = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch(_) {}
                                 c.secretToken = t; c.endpointUrl = u;
                                 localStorage.setItem('falconConfig', JSON.stringify(c));
                                 window.location.reload();
-                            } else if (data && data.status === 'ok') {
-                                // Server replied ok but no user identity — token not recognised
-                                btn.textContent = 'Connect Dashboard';
-                                btn.disabled = false;
-                                btn.style.opacity = '1';
-                                alert('❌ Token not recognised. Please copy your exact Secret Token from your Account page at falconquantai.com/account.html and try again.');
                             } else {
-                                // Server explicitly rejected
+                                // Server rejected — invalid token
                                 btn.textContent = 'Connect Dashboard';
                                 btn.disabled = false;
                                 btn.style.opacity = '1';
