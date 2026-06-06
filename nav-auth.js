@@ -30,3 +30,14 @@
         });
     }
 })();
+
+// ── Load Live Chat Widget on all pages ──
+(function() {
+    // Don't load on dashboards or admin pages (they have their own chat)
+    var path = window.location.pathname.toLowerCase();
+    if (path.indexOf('dashbored') >= 0 || path.indexOf('admin') >= 0) return;
+    var s = document.createElement('script');
+    s.src = 'live-chat.js';
+    s.defer = true;
+    document.body.appendChild(s);
+})();
