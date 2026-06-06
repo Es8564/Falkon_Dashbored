@@ -2,7 +2,7 @@
 // Enables PWA install on both Customer Dashboard and Admin Dashboard.
 // Strategy: Cache-first for static assets, network-first for GAS API calls.
 
-const CACHE_NAME = 'falcon-ai-v1';
+const CACHE_NAME = 'falcon-ai-v2';
 
 // Files to pre-cache on install (core shell)
 const PRECACHE_URLS = [
