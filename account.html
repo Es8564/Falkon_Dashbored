@@ -464,8 +464,7 @@ async function _accNotifyPayment(method) {
         var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
         var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
         var token = cfg.secretToken || '';
-        var qs = 'token=' + encodeURIComponent(token) + '&command=sub_payment_initiated&source=web_cmd&method=' + method + '&t=' + Date.now();
-        fetch(url + '?' + qs, { method: 'GET', mode: 'cors' }).catch(function(){});
+        // Payment notification removed — webhook handles activation automatically
     } catch (_) {}
 }
 
