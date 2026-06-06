@@ -466,16 +466,30 @@
         <div class="panel" id="panel-locks">
             <div class="card">
                 <div class="card-title">Account Locks</div>
+                <div class="form-row" style="margin-bottom:12px;">
+                    <div class="form-group"><input type="text" class="form-input" id="lockSearchBox" placeholder="Search locked accounts..." oninput="filterLocks()"></div>
+                </div>
                 <div id="locksList"><div class="loading">Loading...</div></div>
             </div>
             <div class="card">
                 <div class="card-title">Lock an Account</div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Search Customer</label><input type="text" class="form-input" id="lockCustomerSearch" placeholder="Type name, email, or account..." oninput="searchLockCustomers()"></div>
+                </div>
+                <div id="lockCustomerResults" style="max-height:150px;overflow-y:auto;margin-bottom:12px;display:none;background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;"></div>
                 <div class="form-row">
                     <div class="form-group"><label class="form-label">Server</label><input type="text" class="form-input" id="lockServer" placeholder="e.g. MetaQuotes-Demo"></div>
                     <div class="form-group"><label class="form-label">Login</label><input type="text" class="form-input" id="lockLogin" placeholder="e.g. 12345678"></div>
                     <div class="form-group"><label class="form-label">Reason</label><input type="text" class="form-input" id="lockReason" placeholder="Reason for lock"></div>
                     <button class="btn btn-danger" onclick="lockAccount()">⛔ Lock</button>
                 </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Known Accounts (EAs that have connected)</div>
+                <div class="form-row" style="margin-bottom:12px;">
+                    <div class="form-group"><input type="text" class="form-input" id="knownAccSearch" placeholder="Search known accounts..." oninput="filterKnownAccounts()"></div>
+                </div>
+                <div id="knownAccountsList"><div class="loading">Loading...</div></div>
             </div>
         </div>
 
@@ -537,12 +551,141 @@
         </div>
 
         <!-- PLACEHOLDER PANELS -->
-        <div class="panel" id="panel-chat"><div class="card"><div class="card-title">Support Inbox</div><p style="color:var(--text-muted);">Use the existing Admin Dashboard for live chat. Full integration coming in Phase 2.</p></div></div>
-        <div class="panel" id="panel-subscriptions"><div class="card"><div class="card-title">Subscriptions</div><div id="subsList"><div class="loading">Loading...</div></div></div></div>
-        <div class="panel" id="panel-security"><div class="card"><div class="card-title">Security Monitor</div><p style="color:var(--text-muted);">Use the existing Admin Dashboard for real-time security events. Full integration coming in Phase 2.</p></div></div>
-        <div class="panel" id="panel-integrity"><div class="card"><div class="card-title">EA Integrity</div><p style="color:var(--text-muted);">Use the existing Admin Dashboard for build management. Full integration coming in Phase 2.</p></div></div>
-        <div class="panel" id="panel-email"><div class="card"><div class="card-title">Email System</div><p style="color:var(--text-muted);">Email configuration available in Settings panel. Per-customer emails via Support Inbox.</p></div></div>
-        <div class="panel" id="panel-kb"><div class="card"><div class="card-title">Knowledge Base</div><p style="color:var(--text-muted);">Use the existing Admin Dashboard KB editor. Full integration coming in Phase 2.</p></div></div>
+        <div class="panel" id="panel-chat">
+            <div style="display:flex;gap:16px;height:calc(100vh - 120px);">
+                <!-- Conversation List -->
+                <div style="width:280px;flex-shrink:0;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;">
+                    <div style="padding:12px;border-bottom:1px solid var(--border);">
+                        <input type="text" class="form-input" id="chatSearch" placeholder="Search conversations..." style="width:100%;font-size:12px;padding:7px 10px;" oninput="filterConversations()">
+                    </div>
+                    <div id="chatConvoList" style="flex:1;overflow-y:auto;padding:6px;"></div>
+                </div>
+                <!-- Chat Area -->
+                <div style="flex:1;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;">
+                    <div id="chatHeader" style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text-muted);">Select a conversation</div>
+                    <div id="chatMessages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px;"></div>
+                    <div id="chatReplyBox" style="display:none;padding:12px;border-top:1px solid var(--border);">
+                        <div style="display:flex;gap:8px;">
+                            <input type="text" class="form-input" id="chatReplyInput" placeholder="Type your reply..." style="flex:1;" onkeydown="if(event.key==='Enter')sendChatReply()">
+                            <button class="btn btn-primary" onclick="sendChatReply()">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel" id="panel-subscriptions"><div class="card"><div class="card-title">Subscriptions</div>
+            <div class="form-row" style="margin-bottom:12px;"><div class="form-group"><input type="text" class="form-input" id="subsSearch" placeholder="Search by name or email..." oninput="filterSubs()"></div></div>
+            <div id="subsList"><div class="loading">Loading...</div></div></div></div>
+        <div class="panel" id="panel-security">
+            <div class="kpi-grid">
+                <div class="kpi-card"><div class="kpi-label">Security Events (24h)</div><div class="kpi-value yellow" id="secEvents24">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Critical Alerts</div><div class="kpi-value red" id="secCritical">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Tamper Detections</div><div class="kpi-value red" id="secTamper">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Failed Logins (24h)</div><div class="kpi-value yellow" id="secFailedLogins">—</div></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Recent Security Events</div>
+                <div id="securityEvents"><div class="loading">Loading...</div></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Suspended Accounts</div>
+                <div id="suspendedList"><div class="loading">Loading...</div></div>
+            </div>
+        </div>
+        <div class="panel" id="panel-integrity">
+            <div class="kpi-grid">
+                <div class="kpi-card"><div class="kpi-label">Blessed Builds</div><div class="kpi-value blue" id="integBuilds">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Trusted Installs</div><div class="kpi-value green" id="integTrusted">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Pending Attestation</div><div class="kpi-value yellow" id="integPending">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Tampered / Revoked</div><div class="kpi-value red" id="integTampered">—</div></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Blessed Builds Registry</div>
+                <div id="integBuildsList"><div class="loading">Loading...</div></div>
+            </div>
+            <div class="card">
+                <div class="card-title">EA Installs</div>
+                <div class="form-row" style="margin-bottom:12px;">
+                    <button class="btn btn-ghost" onclick="loadIntegrity('all')" style="font-size:11px;">All</button>
+                    <button class="btn btn-ghost" onclick="loadIntegrity('trusted')" style="font-size:11px;">Trusted</button>
+                    <button class="btn btn-ghost" onclick="loadIntegrity('pending_attestation')" style="font-size:11px;">Pending</button>
+                    <button class="btn btn-ghost" onclick="loadIntegrity('tampered')" style="font-size:11px;">Tampered</button>
+                    <button class="btn btn-ghost" onclick="loadIntegrity('revoked')" style="font-size:11px;">Revoked</button>
+                </div>
+                <div id="integInstallsList"><div class="loading">Loading...</div></div>
+            </div>
+        </div>
+        <div class="panel" id="panel-email">
+            <div class="card">
+                <div class="card-title">Send Email to Customer</div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Search Customer</label><input type="text" class="form-input" id="emailSearch" placeholder="Type name or email to search..." oninput="searchEmailRecipient()"></div>
+                </div>
+                <div id="emailSearchResults" style="max-height:150px;overflow-y:auto;margin-bottom:12px;"></div>
+                <div id="emailSelectedCustomer" style="display:none;background:var(--bg-hover);border:1px solid var(--border-active);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;display:none;">
+                    <span style="color:var(--text-muted);">Sending to:</span> <strong id="emailSelectedName" style="color:var(--accent);"></strong> <span id="emailSelectedEmail" style="color:var(--text-secondary);"></span>
+                    <button onclick="clearEmailRecipient()" style="float:right;background:none;border:none;color:var(--accent-red);cursor:pointer;font-size:11px;">✕ Clear</button>
+                </div>
+                <input type="hidden" id="emailRecipientTk" value="">
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Subject</label><input type="text" class="form-input" id="emailSubject" placeholder="Email subject line"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Message Body</label><textarea class="form-input" id="emailBody" rows="5" placeholder="Type your message here..." style="resize:vertical;min-height:100px;"></textarea></div>
+                </div>
+                <div class="form-row">
+                    <button class="btn btn-primary" onclick="sendAdminEmail()">✉️ Send Email</button>
+                </div>
+                <div id="emailResult" style="margin-top:10px;"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Email Configuration</div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Admin Email (receives alerts)</label><input type="text" class="form-input" id="emailAdminAddr" placeholder="your-email@example.com"></div>
+                    <div class="form-group"><label class="form-label">Email System</label>
+                        <select class="form-input" id="emailEnabled"><option value="1">Enabled</option><option value="0">Disabled</option></select>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveEmailConfig()">Save</button>
+                </div>
+                <div id="emailConfigResult" style="margin-top:10px;"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Bulk Email — All Users</div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Subject</label><input type="text" class="form-input" id="bulkEmailSubject" placeholder="Subject for all users"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Message Body</label><textarea class="form-input" id="bulkEmailBody" rows="4" placeholder="This will be sent to ALL registered users..." style="resize:vertical;min-height:80px;"></textarea></div>
+                </div>
+                <div class="form-row">
+                    <button class="btn btn-danger" onclick="sendBulkEmail()">📧 Send to All Users</button>
+                </div>
+                <div id="bulkEmailResult" style="margin-top:10px;"></div>
+            </div>
+        </div>
+        <div class="panel" id="panel-kb">
+            <div class="card">
+                <div class="card-title">Add New Article</div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Title</label><input type="text" class="form-input" id="kbTitle" placeholder="Article title"></div>
+                    <div class="form-group"><label class="form-label">Category</label><input type="text" class="form-input" id="kbCategory" placeholder="e.g. Setup, Trading, Account" value="General"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Body</label><textarea class="form-input" id="kbBody" rows="4" placeholder="Article content..." style="resize:vertical;min-height:80px;"></textarea></div>
+                </div>
+                <div class="form-row">
+                    <button class="btn btn-primary" onclick="addKbArticle()">➕ Add Article</button>
+                </div>
+                <div id="kbAddResult" style="margin-top:8px;"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Articles</div>
+                <div class="form-row" style="margin-bottom:12px;">
+                    <div class="form-group"><input type="text" class="form-input" id="kbSearch" placeholder="Search articles..." oninput="filterKb()"></div>
+                </div>
+                <div id="kbList"><div class="loading">Loading...</div></div>
+            </div>
+        </div>
         <div class="panel" id="panel-referrals"><div class="card"><div class="card-title">Referral System</div><div id="refList"><div class="loading">Loading...</div></div></div></div>
     </div>
 </main>
@@ -646,6 +789,12 @@ document.querySelectorAll('.nav-item').forEach(function(item) {
         else if (panel === 'users') loadUsers();
         else if (panel === 'payments') loadPayments();
         else if (panel === 'locks') loadLocks();
+        else if (panel === 'licenses') loadLicenses();
+        else if (panel === 'subscriptions') loadSubscriptions();
+        else if (panel === 'chat') loadChatInbox();
+        else if (panel === 'security') loadSecurity();
+        else if (panel === 'integrity') loadIntegrity('all');
+        else if (panel === 'kb') loadKb();
         else if (panel === 'audit') loadAudit();
         else if (panel === 'referrals') loadReferrals();
     });
@@ -691,8 +840,8 @@ function loadDashboard() {
         }
 
         // Recent activity from audit log
-        var logs = (auditData && auditData.log) || [];
-        var recent = logs.slice(-15).reverse();
+        var logs = (auditData && auditData.entries) || [];
+        var recent = logs.slice(0, 15);
         var html = '<table class="data-table"><thead><tr><th>Time</th><th>Action</th><th>Target</th><th>By</th></tr></thead><tbody>';
         recent.forEach(function(l) {
             html += '<tr><td>' + (l.ts || '').slice(0, 19).replace('T', ' ') + '</td><td>' + (l.action || '') + '</td><td>' + (l.target || '') + '</td><td>' + (l.by || '') + '</td></tr>';
@@ -784,24 +933,135 @@ function rejectPayment(tk) {
 }
 
 // ── LOCKS ──
+var _locksCache = {};
+var _knownAccountsCache = [];
+
 function loadLocks() {
-    callAdmin({ command: 'admin_list_locks' }).then(function(data) {
-        var locks = (data && data.locks) || {};
-        var keys = Object.keys(locks);
-        var html = '';
-        if (!keys.length) {
-            html = '<p style="color:var(--text-muted);">No locked accounts.</p>';
-        } else {
-            html = '<table class="data-table"><thead><tr><th>Account</th><th>Reason</th><th>Locked At</th><th>Actions</th></tr></thead><tbody>';
-            keys.forEach(function(k) {
-                var l = locks[k];
-                html += '<tr><td style="font-family:monospace;">' + k + '</td><td>' + (l.reason || l.msg || '') + '</td><td>' + (l.at || '').slice(0, 19).replace('T', ' ') + '</td>' +
-                    '<td><button class="btn btn-ghost" style="padding:4px 10px;font-size:10px;" onclick="unlockAccount(\'' + k.replace(/'/g, "\\'") + '\')">🔓 Unlock</button></td></tr>';
+    Promise.all([
+        callAdmin({ command: 'admin_list_locks' }),
+        callAdmin({ command: 'chat_list_conversations' })
+    ]).then(function(results) {
+        var locksData = results[0];
+        var convoData = results[1];
+
+        // Locks
+        _locksCache = (locksData && locksData.locks) || {};
+        renderLocks(_locksCache);
+
+        // Known accounts from chat_list_conversations
+        var idx = (convoData && convoData.conversations_index) || {};
+        var nicks = (convoData && convoData.nicknames) || {};
+        var known = (convoData && convoData.known_accounts) || {};
+        var list = [];
+        Object.keys(idx).forEach(function(tk) {
+            var meta = idx[tk] || {};
+            var nick = nicks[tk] || '';
+            list.push({
+                token_key: tk,
+                nickname: nick,
+                server: meta.display_server || '',
+                login: meta.display_login || '',
+                label: nick || ((meta.display_server || '') + '|' + (meta.display_login || '')) || tk.slice(0, 12) + '…',
+                last_activity: meta.last_activity || ''
             });
-            html += '</tbody></table>';
-        }
-        document.getElementById('locksList').innerHTML = html;
+        });
+        // Also add known_accounts that might not be in chat index
+        Object.keys(known).forEach(function(k) {
+            var acc = known[k];
+            if (!list.find(function(l) { return l.token_key === (acc.token_key || k); })) {
+                list.push({ token_key: acc.token_key || k, nickname: '', server: acc.server || '', login: acc.login || '', label: (acc.server || '') + '|' + (acc.login || ''), last_activity: '' });
+            }
+        });
+        _knownAccountsCache = list;
+        renderKnownAccounts(list);
+    }).catch(function(e) {
+        document.getElementById('locksList').innerHTML = '<p style="color:var(--accent-red);">Error: ' + e.message + '</p>';
     });
+}
+
+function renderLocks(locks) {
+    var keys = Object.keys(locks);
+    var html = '';
+    if (!keys.length) {
+        html = '<p style="color:var(--text-muted);">No locked accounts.</p>';
+    } else {
+        html = '<table class="data-table"><thead><tr><th>Account</th><th>Reason</th><th>Locked At</th><th>Actions</th></tr></thead><tbody>';
+        keys.forEach(function(k) {
+            var l = locks[k];
+            html += '<tr><td style="font-family:monospace;">' + k + '</td><td>' + (l.reason || l.msg || '') + '</td><td>' + (l.at || '').slice(0, 19).replace('T', ' ') + '</td>' +
+                '<td><button class="btn btn-ghost" style="padding:4px 10px;font-size:10px;" onclick="unlockAccount(\'' + k.replace(/'/g, "\\'") + '\')">🔓 Unlock</button></td></tr>';
+        });
+        html += '</tbody></table>';
+    }
+    document.getElementById('locksList').innerHTML = html;
+}
+
+function filterLocks() {
+    var q = document.getElementById('lockSearchBox').value.toLowerCase();
+    if (!q) { renderLocks(_locksCache); return; }
+    var filtered = {};
+    Object.keys(_locksCache).forEach(function(k) {
+        if (k.toLowerCase().indexOf(q) > -1 || (_locksCache[k].reason || '').toLowerCase().indexOf(q) > -1) {
+            filtered[k] = _locksCache[k];
+        }
+    });
+    renderLocks(filtered);
+}
+
+function renderKnownAccounts(list) {
+    var html = '';
+    if (!list.length) {
+        html = '<p style="color:var(--text-muted);">No known accounts yet. EAs must connect at least once.</p>';
+    } else {
+        html = '<table class="data-table"><thead><tr><th>Name</th><th>Server</th><th>Login</th><th>Last Activity</th><th>Actions</th></tr></thead><tbody>';
+        list.forEach(function(a) {
+            var isLocked = _locksCache[(a.server + '|' + a.login)] || _locksCache[('|' + a.login)];
+            var lockBadge = isLocked ? '<span class="status-badge expired">LOCKED</span>' : '';
+            html += '<tr><td style="color:var(--text-primary);">' + (a.nickname || a.token_key.slice(0, 8) + '…') + ' ' + lockBadge + '</td><td>' + (a.server || '—') + '</td><td>' + (a.login || '—') + '</td><td>' + (a.last_activity || '').slice(0, 16).replace('T', ' ') + '</td><td><button class="btn btn-ghost" style="padding:3px 8px;font-size:9px;" onclick="prefillLock(\'' + (a.server || '').replace(/'/g, "\\'") + '\',\'' + (a.login || '').replace(/'/g, "\\'") + '\')">⛔ Lock</button></td></tr>';
+        });
+        html += '</tbody></table>';
+    }
+    document.getElementById('knownAccountsList').innerHTML = html;
+}
+
+function filterKnownAccounts() {
+    var q = document.getElementById('knownAccSearch').value.toLowerCase();
+    if (!q) { renderKnownAccounts(_knownAccountsCache); return; }
+    var filtered = _knownAccountsCache.filter(function(a) {
+        return (a.nickname || '').toLowerCase().indexOf(q) > -1 ||
+               (a.server || '').toLowerCase().indexOf(q) > -1 ||
+               (a.login || '').toLowerCase().indexOf(q) > -1 ||
+               (a.token_key || '').toLowerCase().indexOf(q) > -1;
+    });
+    renderKnownAccounts(filtered);
+}
+
+function searchLockCustomers() {
+    var q = document.getElementById('lockCustomerSearch').value.toLowerCase();
+    var resultsEl = document.getElementById('lockCustomerResults');
+    if (!q || q.length < 2) { resultsEl.style.display = 'none'; return; }
+    var filtered = _knownAccountsCache.filter(function(a) {
+        return (a.nickname || '').toLowerCase().indexOf(q) > -1 ||
+               (a.server || '').toLowerCase().indexOf(q) > -1 ||
+               (a.login || '').toLowerCase().indexOf(q) > -1;
+    }).slice(0, 10);
+    if (!filtered.length) { resultsEl.style.display = 'none'; return; }
+    var html = '';
+    filtered.forEach(function(a) {
+        html += '<div onclick="prefillLock(\'' + (a.server || '').replace(/'/g, "\\'") + '\',\'' + (a.login || '').replace(/'/g, "\\'") + '\')" style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px;">';
+        html += '<strong style="color:var(--text-primary);">' + (a.nickname || a.token_key.slice(0, 8)) + '</strong>';
+        html += ' <span style="color:var(--text-muted);">' + (a.server || '') + '|' + (a.login || '') + '</span>';
+        html += '</div>';
+    });
+    resultsEl.innerHTML = html;
+    resultsEl.style.display = 'block';
+}
+
+function prefillLock(server, login) {
+    document.getElementById('lockServer').value = server;
+    document.getElementById('lockLogin').value = login;
+    document.getElementById('lockCustomerResults').style.display = 'none';
+    document.getElementById('lockCustomerSearch').value = server + '|' + login;
 }
 
 function lockAccount() {
@@ -866,8 +1126,8 @@ function sendAnnouncement() {
 // ── AUDIT ──
 function loadAudit() {
     callAdmin({ command: 'admin_get_audit_log' }).then(function(data) {
-        var logs = (data && data.log) || [];
-        var recent = logs.slice(-50).reverse();
+        var logs = (data && data.entries) || [];
+        var recent = logs.slice(0, 50);
         var html = '<table class="data-table"><thead><tr><th>Time</th><th>Action</th><th>Target</th><th>By</th><th>Details</th></tr></thead><tbody>';
         recent.forEach(function(l) {
             var details = '';
@@ -877,6 +1137,541 @@ function loadAudit() {
         html += '</tbody></table>';
         if (!recent.length) html = '<p style="color:var(--text-muted);">No audit entries.</p>';
         document.getElementById('auditList').innerHTML = html;
+    });
+}
+
+// ── SUPPORT INBOX (CHAT) ──
+var _chatConversations = [];
+var _activeConvoTk = '';
+var _chatPollTimer = null;
+
+function loadChatInbox() {
+    // Use chat_admin_poll (without token_key) to get all conversations
+    callAdmin({ command: 'chat_admin_poll' }).then(function(data) {
+        var convos = (data && data.conversations) || [];
+        _chatConversations = convos;
+        renderConversationList(convos);
+    }).catch(function(e) {
+        document.getElementById('chatConvoList').innerHTML = '<p style="color:var(--accent-red);padding:12px;font-size:11px;">Error: ' + e.message + '</p>';
+    });
+}
+
+function renderConversationList(convos) {
+    var html = '';
+    if (!convos.length) {
+        html = '<p style="color:var(--text-muted);padding:12px;font-size:11px;">No conversations yet.</p>';
+    } else {
+        convos.forEach(function(c) {
+            var unread = c.unread_count || 0;
+            var active = _activeConvoTk === c.token_key ? 'background:var(--bg-hover);border-left:3px solid var(--accent);' : 'border-left:3px solid transparent;';
+            var name = c.nickname || c.account_label || c.token_key.slice(0, 8) + '…';
+            var lastMsg = (c.last_msg && c.last_msg.body) ? c.last_msg.body.slice(0, 40) : '';
+            var lastTime = (c.last_msg && c.last_msg.created_at) ? c.last_msg.created_at.slice(0, 16).replace('T', ' ') : (c.last_activity || '').slice(0, 16).replace('T', ' ');
+            html += '<div onclick="openConversation(\'' + c.token_key + '\')" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);' + active + '">';
+            html += '<div style="display:flex;justify-content:space-between;align-items:center;">';
+            html += '<span style="font-size:12px;font-weight:600;color:var(--text-primary);">' + name + '</span>';
+            if (unread > 0) html += '<span style="background:var(--accent-red);color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:8px;">' + unread + '</span>';
+            html += '</div>';
+            html += '<div style="font-size:10px;color:var(--text-muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + lastMsg + '</div>';
+            html += '<div style="font-size:9px;color:var(--text-muted);margin-top:2px;">' + lastTime + '</div>';
+            html += '</div>';
+        });
+    }
+    document.getElementById('chatConvoList').innerHTML = html;
+}
+
+function filterConversations() {
+    var q = document.getElementById('chatSearch').value.toLowerCase();
+    if (!q) { renderConversationList(_chatConversations); return; }
+    var filtered = _chatConversations.filter(function(c) {
+        return (c.nickname || '').toLowerCase().indexOf(q) > -1 ||
+               (c.account_label || '').toLowerCase().indexOf(q) > -1 ||
+               (c.token_key || '').toLowerCase().indexOf(q) > -1;
+    });
+    renderConversationList(filtered);
+}
+
+function openConversation(tokenKey) {
+    _activeConvoTk = tokenKey;
+    renderConversationList(_chatConversations);
+    document.getElementById('chatHeader').textContent = '⏳ Loading...';
+    document.getElementById('chatReplyBox').style.display = 'block';
+
+    // Fetch this specific conversation's messages
+    callAdmin({ command: 'chat_admin_poll', token_key: tokenKey }).then(function(data) {
+        var messages = (data && data.thread) || [];
+        // Find nickname from conversations list
+        var name = tokenKey.slice(0, 8) + '…';
+        for (var i = 0; i < _chatConversations.length; i++) {
+            if (_chatConversations[i].token_key === tokenKey) {
+                name = _chatConversations[i].nickname || _chatConversations[i].account_label || name;
+                break;
+            }
+        }
+        document.getElementById('chatHeader').innerHTML = '<span style="color:var(--text-primary);">💬 ' + name + '</span><span style="font-size:10px;color:var(--text-muted);margin-left:12px;">' + messages.length + ' messages</span>';
+
+        var html = '';
+        messages.forEach(function(m) {
+            var isAdmin = m.direction === 'admin_to_customer';
+            var align = isAdmin ? 'margin-left:auto;background:rgba(0,217,255,0.08);border:1px solid rgba(0,217,255,0.2);' : 'margin-right:auto;background:var(--bg-hover);border:1px solid var(--border);';
+            html += '<div style="max-width:70%;padding:10px 14px;border-radius:10px;font-size:12px;' + align + '">';
+            html += '<div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">' + (m.sender_name || (isAdmin ? 'Admin' : 'Customer')) + ' • ' + (m.created_at || '').slice(11, 16) + '</div>';
+            html += '<div style="color:var(--text-primary);word-wrap:break-word;">' + (m.body || '').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>';
+            if (m.attachment) html += '<div style="margin-top:4px;font-size:10px;color:var(--accent);">📎 ' + (m.attachment.name || 'File') + '</div>';
+            html += '</div>';
+        });
+        if (!messages.length) html = '<p style="color:var(--text-muted);text-align:center;padding:40px;">No messages in this conversation.</p>';
+        document.getElementById('chatMessages').innerHTML = html;
+        // Auto-scroll to bottom
+        var msgBox = document.getElementById('chatMessages');
+        msgBox.scrollTop = msgBox.scrollHeight;
+
+        // Mark as read by admin
+        callAdmin({ command: 'chat_mark_read', side: 'admin', target_token_key: tokenKey }).catch(function(){});
+    }).catch(function(e) {
+        document.getElementById('chatMessages').innerHTML = '<p style="color:var(--accent-red);padding:20px;">Error loading: ' + e.message + '</p>';
+    });
+
+    // Start polling for new messages every 10 seconds
+    if (_chatPollTimer) clearInterval(_chatPollTimer);
+    _chatPollTimer = setInterval(function() {
+        if (_activeConvoTk === tokenKey) openConversation(tokenKey);
+    }, 10000);
+}
+
+function sendChatReply() {
+    var input = document.getElementById('chatReplyInput');
+    var body = input.value.trim();
+    if (!body || !_activeConvoTk) return;
+
+    input.value = '';
+    input.disabled = true;
+
+    callAdmin({
+        command: 'chat_admin_send',
+        target_token_key: _activeConvoTk,
+        body: body,
+        sender_name: 'Admin'
+    }).then(function(data) {
+        input.disabled = false;
+        if (data && data.status === 'ok') {
+            openConversation(_activeConvoTk); // Refresh messages
+        } else {
+            alert('Failed to send: ' + (data && data.error || 'unknown'));
+        }
+    }).catch(function(e) {
+        input.disabled = false;
+        alert('Error: ' + e.message);
+    });
+}
+
+// ── EA INTEGRITY ──
+function loadIntegrity(filter) {
+    Promise.all([
+        callAdmin({ command: 'admin_list_builds' }),
+        callAdmin(filter && filter !== 'all' ? { command: 'admin_list_installs', status: filter } : { command: 'admin_list_installs' })
+    ]).then(function(results) {
+        var buildsRes = results[0];
+        var installsRes = results[1];
+
+        // Builds
+        var builds = (buildsRes && buildsRes.builds) || {};
+        var buildKeys = Object.keys(builds);
+        document.getElementById('integBuilds').textContent = buildKeys.filter(function(k) { return builds[k].status === 'active'; }).length;
+
+        var buildsHtml = '';
+        if (!buildKeys.length) {
+            buildsHtml = '<p style="color:var(--text-muted);">No blessed builds registered yet.</p>';
+        } else {
+            buildsHtml = '<table class="data-table"><thead><tr><th>Build ID</th><th>Status</th><th>Blessed At</th><th>Hash (first 16)</th></tr></thead><tbody>';
+            buildKeys.sort(function(a, b) { return String(builds[b].blessed_at || '').localeCompare(String(builds[a].blessed_at || '')); });
+            buildKeys.forEach(function(k) {
+                var b = builds[k];
+                var statusClass = b.status === 'active' ? 'active' : 'expired';
+                buildsHtml += '<tr><td style="font-family:monospace;font-size:11px;color:var(--text-primary);">' + k + '</td><td><span class="status-badge ' + statusClass + '">' + (b.status || 'unknown') + '</span></td><td>' + (b.blessed_at || '').slice(0, 16).replace('T', ' ') + '</td><td style="font-family:monospace;font-size:10px;">' + (b.hash || '').slice(0, 16) + '…</td></tr>';
+            });
+            buildsHtml += '</tbody></table>';
+        }
+        document.getElementById('integBuildsList').innerHTML = buildsHtml;
+
+        // Installs
+        var installs = (installsRes && installsRes.installs) || {};
+        var installKeys = Object.keys(installs);
+        var trusted = 0, pending = 0, tampered = 0;
+        installKeys.forEach(function(k) {
+            var st = (installs[k].status || '');
+            if (st === 'trusted') trusted++;
+            else if (st === 'pending_attestation') pending++;
+            else if (st === 'tampered' || st === 'revoked') tampered++;
+        });
+        document.getElementById('integTrusted').textContent = trusted;
+        document.getElementById('integPending').textContent = pending;
+        document.getElementById('integTampered').textContent = tampered;
+
+        var installsHtml = '';
+        if (!installKeys.length) {
+            installsHtml = '<p style="color:var(--text-muted);">No EA installs found' + (filter && filter !== 'all' ? ' with status "' + filter + '"' : '') + '.</p>';
+        } else {
+            // Sort: tampered first, then pending, then trusted
+            var ord = { tampered: 0, revoked: 1, pending_attestation: 2, trusted: 3 };
+            installKeys.sort(function(a, b) {
+                var oa = ord[installs[a].status] != null ? ord[installs[a].status] : 9;
+                var ob = ord[installs[b].status] != null ? ord[installs[b].status] : 9;
+                if (oa !== ob) return oa - ob;
+                return String(installs[b].last_seen || '').localeCompare(String(installs[a].last_seen || ''));
+            });
+            installsHtml = '<table class="data-table"><thead><tr><th>Install</th><th>Status</th><th>Account</th><th>Last Build</th><th>Last Seen</th><th>Actions</th></tr></thead><tbody>';
+            installKeys.forEach(function(k) {
+                var r = installs[k];
+                var st = r.status || 'unknown';
+                var stLabel = st === 'pending_attestation' ? 'pending' : st;
+                var statusClass = st === 'trusted' ? 'active' : (st === 'pending_attestation' ? 'trial' : (st === 'tampered' ? 'expired' : 'suspended'));
+                var who = (r.last_server || '') + '|' + (r.last_login || '');
+                var actions = '';
+                if (st === 'pending_attestation') actions = '<button class="btn btn-primary" style="padding:3px 8px;font-size:9px;" onclick="attestInstall(\'' + k.replace(/'/g, "\\'") + '\')">✓ Attest</button>';
+                else if (st === 'trusted') actions = '<button class="btn btn-danger" style="padding:3px 8px;font-size:9px;" onclick="revokeInstall(\'' + k.replace(/'/g, "\\'") + '\')">Revoke</button>';
+                installsHtml += '<tr><td style="font-family:monospace;font-size:10px;">' + k.slice(0, 20) + '…</td><td><span class="status-badge ' + statusClass + '">' + stLabel + '</span></td><td style="font-size:11px;">' + who + '</td><td style="font-family:monospace;font-size:10px;">' + (r.last_build_id || '—') + '</td><td>' + (r.last_seen || '').slice(0, 16).replace('T', ' ') + '</td><td>' + actions + '</td></tr>';
+            });
+            installsHtml += '</tbody></table>';
+        }
+        document.getElementById('integInstallsList').innerHTML = installsHtml;
+    }).catch(function(e) {
+        document.getElementById('integBuildsList').innerHTML = '<p style="color:var(--accent-red);">Error: ' + e.message + '</p>';
+        document.getElementById('integInstallsList').innerHTML = '';
+    });
+}
+
+function attestInstall(key) {
+    if (!confirm('Attest install ' + key.slice(0, 20) + '… as trusted?')) return;
+    callAdmin({ command: 'admin_attest_install', install_key: key }).then(function(data) {
+        if (data && data.status === 'ok') { alert('✓ Install attested as trusted.'); loadIntegrity('all'); }
+        else alert('Error: ' + (data && data.error || 'unknown'));
+    });
+}
+
+function revokeInstall(key) {
+    if (!confirm('Revoke trust for install ' + key.slice(0, 20) + '…?')) return;
+    callAdmin({ command: 'admin_revoke_install', install_key: key }).then(function(data) {
+        if (data && data.status === 'ok') { alert('✓ Install revoked.'); loadIntegrity('all'); }
+        else alert('Error: ' + (data && data.error || 'unknown'));
+    });
+}
+
+// ── SECURITY MONITOR ──
+function loadSecurity() {
+    Promise.all([
+        callAdmin({ command: 'admin_get_audit_log' }),
+        callAdmin({ command: 'admin_list_users' })
+    ]).then(function(results) {
+        var auditData = results[0];
+        var userData = results[1];
+        var logs = (auditData && auditData.entries) || [];
+        var users = (userData && userData.users) || [];
+
+        // Count security-related events in last 24 hours
+        var now = Date.now();
+        var day = 24 * 60 * 60 * 1000;
+        var recent = logs.filter(function(l) { return (now - Date.parse(l.ts || 0)) < day; });
+        var securityEvents = recent.filter(function(l) {
+            return (l.action || '').indexOf('hmac_reject') >= 0 ||
+                   (l.action || '').indexOf('tamper') >= 0 ||
+                   (l.action || '').indexOf('brute') >= 0 ||
+                   (l.action || '').indexOf('revoke') >= 0 ||
+                   (l.action || '').indexOf('lock') >= 0 ||
+                   (l.action || '').indexOf('suspend') >= 0;
+        });
+        var critical = securityEvents.filter(function(l) { return (l.action || '').indexOf('tamper') >= 0 || (l.action || '').indexOf('brute') >= 0; });
+        var tamper = securityEvents.filter(function(l) { return (l.action || '').indexOf('tamper') >= 0; });
+        var failedLogins = recent.filter(function(l) { return (l.action || '').indexOf('login_fail') >= 0 || (l.action || '').indexOf('hmac_reject') >= 0; });
+
+        document.getElementById('secEvents24').textContent = securityEvents.length;
+        document.getElementById('secCritical').textContent = critical.length;
+        document.getElementById('secTamper').textContent = tamper.length;
+        document.getElementById('secFailedLogins').textContent = failedLogins.length;
+
+        // Show recent security events
+        var secRecent = securityEvents.slice(0, 20);
+        var html = '';
+        if (!secRecent.length) {
+            html = '<p style="color:var(--text-muted);">No security events in the last 24 hours. ✓</p>';
+        } else {
+            html = '<table class="data-table"><thead><tr><th>Time</th><th>Event</th><th>Target</th><th>Details</th></tr></thead><tbody>';
+            secRecent.forEach(function(l) {
+                var severity = (l.action || '').indexOf('tamper') >= 0 || (l.action || '').indexOf('brute') >= 0 ? 'color:var(--accent-red);' : 'color:var(--accent-yellow);';
+                html += '<tr><td>' + (l.ts || '').slice(0, 19).replace('T', ' ') + '</td><td style="' + severity + 'font-weight:600;">' + (l.action || '') + '</td><td>' + (l.target || '') + '</td><td style="font-size:10px;color:var(--text-muted);">' + JSON.stringify(l.extra || '').slice(0, 60) + '</td></tr>';
+            });
+            html += '</tbody></table>';
+        }
+        document.getElementById('securityEvents').innerHTML = html;
+
+        // Suspended accounts
+        var suspended = users.filter(function(u) { return u.suspended; });
+        var suspHtml = '';
+        if (!suspended.length) {
+            suspHtml = '<p style="color:var(--text-muted);">No suspended accounts.</p>';
+        } else {
+            suspHtml = '<table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Actions</th></tr></thead><tbody>';
+            suspended.forEach(function(u) {
+                suspHtml += '<tr><td style="color:var(--text-primary);">' + (u.name || '—') + '</td><td>' + (u.email || '') + '</td><td><button class="btn btn-ghost" style="padding:4px 8px;font-size:10px;" onclick="unsuspendUser(\'' + (u.email || '').replace(/'/g, "\\'") + '\')">🔓 Unsuspend</button></td></tr>';
+            });
+            suspHtml += '</tbody></table>';
+        }
+        document.getElementById('suspendedList').innerHTML = suspHtml;
+    }).catch(function(e) {
+        document.getElementById('securityEvents').innerHTML = '<p style="color:var(--accent-red);">Error: ' + e.message + '</p>';
+    });
+}
+
+function unsuspendUser(email) {
+    if (!confirm('Unsuspend ' + email + '?')) return;
+    callAdmin({ command: 'admin_unsuspend_user', email: email }).then(function(data) {
+        if (data && data.status === 'ok') { alert('✓ User unsuspended.'); loadSecurity(); }
+        else alert('Error: ' + (data && data.error || 'unknown'));
+    });
+}
+
+// ── EMAIL ──
+var _emailUsersCache = [];
+
+function searchEmailRecipient() {
+    var q = document.getElementById('emailSearch').value.trim().toLowerCase();
+    if (!q || q.length < 2) { document.getElementById('emailSearchResults').innerHTML = ''; return; }
+
+    // Load users if not cached
+    if (!_emailUsersCache.length) {
+        callAdmin({ command: 'admin_list_users' }).then(function(data) {
+            _emailUsersCache = (data && data.users) || [];
+            renderEmailSearchResults(q);
+        });
+    } else {
+        renderEmailSearchResults(q);
+    }
+}
+
+function renderEmailSearchResults(q) {
+    var filtered = _emailUsersCache.filter(function(u) {
+        return (u.name || '').toLowerCase().indexOf(q) > -1 || (u.email || '').toLowerCase().indexOf(q) > -1;
+    }).slice(0, 8);
+
+    var html = '';
+    filtered.forEach(function(u) {
+        html += '<div onclick="selectEmailRecipient(\'' + (u.token_key || '').replace(/'/g, "\\'") + '\',\'' + (u.name || '').replace(/'/g, "\\'") + '\',\'' + (u.email || '').replace(/'/g, "\\'") + '\')" style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px;transition:background 0.1s;" onmouseover="this.style.background=\'var(--bg-hover)\'" onmouseout="this.style.background=\'transparent\'">';
+        html += '<strong style="color:var(--text-primary);">' + (u.name || '—') + '</strong>';
+        html += ' <span style="color:var(--text-muted);">' + (u.email || '') + '</span>';
+        html += '</div>';
+    });
+    if (!filtered.length) html = '<div style="padding:8px 12px;font-size:11px;color:var(--text-muted);">No matching customers found</div>';
+    document.getElementById('emailSearchResults').innerHTML = html;
+}
+
+function selectEmailRecipient(tk, name, email) {
+    document.getElementById('emailRecipientTk').value = tk;
+    document.getElementById('emailSelectedName').textContent = name;
+    document.getElementById('emailSelectedEmail').textContent = '(' + email + ')';
+    document.getElementById('emailSelectedCustomer').style.display = 'block';
+    document.getElementById('emailSearchResults').innerHTML = '';
+    document.getElementById('emailSearch').value = '';
+}
+
+function clearEmailRecipient() {
+    document.getElementById('emailRecipientTk').value = '';
+    document.getElementById('emailSelectedCustomer').style.display = 'none';
+}
+
+function sendAdminEmail() {
+    var recipient = document.getElementById('emailRecipientTk').value.trim();
+    var subject = document.getElementById('emailSubject').value.trim();
+    var body = document.getElementById('emailBody').value.trim();
+    if (!recipient) { alert('Please search and select a customer first'); return; }
+    if (!subject) { alert('Subject is required'); return; }
+    if (!body) { alert('Message body is required'); return; }
+
+    document.getElementById('emailResult').innerHTML = '<span style="color:var(--accent);">Sending...</span>';
+
+    callAdmin({
+        command: 'admin_send_email',
+        target_token_key: recipient,
+        subject: subject,
+        email_body: body
+    }).then(function(data) {
+        if (data && data.status === 'ok') {
+            document.getElementById('emailResult').innerHTML = '<span style="color:var(--accent-green);">✓ Email sent to ' + (data.sent_to || 'customer') + '</span>';
+            document.getElementById('emailBody').value = '';
+            document.getElementById('emailSubject').value = '';
+            clearEmailRecipient();
+        } else {
+            document.getElementById('emailResult').innerHTML = '<span style="color:var(--accent-red);">Error: ' + (data && data.error || 'unknown') + '</span>';
+        }
+    }).catch(function(e) {
+        document.getElementById('emailResult').innerHTML = '<span style="color:var(--accent-red);">Failed: ' + e.message + '</span>';
+    });
+}
+
+function saveEmailConfig() {
+    var adminEmail = document.getElementById('emailAdminAddr').value.trim();
+    var enabled = document.getElementById('emailEnabled').value === '1';
+
+    callAdmin({
+        command: 'admin_email_config',
+        admin_email: adminEmail,
+        enabled: enabled
+    }).then(function(data) {
+        if (data && data.status === 'ok') {
+            document.getElementById('emailConfigResult').innerHTML = '<span style="color:var(--accent-green);">✓ Email config saved. Admin: ' + (data.admin_email || '') + ', Enabled: ' + (data.enabled ? 'Yes' : 'No') + '</span>';
+        } else {
+            document.getElementById('emailConfigResult').innerHTML = '<span style="color:var(--accent-red);">Error: ' + (data && data.error || 'unknown') + '</span>';
+        }
+    }).catch(function(e) {
+        document.getElementById('emailConfigResult').innerHTML = '<span style="color:var(--accent-red);">Failed: ' + e.message + '</span>';
+    });
+}
+
+function sendBulkEmail() {
+    var subject = document.getElementById('bulkEmailSubject').value.trim();
+    var body = document.getElementById('bulkEmailBody').value.trim();
+    if (!subject || !body) { alert('Subject and body are required'); return; }
+    if (!confirm('⚠️ This will send an email to ALL registered users. Are you sure?')) return;
+
+    document.getElementById('bulkEmailResult').innerHTML = '<span style="color:var(--accent);">Sending to all users...</span>';
+
+    // First get all users, then send to each
+    callAdmin({ command: 'admin_list_users' }).then(function(data) {
+        var users = (data && data.users) || [];
+        if (!users.length) {
+            document.getElementById('bulkEmailResult').innerHTML = '<span style="color:var(--accent-red);">No users found.</span>';
+            return;
+        }
+        var sent = 0;
+        var failed = 0;
+        var total = users.length;
+
+        // Send sequentially to avoid rate limits
+        function sendNext(i) {
+            if (i >= users.length) {
+                document.getElementById('bulkEmailResult').innerHTML = '<span style="color:var(--accent-green);">✓ Done! Sent: ' + sent + ' | Failed: ' + failed + ' | Total: ' + total + '</span>';
+                return;
+            }
+            var u = users[i];
+            if (!u.email) { failed++; sendNext(i + 1); return; }
+
+            document.getElementById('bulkEmailResult').innerHTML = '<span style="color:var(--accent);">Sending ' + (i + 1) + '/' + total + '...</span>';
+
+            callAdmin({
+                command: 'admin_send_email',
+                target_token_key: u.token_key || '',
+                subject: subject,
+                email_body: body
+            }).then(function(r) {
+                if (r && r.status === 'ok') sent++; else failed++;
+                setTimeout(function() { sendNext(i + 1); }, 500); // 500ms delay between emails
+            }).catch(function() {
+                failed++;
+                setTimeout(function() { sendNext(i + 1); }, 500);
+            });
+        }
+        sendNext(0);
+    }).catch(function(e) {
+        document.getElementById('bulkEmailResult').innerHTML = '<span style="color:var(--accent-red);">Failed: ' + e.message + '</span>';
+    });
+}
+
+// ── SUBSCRIPTIONS ──
+var _subsCache = [];
+function loadSubscriptions() {
+    callAdmin({ command: 'admin_list_users' }).then(function(data) {
+        var users = (data && data.users) || [];
+        _subsCache = users;
+        renderSubs(users);
+    }).catch(function(e) {
+        document.getElementById('subsList').innerHTML = '<p style="color:var(--accent-red);">Error: ' + e.message + '</p>';
+    });
+}
+function filterSubs() {
+    var q = document.getElementById('subsSearch').value.toLowerCase();
+    if (!q) { renderSubs(_subsCache); return; }
+    var filtered = _subsCache.filter(function(u) {
+        return (u.name || '').toLowerCase().indexOf(q) > -1 || (u.email || '').toLowerCase().indexOf(q) > -1;
+    });
+    renderSubs(filtered);
+}
+function renderSubs(users) {
+        var html = '';
+        
+        var active = users.filter(function(u) { return u.sub_status === 'active'; });
+        var trial = users.filter(function(u) { return u.trial_status === 'active' && u.sub_status !== 'active'; });
+        var expired = users.filter(function(u) { return u.trial_status === 'expired' && u.sub_status !== 'active'; });
+        var unpaid = users.filter(function(u) { return !u.sub_status && u.trial_status !== 'active'; });
+
+        html += '<div style="margin-bottom:16px;font-size:12px;color:var(--text-secondary);">';
+        html += 'Active: <strong style="color:var(--accent-green);">' + active.length + '</strong> | ';
+        html += 'Trial: <strong style="color:var(--accent);">' + trial.length + '</strong> | ';
+        html += 'Expired: <strong style="color:var(--accent-red);">' + expired.length + '</strong> | ';
+        html += 'Unpaid: <strong style="color:var(--text-muted);">' + unpaid.length + '</strong>';
+        html += '</div>';
+
+        html += '<table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Subscription</th><th>Trial</th><th>Trial Days Left</th><th>Registered</th></tr></thead><tbody>';
+        users.forEach(function(u) {
+            var subClass = u.sub_status === 'active' ? 'active' : 'unpaid';
+            var subText = u.sub_status === 'active' ? 'Active' : (u.sub_status || 'Unpaid');
+            var trialClass = u.trial_status === 'active' ? 'trial' : (u.trial_status === 'expired' ? 'expired' : 'unpaid');
+            var trialText = u.trial_status || 'none';
+            html += '<tr><td style="color:var(--text-primary);font-weight:600;">' + (u.name || '—') + '</td><td>' + (u.email || '') + '</td><td><span class="status-badge ' + subClass + '">' + subText + '</span></td><td><span class="status-badge ' + trialClass + '">' + trialText + '</span></td><td>' + (u.trial_days_left > 0 ? u.trial_days_left + ' days' : '—') + '</td><td>' + (u.created_at || '').slice(0, 10) + '</td></tr>';
+        });
+        html += '</tbody></table>';
+        if (!users.length) html = '<p style="color:var(--text-muted);">No users found.</p>';
+        document.getElementById('subsList').innerHTML = html;
+}
+
+// ── LICENSES ──
+function loadLicenses() {
+    Promise.all([
+        callAdmin({ command: 'admin_list_licenses' }),
+        callAdmin({ command: 'admin_list_users' })
+    ]).then(function(results) {
+        var licData = results[0];
+        var userData = results[1];
+        var licenses = (licData && licData.licenses) || [];
+        var users = (userData && userData.users) || [];
+
+        var html = '<div style="margin-bottom:16px;font-size:12px;color:var(--text-secondary);">Total Licenses: <strong style="color:var(--text-primary);">' + licenses.length + '</strong> | Total Users: <strong style="color:var(--text-primary);">' + users.length + '</strong></div>';
+
+        // Active licenses
+        if (licenses.length) {
+            html += '<div style="margin-bottom:8px;font-size:11px;font-weight:700;color:var(--accent-green);text-transform:uppercase;letter-spacing:0.06em;">Licensed Users</div>';
+            html += '<table class="data-table"><thead><tr><th>Customer</th><th>Account</th><th>Server</th><th>Expiry</th><th>Max Symbols</th><th>Live</th><th>Status</th></tr></thead><tbody>';
+            licenses.forEach(function(l) {
+                var expired = l.expiry && Date.parse(l.expiry) < Date.now();
+                var statusClass = l.revoked ? 'expired' : (expired ? 'suspended' : 'active');
+                var statusText = l.revoked ? 'Revoked' : (expired ? 'Expired' : 'Active');
+                html += '<tr><td style="color:var(--text-primary);font-weight:600;">' + (l.customer || '—') + '</td><td>' + (l.account || '') + '</td><td>' + (l.server || '') + '</td><td>' + (l.expiry || 'Never') + '</td><td>' + (l.max_symbols || '∞') + '</td><td>' + (l.allow_live ? '✓' : '✗') + '</td><td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td></tr>';
+            });
+            html += '</tbody></table>';
+        } else {
+            html += '<p style="color:var(--text-muted);margin-bottom:16px;">No licenses registered yet.</p>';
+        }
+
+        // Users without licenses (pending/no license)
+        var licensedCustomers = {};
+        licenses.forEach(function(l) { if (l.customer) licensedCustomers[l.customer.toLowerCase()] = true; });
+
+        var unlicensed = users.filter(function(u) {
+            return !licensedCustomers[(u.name || '').toLowerCase()] && !licensedCustomers[(u.email || '').toLowerCase()];
+        });
+
+        if (unlicensed.length) {
+            html += '<div style="margin-top:20px;margin-bottom:8px;font-size:11px;font-weight:700;color:var(--accent-yellow);text-transform:uppercase;letter-spacing:0.06em;">Users Without License (' + unlicensed.length + ')</div>';
+            html += '<table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Trial Status</th><th>Sub Status</th><th>Registered</th></tr></thead><tbody>';
+            unlicensed.forEach(function(u) {
+                var trialClass = u.trial_status === 'active' ? 'trial' : (u.trial_status === 'expired' ? 'expired' : 'unpaid');
+                var subClass = u.sub_status === 'active' ? 'active' : 'unpaid';
+                html += '<tr><td style="color:var(--text-primary);">' + (u.name || '—') + '</td><td>' + (u.email || '') + '</td><td><span class="status-badge ' + trialClass + '">' + (u.trial_status || 'none') + '</span></td><td><span class="status-badge ' + subClass + '">' + (u.sub_status || 'unpaid') + '</span></td><td>' + (u.created_at || '').slice(0, 10) + '</td></tr>';
+            });
+            html += '</tbody></table>';
+        }
+
+        document.getElementById('licensesList').innerHTML = html;
+    }).catch(function(e) {
+        document.getElementById('licensesList').innerHTML = '<p style="color:var(--accent-red);">Error: ' + e.message + '</p>';
     });
 }
 
@@ -891,6 +1686,67 @@ function loadReferrals() {
         html += '</tbody></table>';
         if (!refs.length) html = '<p style="color:var(--text-muted);">No referral data.</p>';
         document.getElementById('refList').innerHTML = html;
+    });
+}
+
+// ── KNOWLEDGE BASE ──
+var _kbCache = [];
+function loadKb() {
+    callAdmin({ command: 'kb_get_articles' }).then(function(data) {
+        var articles = (data && data.articles) || [];
+        _kbCache = articles;
+        renderKb(articles);
+    }).catch(function(e) {
+        document.getElementById('kbList').innerHTML = '<p style="color:var(--accent-red);">Error: ' + e.message + '</p>';
+    });
+}
+
+function renderKb(articles) {
+    var html = '';
+    if (!articles.length) {
+        html = '<p style="color:var(--text-muted);">No articles yet. Add one above.</p>';
+    } else {
+        html = '<table class="data-table"><thead><tr><th>Title</th><th>Category</th><th>Updated</th><th>Actions</th></tr></thead><tbody>';
+        articles.forEach(function(a) {
+            html += '<tr><td style="color:var(--text-primary);font-weight:600;">' + (a.title || '') + '</td><td><span class="status-badge trial">' + (a.category || 'General') + '</span></td><td>' + (a.updated_at || a.created_at || '').slice(0, 16).replace('T', ' ') + '</td><td><button class="btn btn-danger" style="padding:3px 8px;font-size:9px;" onclick="deleteKbArticle(\'' + (a.id || '').replace(/'/g, "\\'") + '\')">🗑 Delete</button></td></tr>';
+        });
+        html += '</tbody></table>';
+    }
+    document.getElementById('kbList').innerHTML = html;
+}
+
+function filterKb() {
+    var q = document.getElementById('kbSearch').value.toLowerCase();
+    if (!q) { renderKb(_kbCache); return; }
+    var filtered = _kbCache.filter(function(a) {
+        return (a.title || '').toLowerCase().indexOf(q) > -1 || (a.category || '').toLowerCase().indexOf(q) > -1 || (a.body || '').toLowerCase().indexOf(q) > -1;
+    });
+    renderKb(filtered);
+}
+
+function addKbArticle() {
+    var title = document.getElementById('kbTitle').value.trim();
+    var category = document.getElementById('kbCategory').value.trim() || 'General';
+    var body = document.getElementById('kbBody').value.trim();
+    if (!title || !body) { alert('Title and body are required'); return; }
+
+    callAdmin({ command: 'admin_kb_add', title: title, category: category, body: body }).then(function(data) {
+        if (data && data.status === 'ok') {
+            document.getElementById('kbAddResult').innerHTML = '<span style="color:var(--accent-green);">✓ Article added!</span>';
+            document.getElementById('kbTitle').value = '';
+            document.getElementById('kbBody').value = '';
+            loadKb();
+        } else {
+            document.getElementById('kbAddResult').innerHTML = '<span style="color:var(--accent-red);">Error: ' + (data && data.error || 'unknown') + '</span>';
+        }
+    });
+}
+
+function deleteKbArticle(id) {
+    if (!confirm('Delete this article?')) return;
+    callAdmin({ command: 'admin_kb_delete', article_id: id }).then(function(data) {
+        if (data && data.status === 'ok') { alert('✓ Article deleted.'); loadKb(); }
+        else alert('Error: ' + (data && data.error || 'unknown'));
     });
 }
 
