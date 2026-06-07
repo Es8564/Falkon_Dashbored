@@ -900,6 +900,14 @@ function viewUser(email) {
 function loadPayments() {
     callAdmin({ command: 'admin_list_payments' }).then(function(data) {
         var pending = (data && data.pending) || [];
+        // Update badge
+        var badge = document.getElementById('badgePay');
+        if (pending.length > 0) {
+            badge.textContent = pending.length;
+            badge.style.display = 'inline';
+        } else {
+            badge.style.display = 'none';
+        }
         var html = '';
         if (!pending.length) {
             html = '<p style="color:var(--text-muted);">No pending payments.</p>';
@@ -939,10 +947,12 @@ var _knownAccountsCache = [];
 function loadLocks() {
     Promise.all([
         callAdmin({ command: 'admin_list_locks' }),
-        callAdmin({ command: 'chat_list_conversations' })
+        callAdmin({ command: 'chat_list_conversations' }),
+        callAdmin({ command: 'admin_list_users' })
     ]).then(function(results) {
         var locksData = results[0];
         var convoData = results[1];
+        var usersData = results[2];
 
         // Locks
         _locksCache = (locksData && locksData.locks) || {};
@@ -952,7 +962,10 @@ function loadLocks() {
         var idx = (convoData && convoData.conversations_index) || {};
         var nicks = (convoData && convoData.nicknames) || {};
         var known = (convoData && convoData.known_accounts) || {};
+        var users = (usersData && usersData.users) || [];
+
         var list = [];
+        // Build from chat index
         Object.keys(idx).forEach(function(tk) {
             var meta = idx[tk] || {};
             var nick = nicks[tk] || '';
@@ -961,15 +974,34 @@ function loadLocks() {
                 nickname: nick,
                 server: meta.display_server || '',
                 login: meta.display_login || '',
-                label: nick || ((meta.display_server || '') + '|' + (meta.display_login || '')) || tk.slice(0, 12) + '…',
+                label: nick || ((meta.display_server || '') + '|' + (meta.display_login || '')) || tk.slice(0, 12),
                 last_activity: meta.last_activity || ''
             });
         });
-        // Also add known_accounts that might not be in chat index
+        // Merge known_accounts
         Object.keys(known).forEach(function(k) {
             var acc = known[k];
-            if (!list.find(function(l) { return l.token_key === (acc.token_key || k); })) {
-                list.push({ token_key: acc.token_key || k, nickname: '', server: acc.server || '', login: acc.login || '', label: (acc.server || '') + '|' + (acc.login || ''), last_activity: '' });
+            var tk = typeof acc === 'string' ? acc : (acc.token_key || k);
+            var existing = list.find(function(l) { return l.token_key === tk; });
+            if (existing) {
+                // Update with known account info if better
+                var parts = k.split('|');
+                if (parts[0] && !existing.server) existing.server = parts[0];
+                if (parts[1] && !existing.login) existing.login = parts[1];
+            } else {
+                var parts2 = k.split('|');
+                list.push({ token_key: tk, nickname: '', server: parts2[0] || '', login: parts2[1] || '', label: k, last_activity: '' });
+            }
+        });
+        // Merge user data (name, email) into list
+        users.forEach(function(u) {
+            if (!u.token_key) return;
+            var existing = list.find(function(l) { return l.token_key === u.token_key; });
+            if (existing) {
+                if (!existing.nickname && u.name) existing.nickname = u.name;
+                if (u.email) existing.email = u.email;
+            } else {
+                list.push({ token_key: u.token_key, nickname: u.name || '', server: '', login: '', email: u.email || '', label: u.name || u.email || u.token_key.slice(0, 12), last_activity: '' });
             }
         });
         _knownAccountsCache = list;
@@ -1013,11 +1045,14 @@ function renderKnownAccounts(list) {
     if (!list.length) {
         html = '<p style="color:var(--text-muted);">No known accounts yet. EAs must connect at least once.</p>';
     } else {
-        html = '<table class="data-table"><thead><tr><th>Name</th><th>Server</th><th>Login</th><th>Last Activity</th><th>Actions</th></tr></thead><tbody>';
+        html = '<div style="margin-bottom:8px;font-size:11px;color:var(--text-muted);">Total: ' + list.length + ' accounts</div>';
+        html += '<table class="data-table"><thead><tr><th>Name / Email</th><th>Server</th><th>Login</th><th>Token Key</th><th>Last Activity</th><th>Actions</th></tr></thead><tbody>';
         list.forEach(function(a) {
             var isLocked = _locksCache[(a.server + '|' + a.login)] || _locksCache[('|' + a.login)];
-            var lockBadge = isLocked ? '<span class="status-badge expired">LOCKED</span>' : '';
-            html += '<tr><td style="color:var(--text-primary);">' + (a.nickname || a.token_key.slice(0, 8) + '…') + ' ' + lockBadge + '</td><td>' + (a.server || '—') + '</td><td>' + (a.login || '—') + '</td><td>' + (a.last_activity || '').slice(0, 16).replace('T', ' ') + '</td><td><button class="btn btn-ghost" style="padding:3px 8px;font-size:9px;" onclick="prefillLock(\'' + (a.server || '').replace(/'/g, "\\'") + '\',\'' + (a.login || '').replace(/'/g, "\\'") + '\')">⛔ Lock</button></td></tr>';
+            var lockBadge = isLocked ? ' <span class="status-badge expired">LOCKED</span>' : '';
+            var nameDisplay = a.nickname || a.email || a.token_key.slice(0, 12) + '…';
+            var emailLine = a.email && a.nickname ? '<div style="font-size:10px;color:var(--text-muted);">' + a.email + '</div>' : '';
+            html += '<tr><td style="color:var(--text-primary);">' + nameDisplay + lockBadge + emailLine + '</td><td>' + (a.server || '<span style="color:var(--text-muted);font-size:10px;">—</span>') + '</td><td>' + (a.login || '<span style="color:var(--text-muted);font-size:10px;">—</span>') + '</td><td style="font-family:monospace;font-size:10px;color:var(--text-muted);word-break:break-all;">' + a.token_key + '</td><td>' + (a.last_activity ? a.last_activity.slice(0, 16).replace('T', ' ') : '<span style="color:var(--text-muted);font-size:10px;">never</span>') + '</td><td style="white-space:nowrap;"><button class="btn btn-ghost" style="padding:3px 8px;font-size:9px;" onclick="prefillLock(\'' + (a.server || '').replace(/'/g, "\\'") + '\',\'' + (a.login || '').replace(/'/g, "\\'") + '\')">⛔</button> <button class="btn btn-danger" style="padding:3px 8px;font-size:9px;" onclick="deleteKnownAccount(\'' + (a.token_key || '').replace(/'/g, "\\'") + '\')">🗑</button></td></tr>';
         });
         html += '</tbody></table>';
     }
@@ -1062,6 +1097,13 @@ function prefillLock(server, login) {
     document.getElementById('lockLogin').value = login;
     document.getElementById('lockCustomerResults').style.display = 'none';
     document.getElementById('lockCustomerSearch').value = server + '|' + login;
+}
+
+function deleteKnownAccount(tokenKey) {
+    if (!confirm('Remove this account from the known accounts list?\n\nToken: ' + tokenKey.slice(0, 12) + '…\n\nThis only removes it from the display list. The account data is not deleted.')) return;
+    // Remove from local cache and re-render
+    _knownAccountsCache = _knownAccountsCache.filter(function(a) { return a.token_key !== tokenKey; });
+    renderKnownAccounts(_knownAccountsCache);
 }
 
 function lockAccount() {
