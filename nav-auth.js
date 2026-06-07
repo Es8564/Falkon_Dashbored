@@ -17,15 +17,27 @@
                     a.style.display = 'none';
                 }
             });
-            // Add profile badge if not already there
-            if (!nav.querySelector('.nav-profile-badge')) {
-                var badge = document.createElement('a');
-                badge.href = 'account.html';
-                badge.className = 'nav-profile-badge';
-                badge.style.cssText = 'width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-decoration:none;';
-                badge.textContent = name.charAt(0).toUpperCase();
-                badge.title = name + ' — My Account';
-                nav.appendChild(badge);
+            // Add profile badge if not already there (skip if page already shows user name)
+            if (!nav.querySelector('.nav-profile-badge') && !nav.querySelector('[href="account.html"] span')) {
+                // Check if nav already has a badge-like element (from page-specific scripts)
+                var existingBadges = nav.querySelectorAll('span, a');
+                var alreadyHasBadge = false;
+                for (var i = 0; i < existingBadges.length; i++) {
+                    if (existingBadges[i].textContent.trim() === name.charAt(0).toUpperCase() ||
+                        existingBadges[i].textContent.trim() === name) {
+                        alreadyHasBadge = true;
+                        break;
+                    }
+                }
+                if (!alreadyHasBadge) {
+                    var badge = document.createElement('a');
+                    badge.href = 'account.html';
+                    badge.className = 'nav-profile-badge';
+                    badge.style.cssText = 'width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-decoration:none;';
+                    badge.textContent = name.charAt(0).toUpperCase();
+                    badge.title = name + ' — My Account';
+                    nav.appendChild(badge);
+                }
             }
         });
     }
