@@ -76,7 +76,7 @@
         <a href="pricing.html">Pricing</a>
         <a href="support.html">Support</a>
         <a href="account.html" id="navAccountLink" style="color:#00d9ff;font-weight:600;">My Account</a>
-        <span id="navProfileBadge" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;font-weight:800;font-size:13px;display:none;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;" onclick="window.location.href='account.html'"></span>
+        <span id="navProfileBadge" style="display:none;"></span>
     </div>
     <button class="nav-mobile" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
 </nav>
@@ -421,12 +421,7 @@
     document.getElementById('accSince').textContent = localStorage.getItem('falcon_member_since') || '—';
 
     // Show profile badge in navbar
-    var profileBadge = document.getElementById('navProfileBadge');
-    if (profileBadge && userName) {
-        profileBadge.textContent = userName.charAt(0).toUpperCase();
-        profileBadge.style.display = 'flex';
-    }
-
+    // Profile badge handled by nav already — skip duplicate
     loadAccount();
 })();
 
