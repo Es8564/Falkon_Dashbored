@@ -536,6 +536,58 @@
                     <button class="btn btn-primary" onclick="setEndpointUrl()">Save</button>
                 </div>
             </div>
+            <div class="card">
+                <div class="card-title">EA Version Management</div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Latest EA Version</label><input type="text" class="form-input" id="settEaVersion" placeholder="e.g. 4.0"></div>
+                    <div class="form-group"><label class="form-label">Release Date</label><input type="text" class="form-input" id="settEaDate" placeholder="e.g. 2026-06-01"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Download URL</label><input type="text" class="form-input" id="settEaDownload" placeholder="EA download URL"></div>
+                    <div class="form-group"><label class="form-label">Release Notes</label><input type="text" class="form-input" id="settEaNotes" placeholder="What's new"></div>
+                    <button class="btn btn-primary" onclick="setEaVersion()">Save</button>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Minimum Required Version</label><input type="text" class="form-input" id="settMinVersion" placeholder="e.g. 3.5"></div>
+                    <button class="btn btn-primary" onclick="setMinVersion()">Save</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Security Settings</div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">HMAC Strict Mode</label>
+                        <select class="form-input" id="settHmac"><option value="1">Strict (reject unsigned)</option><option value="0">Lenient (allow unsigned)</option></select>
+                    </div>
+                    <button class="btn btn-primary" onclick="setHmacStrict()">Save</button>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Rotate Master Token</label></div>
+                    <button class="btn btn-danger" onclick="rotateMasterToken()">🔄 Rotate Now</button>
+                </div>
+                <div id="rotateResult" style="margin-top:8px;"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Per-Account Controls</div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Customer Token Key</label><input type="text" class="form-input" id="settAccToken" placeholder="Customer's token key or server|login"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Emotional Mode</label>
+                        <select class="form-input" id="settEmotional"><option value="1">On (Emotional Trading)</option><option value="0">Off (Disable Emotional Bias)</option></select>
+                    </div>
+                    <button class="btn btn-primary" onclick="setEmotionalMode()">Set</button>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Daily Target Override (%)</label><input type="text" class="form-input" id="settDailyTarget" placeholder="e.g. 2.5 (percent of equity)"></div>
+                    <button class="btn btn-primary" onclick="setDailyTarget()">Set</button>
+                    <button class="btn btn-ghost" onclick="clearDailyTarget()">Clear</button>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Push URL to EA</label><input type="text" class="form-input" id="settPushUrl" placeholder="New endpoint URL to push"></div>
+                    <button class="btn btn-primary" onclick="pushUrlToEa()">Push</button>
+                </div>
+                <div id="perAccResult" style="margin-top:8px;"></div>
+            </div>
         </div>
 
         <!-- AUDIT PANEL -->
@@ -1185,6 +1237,99 @@ function setEndpointUrl() {
     callAdmin({ command: 'admin_set_endpoint_url', endpoint_url: url }).then(function(data) {
         if (data && data.status === 'ok') alert('✓ Endpoint URL updated.');
         else alert('Error: ' + (data && data.error || 'unknown'));
+    });
+}
+
+// ── EA VERSION ──
+function setEaVersion() {
+    var version = document.getElementById('settEaVersion').value.trim();
+    var date = document.getElementById('settEaDate').value.trim();
+    var download = document.getElementById('settEaDownload').value.trim();
+    var notes = document.getElementById('settEaNotes').value.trim();
+    if (!version) { alert('Version is required'); return; }
+    callAdmin({ command: 'admin_set_ea_version', version: version, release_date: date, download_url: download, notes: notes }).then(function(data) {
+        if (data && data.status === 'ok') alert('✓ EA version updated to ' + version);
+        else alert('Error: ' + (data && data.error || 'unknown'));
+    });
+}
+function setMinVersion() {
+    var ver = document.getElementById('settMinVersion').value.trim();
+    if (!ver) { alert('Version required'); return; }
+    callAdmin({ command: 'admin_set_min_version', version: ver }).then(function(data) {
+        if (data && data.status === 'ok') alert('✓ Minimum version set to ' + ver);
+        else alert('Error: ' + (data && data.error || 'unknown'));
+    });
+}
+
+// ── SECURITY SETTINGS ──
+function setHmacStrict() {
+    var val = document.getElementById('settHmac').value;
+    callAdmin({ command: 'admin_set_hmac_strict', strict: val }).then(function(data) {
+        if (data && data.status === 'ok') alert('✓ HMAC mode: ' + (val === '1' ? 'Strict' : 'Lenient'));
+        else alert('Error: ' + (data && data.error || 'unknown'));
+    });
+}
+function rotateMasterToken() {
+    if (!confirm('⚠️ ROTATE MASTER TOKEN?\n\nThis will generate a new admin password. Your current token will stop working immediately.\n\nYou will be logged out and need to use the new token.\n\nAre you SURE?')) return;
+    callAdmin({ command: 'admin_rotate_master_token' }).then(function(data) {
+        if (data && data.status === 'ok') {
+            var newToken = data.new_token || '(see Script Properties)';
+            document.getElementById('rotateResult').innerHTML = '<div style="background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.3);border-radius:6px;padding:12px;margin-top:8px;"><p style="color:var(--accent-green);font-weight:700;margin-bottom:6px;">✓ Token rotated!</p><p style="font-family:monospace;font-size:11px;color:var(--text-primary);word-break:break-all;">' + newToken + '</p><p style="font-size:10px;color:var(--accent-red);margin-top:6px;">⚠️ Save this now! You will be logged out.</p></div>';
+        } else {
+            document.getElementById('rotateResult').innerHTML = '<span style="color:var(--accent-red);">Error: ' + (data && data.error || 'unknown') + '</span>';
+        }
+    });
+}
+
+// ── PER-ACCOUNT CONTROLS ──
+function setEmotionalMode() {
+    var token = document.getElementById('settAccToken').value.trim();
+    var enabled = document.getElementById('settEmotional').value === '1';
+    if (!token) { alert('Enter customer token key first'); return; }
+    callAdmin({ command: 'admin_set_emotional_mode', token: token, enabled: enabled }).then(function(data) {
+        if (data && data.status === 'ok') {
+            document.getElementById('perAccResult').innerHTML = '<span style="color:var(--accent-green);">✓ Emotional mode ' + (enabled ? 'enabled' : 'disabled') + ' for ' + token.slice(0, 12) + '…</span>';
+        } else {
+            document.getElementById('perAccResult').innerHTML = '<span style="color:var(--accent-red);">Error: ' + (data && data.error || 'unknown') + '</span>';
+        }
+    });
+}
+function setDailyTarget() {
+    var token = document.getElementById('settAccToken').value.trim();
+    var pct = document.getElementById('settDailyTarget').value.trim();
+    if (!token) { alert('Enter customer token key first'); return; }
+    if (!pct) { alert('Enter target percentage'); return; }
+    callAdmin({ command: 'admin_set_daily_target', token: token, target_pct: parseFloat(pct) / 100 }).then(function(data) {
+        if (data && data.status === 'ok') {
+            document.getElementById('perAccResult').innerHTML = '<span style="color:var(--accent-green);">✓ Daily target set to ' + pct + '% for ' + token.slice(0, 12) + '…</span>';
+        } else {
+            document.getElementById('perAccResult').innerHTML = '<span style="color:var(--accent-red);">Error: ' + (data && data.error || 'unknown') + '</span>';
+        }
+    });
+}
+function clearDailyTarget() {
+    var token = document.getElementById('settAccToken').value.trim();
+    if (!token) { alert('Enter customer token key first'); return; }
+    callAdmin({ command: 'admin_clear_daily_target', token: token }).then(function(data) {
+        if (data && data.status === 'ok') {
+            document.getElementById('perAccResult').innerHTML = '<span style="color:var(--accent-green);">✓ Daily target cleared for ' + token.slice(0, 12) + '…</span>';
+        } else {
+            document.getElementById('perAccResult').innerHTML = '<span style="color:var(--accent-red);">Error: ' + (data && data.error || 'unknown') + '</span>';
+        }
+    });
+}
+function pushUrlToEa() {
+    var token = document.getElementById('settAccToken').value.trim();
+    var url = document.getElementById('settPushUrl').value.trim();
+    if (!token) { alert('Enter customer token key first'); return; }
+    if (!url) { alert('Enter URL to push'); return; }
+    if (!confirm('Push new URL to EA for ' + token.slice(0, 12) + '…?\n\nURL: ' + url)) return;
+    callAdmin({ command: 'admin_push_url', token: token, url: url }).then(function(data) {
+        if (data && data.status === 'ok') {
+            document.getElementById('perAccResult').innerHTML = '<span style="color:var(--accent-green);">✓ URL pushed. EA will pick it up on next poll.</span>';
+        } else {
+            document.getElementById('perAccResult').innerHTML = '<span style="color:var(--accent-red);">Error: ' + (data && data.error || 'unknown') + '</span>';
+        }
     });
 }
 
