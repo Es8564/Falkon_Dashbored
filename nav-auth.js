@@ -7,29 +7,16 @@
     var name = localStorage.getItem('falcon_user_name') || '';
 
     if (token && name) {
-        // Skip on account page (it handles its own nav badge)
-        if (window.location.pathname.indexOf('account') >= 0) return;
-
-        // User is logged in — show profile badge in navbar
+        // Don't add badge — other inline scripts on each page already handle this
+        // Only hide login/register links
         var navLinks = document.querySelectorAll('.nav-links');
         navLinks.forEach(function(nav) {
-            // Remove "Login" and "Get Started/Register" links
             var links = nav.querySelectorAll('a');
             links.forEach(function(a) {
                 if (a.href.indexOf('login.html') >= 0 || a.href.indexOf('register.html') >= 0) {
                     a.style.display = 'none';
                 }
             });
-            // Add profile badge if not already there
-            if (!nav.querySelector('.nav-profile-badge')) {
-                var badge = document.createElement('a');
-                badge.href = 'account.html';
-                badge.className = 'nav-profile-badge';
-                badge.style.cssText = 'width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-decoration:none;';
-                badge.textContent = name.charAt(0).toUpperCase();
-                badge.title = name + ' — My Account';
-                nav.appendChild(badge);
-            }
         });
     }
 })();
