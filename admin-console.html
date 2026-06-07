@@ -569,8 +569,13 @@
             <div class="card">
                 <div class="card-title">Per-Account Controls</div>
                 <div class="form-row">
-                    <div class="form-group"><label class="form-label">Customer Token Key</label><input type="text" class="form-input" id="settAccToken" placeholder="Customer's token key or server|login"></div>
+                    <div class="form-group"><label class="form-label">Search Customer</label><input type="text" class="form-input" id="settAccSearch" placeholder="Type name, email, or account..." oninput="searchSettingsCustomer()"></div>
                 </div>
+                <div id="settAccSearchResults" style="max-height:150px;overflow-y:auto;margin-bottom:12px;display:none;background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;"></div>
+                <div id="settAccSelected" style="display:none;padding:8px 12px;background:rgba(0,217,255,0.06);border:1px solid rgba(0,217,255,0.2);border-radius:6px;margin-bottom:12px;font-size:12px;color:var(--accent);display:none;">
+                    Selected: <strong id="settAccSelectedName"></strong> <button onclick="clearSettingsCustomer()" style="float:right;background:none;border:none;color:var(--accent-red);cursor:pointer;font-size:11px;">✕ Clear</button>
+                </div>
+                <input type="hidden" id="settAccToken" value="">
                 <div class="form-row">
                     <div class="form-group"><label class="form-label">Emotional Mode</label>
                         <select class="form-input" id="settEmotional"><option value="1">On (Emotional Trading)</option><option value="0">Off (Disable Emotional Bias)</option></select>
@@ -1282,6 +1287,51 @@ function rotateMasterToken() {
 }
 
 // ── PER-ACCOUNT CONTROLS ──
+var _settCustomersCache = [];
+function searchSettingsCustomer() {
+    var q = document.getElementById('settAccSearch').value.trim().toLowerCase();
+    var resultsEl = document.getElementById('settAccSearchResults');
+    if (!q || q.length < 2) { resultsEl.style.display = 'none'; return; }
+    // Load customers if not cached
+    if (!_settCustomersCache.length) {
+        callAdmin({ command: 'admin_list_users' }).then(function(data) {
+            _settCustomersCache = (data && data.users) || [];
+            showSettingsSearchResults(q);
+        });
+    } else {
+        showSettingsSearchResults(q);
+    }
+}
+function showSettingsSearchResults(q) {
+    var resultsEl = document.getElementById('settAccSearchResults');
+    var filtered = _settCustomersCache.filter(function(u) {
+        return (u.name || '').toLowerCase().indexOf(q) > -1 ||
+               (u.email || '').toLowerCase().indexOf(q) > -1 ||
+               (u.token_key || '').toLowerCase().indexOf(q) > -1;
+    }).slice(0, 10);
+    if (!filtered.length) { resultsEl.style.display = 'none'; return; }
+    var html = '';
+    filtered.forEach(function(u) {
+        html += '<div onclick="selectSettingsCustomer(\'' + (u.token_key || '').replace(/'/g, "\\'") + '\',\'' + (u.name || '').replace(/'/g, "\\'") + ' (' + (u.email || '') + ')\')" style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px;transition:background 0.1s;" onmouseover="this.style.background=\'var(--bg-hover)\'" onmouseout="this.style.background=\'transparent\'">';
+        html += '<strong style="color:var(--text-primary);">' + (u.name || '—') + '</strong>';
+        html += ' <span style="color:var(--text-muted);">' + (u.email || '') + '</span>';
+        html += '</div>';
+    });
+    resultsEl.innerHTML = html;
+    resultsEl.style.display = 'block';
+}
+function selectSettingsCustomer(tokenKey, displayName) {
+    document.getElementById('settAccToken').value = tokenKey;
+    document.getElementById('settAccSelectedName').textContent = displayName;
+    document.getElementById('settAccSelected').style.display = 'block';
+    document.getElementById('settAccSearchResults').style.display = 'none';
+    document.getElementById('settAccSearch').value = displayName;
+}
+function clearSettingsCustomer() {
+    document.getElementById('settAccToken').value = '';
+    document.getElementById('settAccSelected').style.display = 'none';
+    document.getElementById('settAccSearch').value = '';
+}
 function setEmotionalMode() {
     var token = document.getElementById('settAccToken').value.trim();
     var enabled = document.getElementById('settEmotional').value === '1';
