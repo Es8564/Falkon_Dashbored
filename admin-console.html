@@ -388,6 +388,7 @@
         <div class="nav-item" data-panel="security"><span class="icon">🛡️</span> Security Monitor</div>
         <div class="nav-item" data-panel="integrity"><span class="icon">🔒</span> EA Integrity</div>
         <div class="nav-item" data-panel="locks"><span class="icon">⛔</span> Account Locks</div>
+        <div class="nav-item" data-panel="blacklist"><span class="icon">🚫</span> Blacklist</div>
 
         <div class="nav-section-label">System</div>
         <div class="nav-item" data-panel="settings"><span class="icon">⚙️</span> Settings</div>
@@ -494,6 +495,28 @@
         </div>
 
         <!-- SETTINGS PANEL -->
+        <div class="panel" id="panel-blacklist">
+            <div class="card">
+                <div class="card-title">Add to Blacklist</div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Type</label>
+                        <select class="form-input" id="blAddType"><option value="email">Email</option><option value="phone">Phone</option><option value="fingerprint">Fingerprint</option></select>
+                    </div>
+                    <div class="form-group"><label class="form-label">Value</label><input type="text" class="form-input" id="blAddValue" placeholder="email, phone number, or fingerprint"></div>
+                    <div class="form-group"><label class="form-label">Reason</label><input type="text" class="form-input" id="blAddReason" placeholder="Why blacklisted"></div>
+                    <button class="btn btn-danger" onclick="addToBlacklist()">🚫 Add</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Blacklisted Entries</div>
+                <div class="form-row" style="margin-bottom:12px;">
+                    <div class="form-group"><input type="text" class="form-input" id="blSearch" placeholder="Search blacklist..." oninput="filterBlacklist()"></div>
+                </div>
+                <div id="blacklistTable"><div class="loading">Loading...</div></div>
+            </div>
+        </div>
+
+        <!-- SETTINGS PANEL REAL -->
         <div class="panel" id="panel-settings">
             <div class="card">
                 <div class="card-title">System Settings</div>
@@ -794,6 +817,7 @@ document.querySelectorAll('.nav-item').forEach(function(item) {
         else if (panel === 'chat') loadChatInbox();
         else if (panel === 'security') loadSecurity();
         else if (panel === 'integrity') loadIntegrity('all');
+        else if (panel === 'blacklist') loadBlacklist();
         else if (panel === 'kb') loadKb();
         else if (panel === 'audit') loadAudit();
         else if (panel === 'referrals') loadReferrals();
@@ -876,7 +900,7 @@ function renderUsers(users) {
             '<td>' + (u.trial_days_left > 0 ? u.trial_days_left + 'd left' : '—') + '</td>' +
             '<td>' + (u.created_at || '').slice(0, 10) + '</td>' +
             '<td>' + (u.last_login || '—').slice(0, 10) + '</td>' +
-            '<td><button class="btn btn-ghost" style="padding:4px 8px;font-size:10px;" onclick="viewUser(\'' + (u.email || '').replace(/'/g, "\\'") + '\')">View</button></td>' +
+            '<td><button class="btn btn-ghost" style="padding:4px 8px;font-size:10px;" onclick="viewUser(\'' + (u.email || '').replace(/'/g, "\\'") + '\')">View</button> <button class="btn btn-danger" style="padding:4px 8px;font-size:10px;" onclick="deleteUser(\'' + (u.email || '').replace(/'/g, "\\'") + '\')">🗑</button></td>' +
             '</tr>';
     });
     if (!users.length) html = '<tr><td colspan="7" style="color:var(--text-muted);text-align:center;">No users found</td></tr>';
@@ -893,7 +917,18 @@ function filterUsers() {
 }
 
 function viewUser(email) {
-    alert('User details panel for: ' + email + '\n\nFull profile view coming in Phase 2.\nUse existing Admin Dashboard for detailed user actions.');
+    var actions = confirm('User: ' + email + '\n\nClick OK to DELETE this account, or Cancel to close.');
+    if (actions) {
+        deleteUser(email);
+    }
+}
+
+function deleteUser(email) {
+    if (!confirm('⚠️ PERMANENTLY DELETE account: ' + email + '?\n\nThis cannot be undone. All data for this user will be removed.')) return;
+    callAdmin({ command: 'admin_delete_user', email: email }).then(function(data) {
+        if (data && data.status === 'ok') { alert('✓ Account deleted: ' + email); loadUsers(); }
+        else alert('Error: ' + (data && data.error || 'unknown'));
+    }).catch(function(e) { alert('Error: ' + e.message); });
 }
 
 // ── PAYMENTS ──
@@ -1728,6 +1763,88 @@ function loadReferrals() {
         html += '</tbody></table>';
         if (!refs.length) html = '<p style="color:var(--text-muted);">No referral data.</p>';
         document.getElementById('refList').innerHTML = html;
+    });
+}
+
+// ── BLACKLIST MANAGEMENT ──
+var _blacklistCache = {};
+function loadBlacklist() {
+    callAdmin({ command: 'admin_blacklist_list' }).then(function(data) {
+        _blacklistCache = (data && data.blacklist) || {};
+        renderBlacklist(_blacklistCache);
+    }).catch(function(e) {
+        document.getElementById('blacklistTable').innerHTML = '<p style="color:var(--accent-red);">Error: ' + e.message + '</p>';
+    });
+}
+
+function renderBlacklist(bl) {
+    var keys = Object.keys(bl);
+    var html = '';
+    if (!keys.length) {
+        html = '<p style="color:var(--text-muted);">No blacklisted entries.</p>';
+    } else {
+        html = '<div style="margin-bottom:8px;font-size:11px;color:var(--text-muted);">Total: ' + keys.length + ' entries</div>';
+        html += '<table class="data-table"><thead><tr><th>Type</th><th>Value</th><th>Reason</th><th>Date</th><th>Linked Data</th><th>Actions</th></tr></thead><tbody>';
+        keys.forEach(function(k) {
+            var entry = bl[k];
+            var type = 'email';
+            var value = k;
+            if (k.indexOf('phone:') === 0) { type = 'phone'; value = k.replace('phone:', ''); }
+            else if (k.indexOf('fp:') === 0) { type = 'fingerprint'; value = k.replace('fp:', ''); }
+            var reason = entry.reason || entry.deleted_at ? 'account_deleted' : 'unknown';
+            if (typeof entry === 'object') reason = entry.reason || (entry.deleted_at ? 'account_deleted' : 'manually_added');
+            var date = (entry.added_at || entry.deleted_at || '').slice(0, 16).replace('T', ' ');
+            var linked = '';
+            if (entry.phone) linked += 'Phone: ' + entry.phone + ' ';
+            if (entry.fp) linked += 'FP: ' + (entry.fp || '').slice(0, 10) + '… ';
+            if (entry.email) linked += 'Email: ' + entry.email;
+            var typeClass = type === 'email' ? 'trial' : (type === 'phone' ? 'suspended' : 'unpaid');
+            html += '<tr><td><span class="status-badge ' + typeClass + '">' + type + '</span></td><td style="font-family:monospace;font-size:11px;color:var(--text-primary);word-break:break-all;">' + value + '</td><td style="font-size:11px;">' + reason + '</td><td style="font-size:10px;">' + date + '</td><td style="font-size:10px;color:var(--text-muted);">' + linked + '</td><td><button class="btn btn-ghost" style="padding:3px 8px;font-size:9px;" onclick="removeFromBlacklist(\'' + k.replace(/'/g, "\\'") + '\')">✓ Unblock</button></td></tr>';
+        });
+        html += '</tbody></table>';
+    }
+    document.getElementById('blacklistTable').innerHTML = html;
+}
+
+function filterBlacklist() {
+    var q = document.getElementById('blSearch').value.toLowerCase();
+    if (!q) { renderBlacklist(_blacklistCache); return; }
+    var filtered = {};
+    Object.keys(_blacklistCache).forEach(function(k) {
+        var entry = _blacklistCache[k];
+        if (k.toLowerCase().indexOf(q) > -1 ||
+            (entry.reason || '').toLowerCase().indexOf(q) > -1 ||
+            (entry.email || '').toLowerCase().indexOf(q) > -1 ||
+            (entry.phone || '').toLowerCase().indexOf(q) > -1) {
+            filtered[k] = entry;
+        }
+    });
+    renderBlacklist(filtered);
+}
+
+function addToBlacklist() {
+    var type = document.getElementById('blAddType').value;
+    var value = document.getElementById('blAddValue').value.trim();
+    var reason = document.getElementById('blAddReason').value.trim() || 'manually_added';
+    if (!value) { alert('Value is required'); return; }
+    if (!confirm('Add to blacklist?\n\nType: ' + type + '\nValue: ' + value + '\nReason: ' + reason)) return;
+    callAdmin({ command: 'admin_blacklist_add', type: type, value: value, reason: reason }).then(function(data) {
+        if (data && data.status === 'ok') {
+            alert('✓ Added to blacklist.');
+            document.getElementById('blAddValue').value = '';
+            document.getElementById('blAddReason').value = '';
+            loadBlacklist();
+        } else {
+            alert('Error: ' + (data && data.error || 'unknown'));
+        }
+    });
+}
+
+function removeFromBlacklist(key) {
+    if (!confirm('⚠️ Remove from blacklist?\n\nKey: ' + key + '\n\nThis user will be able to register for a free trial again.')) return;
+    callAdmin({ command: 'admin_blacklist_remove', key: key }).then(function(data) {
+        if (data && data.status === 'ok') { alert('✓ Removed from blacklist.'); loadBlacklist(); }
+        else alert('Error: ' + (data && data.error || 'unknown'));
     });
 }
 

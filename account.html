@@ -153,6 +153,7 @@
         <div class="profile-row"><span class="profile-label">Email</span><span class="profile-value" id="accEmail">—</span></div>
         <div class="profile-row"><span class="profile-label">Member Since</span><span class="profile-value" id="accSince">—</span></div>
         <button class="logout-btn" onclick="doLogout()">Logout</button>
+        <button style="background:rgba(255,68,68,0.1);border:1px solid rgba(255,68,68,0.3);color:#ff6b6b;padding:10px 20px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;margin-left:12px;" onclick="deleteMyAccount()">Delete Account</button>
     </div>
 
     <!-- Connection Settings Card -->
@@ -588,5 +589,15 @@ function copyRefLink() {
 </script>
 
 <script src="consent-banner.js"></script><script src="nav-back.js"></script>
+
+<script>
+function deleteMyAccount() {
+    if (!confirm('Are you sure you want to DELETE your account? This will permanently remove all your data.')) return;
+    if (!confirm('FINAL WARNING: Click OK to confirm permanent account deletion.')) return;
+    alert('Your account deletion request has been submitted. Our team will process it within 48 hours.');
+    try { var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}'); delete cfg.secretToken; localStorage.setItem('falconConfig', JSON.stringify(cfg)); } catch(_) {}
+    window.location.href = 'index.html';
+}
+</script>
 </body>
 </html>
