@@ -991,10 +991,31 @@ function filterUsers() {
 }
 
 function viewUser(email) {
-    var actions = confirm('User: ' + email + '\n\nClick OK to DELETE this account, or Cancel to close.');
-    if (actions) {
-        deleteUser(email);
-    }
+    callAdmin({ command: 'admin_get_user', email: email }).then(function(data) {
+        if (data && data.status === 'ok') {
+            var u = data.user || {};
+            var info = '══════ USER PROFILE ══════\n\n';
+            info += '👤 Name: ' + (u.name || '—') + '\n';
+            info += '📧 Email: ' + (email || '—') + '\n';
+            info += '📱 Phone: ' + (u.phone || '—') + '\n';
+            info += '🌍 Country: ' + (u.country || '—') + '\n';
+            info += '\n── Account Status ──\n';
+            info += 'Trial Status: ' + (u.trial_status || 'none') + '\n';
+            info += 'Trial Expires: ' + (u.trial_expires || '—') + '\n';
+            info += 'Subscription: ' + (u.sub_status || 'unpaid') + '\n';
+            info += 'Suspended: ' + (u.suspended ? 'YES' : 'No') + '\n';
+            info += '\n── Registration ──\n';
+            info += 'Registered: ' + (u.created_at || '—') + '\n';
+            info += 'Last Login: ' + (u.last_login || 'never') + '\n';
+            info += 'Login Count: ' + (u.login_count || 0) + '\n';
+            info += 'Referral: ' + (u.referral || 'none') + '\n';
+            info += '\n── Token ──\n';
+            info += 'Token: ' + (u.token || '—') + '\n';
+            alert(info);
+        } else {
+            alert('Error loading user: ' + (data && data.error || 'unknown'));
+        }
+    }).catch(function(e) { alert('Error: ' + e.message); });
 }
 
 function deleteUser(email) {
