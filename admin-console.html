@@ -458,6 +458,23 @@
         <!-- LICENSES PANEL -->
         <div class="panel" id="panel-licenses">
             <div class="card">
+                <div class="card-title">Register New License</div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Customer Name</label><input type="text" class="form-input" id="licCustomer" placeholder="Customer name"></div>
+                    <div class="form-group"><label class="form-label">Account Number</label><input type="text" class="form-input" id="licAccount" placeholder="e.g. 12345678"></div>
+                    <div class="form-group"><label class="form-label">Server</label><input type="text" class="form-input" id="licServer" placeholder="e.g. VantageMarkets-Live"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Expiry Date</label><input type="text" class="form-input" id="licExpiry" placeholder="YYYY-MM-DD (empty = never)"></div>
+                    <div class="form-group"><label class="form-label">Max Symbols</label><input type="text" class="form-input" id="licMaxSym" placeholder="e.g. 4" value="4"></div>
+                    <div class="form-group"><label class="form-label">Allow Live</label>
+                        <select class="form-input" id="licAllowLive"><option value="true">Yes</option><option value="false">No</option></select>
+                    </div>
+                    <button class="btn btn-primary" onclick="registerLicense()">✅ Register</button>
+                </div>
+                <div id="licRegResult" style="margin-top:8px;"></div>
+            </div>
+            <div class="card">
                 <div class="card-title">License Registry</div>
                 <div id="licensesList"><div class="loading">Loading...</div></div>
             </div>
@@ -1910,22 +1927,22 @@ function loadLicenses() {
         // Active licenses
         if (licenses.length) {
             html += '<div style="margin-bottom:8px;font-size:11px;font-weight:700;color:var(--accent-green);text-transform:uppercase;letter-spacing:0.06em;">Licensed Users</div>';
-            html += '<table class="data-table"><thead><tr><th>Customer</th><th>Account</th><th>Server</th><th>Expiry</th><th>Max Symbols</th><th>Live</th><th>Status</th></tr></thead><tbody>';
+            html += '<table class="data-table"><thead><tr><th>Customer</th><th>Account</th><th>Server</th><th>Expiry</th><th>Max Symbols</th><th>Live</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
             licenses.forEach(function(l) {
                 var expired = l.expiry && Date.parse(l.expiry) < Date.now();
                 var statusClass = l.revoked ? 'expired' : (expired ? 'suspended' : 'active');
                 var statusText = l.revoked ? 'Revoked' : (expired ? 'Expired' : 'Active');
-                html += '<tr><td style="color:var(--text-primary);font-weight:600;">' + (l.customer || '—') + '</td><td>' + (l.account || '') + '</td><td>' + (l.server || '') + '</td><td>' + (l.expiry || 'Never') + '</td><td>' + (l.max_symbols || '∞') + '</td><td>' + (l.allow_live ? '✓' : '✗') + '</td><td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td></tr>';
+                var revokeBtn = !l.revoked ? '<button class="btn btn-danger" style="padding:3px 8px;font-size:9px;" onclick="revokeLicense(\'' + (l.customer || '').replace(/'/g, "\\'") + '\',\'' + (l.account || '').replace(/'/g, "\\'") + '\',\'' + (l.server || '').replace(/'/g, "\\'") + '\')">Revoke</button>' : '<span style="color:var(--text-muted);font-size:10px;">revoked</span>';
+                html += '<tr><td style="color:var(--text-primary);font-weight:600;">' + (l.customer || '—') + '</td><td>' + (l.account || '') + '</td><td>' + (l.server || '') + '</td><td>' + (l.expiry || 'Never') + '</td><td>' + (l.max_symbols || '∞') + '</td><td>' + (l.allow_live ? '✓' : '✗') + '</td><td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td><td>' + revokeBtn + '</td></tr>';
             });
             html += '</tbody></table>';
         } else {
             html += '<p style="color:var(--text-muted);margin-bottom:16px;">No licenses registered yet.</p>';
         }
 
-        // Users without licenses (pending/no license)
+        // Users without licenses
         var licensedCustomers = {};
         licenses.forEach(function(l) { if (l.customer) licensedCustomers[l.customer.toLowerCase()] = true; });
-
         var unlicensed = users.filter(function(u) {
             return !licensedCustomers[(u.name || '').toLowerCase()] && !licensedCustomers[(u.email || '').toLowerCase()];
         });
@@ -1944,6 +1961,37 @@ function loadLicenses() {
         document.getElementById('licensesList').innerHTML = html;
     }).catch(function(e) {
         document.getElementById('licensesList').innerHTML = '<p style="color:var(--accent-red);">Error: ' + e.message + '</p>';
+    });
+}
+
+function registerLicense() {
+    var customer = document.getElementById('licCustomer').value.trim();
+    var account = document.getElementById('licAccount').value.trim();
+    var server = document.getElementById('licServer').value.trim();
+    var expiry = document.getElementById('licExpiry').value.trim();
+    var maxSym = document.getElementById('licMaxSym').value.trim() || '4';
+    var allowLive = document.getElementById('licAllowLive').value === 'true';
+    if (!customer || !account || !server) { alert('Customer, Account, and Server are required'); return; }
+    callAdmin({ command: 'admin_register_license', customer: customer, account: account, server: server, expiry: expiry, max_symbols: parseInt(maxSym), allow_live: allowLive }).then(function(data) {
+        if (data && data.status === 'ok') {
+            var msg = data.action === 'updated' ? '✓ License updated' : '✓ License registered';
+            document.getElementById('licRegResult').innerHTML = '<span style="color:var(--accent-green);">' + msg + ' for ' + customer + ' (' + account + ' @ ' + server + ')</span>';
+            document.getElementById('licCustomer').value = '';
+            document.getElementById('licAccount').value = '';
+            document.getElementById('licServer').value = '';
+            document.getElementById('licExpiry').value = '';
+            loadLicenses();
+        } else {
+            document.getElementById('licRegResult').innerHTML = '<span style="color:var(--accent-red);">Error: ' + (data && data.error || 'unknown') + '</span>';
+        }
+    });
+}
+
+function revokeLicense(customer, account, server) {
+    if (!confirm('Revoke license for ' + customer + ' (' + account + ' @ ' + server + ')?\n\nThe EA will stop working within 24 hours.')) return;
+    callAdmin({ command: 'admin_revoke_license', customer: customer, account: account, server: server }).then(function(data) {
+        if (data && data.status === 'ok') { alert('✓ License revoked.'); loadLicenses(); }
+        else alert('Error: ' + (data && data.error || 'unknown'));
     });
 }
 
