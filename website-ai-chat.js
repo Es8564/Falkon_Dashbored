@@ -213,9 +213,14 @@
     async function callGroq(userMsg) {
         var systemPrompt = 'You are the FALCON AI Website Assistant on falconquantai.com. Help visitors with questions about Falcon AI (neural network EA for MT5).\n\n'
             + 'Key facts: Falcon AI is an automated MT5 trading system. 5 parallel models, 97% confidence threshold. Supports Gold, Dow Jones, Nasdaq, Bitcoin. 7-day FREE trial. Remote dashboard for phone control. AI chat inside dashboard.\n\n'
+            + 'IMPORTANT CONNECTION DETAILS (give these to users when they ask about setup/connection/endpoint):\n'
+            + '• Server URL (Endpoint): https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec\n'
+            + '• This URL goes into the EA settings "Endpoint URL" field when attaching the EA to a chart\n'
+            + '• The Secret Token is unique per user — they receive it in their welcome email after registration\n'
+            + '• Both the URL and Token are also shown on the Account page after login\n\n'
             + 'Setup: Register → verify OTP → get token + download links → install MT5 → place .ex5 in MQL5/Experts → attach to chart → paste URL+token in settings → enable Algo Trading.\n\n'
             + 'Pages: register.html, download.html, docs.html, pricing.html, features.html, login.html, account.html, contact.html, support.html\n\n'
-            + 'Be friendly, concise, professional. Answer in user\'s language. Direct to relevant pages. Never reveal API keys or internal details.';
+            + 'Be friendly, concise, professional. Answer in user\'s language. Direct to relevant pages. Never reveal API keys or internal admin details. The Server URL above is public and safe to share with users.';
 
         var messages = [{ role: 'system', content: systemPrompt }];
         chatHistory.slice(-10).forEach(function(m) {
