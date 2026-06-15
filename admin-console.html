@@ -675,10 +675,10 @@
             <div id="subsList"><div class="loading">Loading...</div></div></div></div>
         <div class="panel" id="panel-security">
             <div class="kpi-grid">
-                <div class="kpi-card"><div class="kpi-label">Security Events (24h)</div><div class="kpi-value yellow" id="secEvents24">—</div></div>
-                <div class="kpi-card"><div class="kpi-label">Critical Alerts</div><div class="kpi-value red" id="secCritical">—</div></div>
-                <div class="kpi-card"><div class="kpi-label">Tamper Detections</div><div class="kpi-value red" id="secTamper">—</div></div>
-                <div class="kpi-card"><div class="kpi-label">Failed Logins (24h)</div><div class="kpi-value yellow" id="secFailedLogins">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Total Events</div><div class="kpi-value yellow" id="secEvents24">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Critical</div><div class="kpi-value red" id="secCritical">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Errors</div><div class="kpi-value red" id="secTamper">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Warnings</div><div class="kpi-value yellow" id="secFailedLogins">—</div></div>
             </div>
             <div class="card">
                 <div class="card-title">Recent Security Events</div>
@@ -1670,45 +1670,61 @@ function revokeInstall(key) {
 // ── SECURITY MONITOR ──
 function loadSecurity() {
     Promise.all([
-        callAdmin({ command: 'admin_get_audit_log' }),
+        callAdmin({ command: 'admin_get_sec_summary' }),
+        callAdmin({ command: 'admin_get_audit_log', limit: 200 }),
         callAdmin({ command: 'admin_list_users' })
     ]).then(function(results) {
-        var auditData = results[0];
-        var userData = results[1];
+        var secData = results[0];
+        var auditData = results[1];
+        var userData = results[2];
+        var summary = (secData && secData.summary) || [];
         var logs = (auditData && auditData.entries) || [];
         var users = (userData && userData.users) || [];
 
-        // Count security-related events in last 24 hours
+        // KPIs from real security event data
+        var totalEvents = 0, totalCrit = 0, totalWarn = 0, totalErr = 0;
+        summary.forEach(function(s) {
+            totalEvents += s.total_events || 0;
+            totalCrit += s.crit_count || 0;
+            totalWarn += s.warn_count || 0;
+            totalErr += s.err_count || 0;
+        });
+
+        // Count security-related audit entries in last 24 hours
         var now = Date.now();
         var day = 24 * 60 * 60 * 1000;
-        var recent = logs.filter(function(l) { return (now - Date.parse(l.ts || 0)) < day; });
-        var securityEvents = recent.filter(function(l) {
-            return (l.action || '').indexOf('hmac_reject') >= 0 ||
-                   (l.action || '').indexOf('tamper') >= 0 ||
-                   (l.action || '').indexOf('brute') >= 0 ||
-                   (l.action || '').indexOf('revoke') >= 0 ||
-                   (l.action || '').indexOf('lock') >= 0 ||
-                   (l.action || '').indexOf('suspend') >= 0;
+        var recentAudit = logs.filter(function(l) { return (now - Date.parse(l.ts || 0)) < day; });
+        var failedLogins = recentAudit.filter(function(l) {
+            return (l.action || '').indexOf('login_fail') >= 0 ||
+                   (l.action || '').indexOf('hmac_reject') >= 0 ||
+                   (l.action || '').indexOf('brute') >= 0;
         });
-        var critical = securityEvents.filter(function(l) { return (l.action || '').indexOf('tamper') >= 0 || (l.action || '').indexOf('brute') >= 0; });
-        var tamper = securityEvents.filter(function(l) { return (l.action || '').indexOf('tamper') >= 0; });
-        var failedLogins = recent.filter(function(l) { return (l.action || '').indexOf('login_fail') >= 0 || (l.action || '').indexOf('hmac_reject') >= 0; });
 
-        document.getElementById('secEvents24').textContent = securityEvents.length;
-        document.getElementById('secCritical').textContent = critical.length;
-        document.getElementById('secTamper').textContent = tamper.length;
-        document.getElementById('secFailedLogins').textContent = failedLogins.length;
+        document.getElementById('secEvents24').textContent = totalEvents;
+        document.getElementById('secCritical').textContent = totalCrit;
+        document.getElementById('secTamper').textContent = totalErr;
+        document.getElementById('secFailedLogins').textContent = totalWarn;
 
-        // Show recent security events
-        var secRecent = securityEvents.slice(0, 20);
+        // Per-account security overview (sorted by most recent)
         var html = '';
-        if (!secRecent.length) {
-            html = '<p style="color:var(--text-muted);">No security events in the last 24 hours. ✓</p>';
+        if (!summary.length) {
+            html = '<p style="color:var(--text-muted);">No security events recorded yet. ✓</p>';
         } else {
-            html = '<table class="data-table"><thead><tr><th>Time</th><th>Event</th><th>Target</th><th>Details</th></tr></thead><tbody>';
-            secRecent.forEach(function(l) {
-                var severity = (l.action || '').indexOf('tamper') >= 0 || (l.action || '').indexOf('brute') >= 0 ? 'color:var(--accent-red);' : 'color:var(--accent-yellow);';
-                html += '<tr><td>' + (l.ts || '').slice(0, 19).replace('T', ' ') + '</td><td style="' + severity + 'font-weight:600;">' + (l.action || '') + '</td><td>' + (l.target || '') + '</td><td style="font-size:10px;color:var(--text-muted);">' + JSON.stringify(l.extra || '').slice(0, 60) + '</td></tr>';
+            html = '<table class="data-table"><thead><tr><th>Account</th><th>Events</th><th>Critical</th><th>Warning</th><th>Error</th><th>Last Event</th><th>Last Time</th><th>Actions</th></tr></thead><tbody>';
+            summary.slice(0, 30).forEach(function(s) {
+                var sevColor = s.crit_count > 0 ? 'var(--accent-red)' : s.warn_count > 0 ? 'var(--accent-yellow)' : 'var(--text-muted)';
+                var timeStr = s.last_ts ? new Date(s.last_ts).toISOString().slice(0, 19).replace('T', ' ') : '—';
+                var tkShort = (s.token_key || '').slice(0, 20) + '…';
+                html += '<tr>' +
+                    '<td style="font-size:11px;font-family:monospace;">' + tkShort + '</td>' +
+                    '<td>' + s.total_events + '</td>' +
+                    '<td style="color:var(--accent-red);font-weight:600;">' + (s.crit_count || 0) + '</td>' +
+                    '<td style="color:var(--accent-yellow);">' + (s.warn_count || 0) + '</td>' +
+                    '<td style="color:var(--accent-orange,#f59e0b);">' + (s.err_count || 0) + '</td>' +
+                    '<td style="color:' + sevColor + ';font-weight:500;">' + (s.last_type || '—') + '</td>' +
+                    '<td style="font-size:10px;">' + timeStr + '</td>' +
+                    '<td><button class="btn btn-ghost" style="padding:3px 6px;font-size:10px;" onclick="viewSecEvents(\'' + (s.token_key || '').replace(/'/g, "\\'") + '\')">🔍 View</button></td>' +
+                    '</tr>';
             });
             html += '</tbody></table>';
         }
@@ -1730,6 +1746,44 @@ function loadSecurity() {
     }).catch(function(e) {
         document.getElementById('securityEvents').innerHTML = '<p style="color:var(--accent-red);">Error: ' + e.message + '</p>';
     });
+}
+
+// View detailed security events for a specific account
+function viewSecEvents(tokenKey) {
+    callAdmin({ command: 'admin_get_sec_events', token_key: tokenKey, limit: 100 }).then(function(data) {
+        var events = (data && data.events) || [];
+        if (!events.length) { alert('No events found for this account.'); return; }
+        var html = '<div style="margin-bottom:12px;"><button class="btn btn-ghost" onclick="loadSecurity()">← Back to Summary</button> <span style="font-family:monospace;font-size:11px;color:var(--text-muted);">Account: ' + tokenKey + ' (' + data.total + ' total events)</span></div>';
+        html += '<table class="data-table"><thead><tr><th>Time</th><th>Severity</th><th>Type</th><th>Detail</th><th>IP</th><th>Source</th><th>Success</th><th>Extra</th></tr></thead><tbody>';
+        events.forEach(function(ev) {
+            var sevClass = ev.sev === 'critical' ? 'color:var(--accent-red);font-weight:700;' :
+                           ev.sev === 'error' ? 'color:var(--accent-orange,#f59e0b);font-weight:600;' :
+                           ev.sev === 'warning' ? 'color:var(--accent-yellow);' : 'color:var(--text-muted);';
+            var timeStr = ev.ts ? new Date(ev.ts).toISOString().slice(0, 19).replace('T', ' ') : '—';
+            var successIcon = ev.success === true ? '✓' : ev.success === false ? '✗' : '—';
+            var successColor = ev.success === true ? 'color:var(--accent-green);' : ev.success === false ? 'color:var(--accent-red);' : '';
+            var extra = [];
+            if (ev.acc_server) extra.push('srv:' + ev.acc_server);
+            if (ev.acc_login) extra.push('login:' + ev.acc_login);
+            if (ev.ea_version) extra.push('v' + ev.ea_version);
+            if (ev.error_code) extra.push('err:' + ev.error_code);
+            if (ev.country) extra.push(ev.country);
+            if (ev.before_val) extra.push('before:' + ev.before_val);
+            if (ev.after_val) extra.push('after:' + ev.after_val);
+            html += '<tr>' +
+                '<td style="font-size:10px;white-space:nowrap;">' + timeStr + '</td>' +
+                '<td style="' + sevClass + 'text-transform:uppercase;font-size:10px;">' + (ev.sev || 'info') + '</td>' +
+                '<td style="font-weight:500;">' + (ev.type || '—') + '</td>' +
+                '<td style="font-size:10px;max-width:200px;overflow:hidden;text-overflow:ellipsis;" title="' + (ev.detail || '').replace(/"/g, '&quot;') + '">' + (ev.detail || '—') + '</td>' +
+                '<td style="font-size:10px;font-family:monospace;">' + (ev.ip || '—') + '</td>' +
+                '<td style="font-size:10px;">' + (ev.source || '—') + '</td>' +
+                '<td style="' + successColor + '">' + successIcon + '</td>' +
+                '<td style="font-size:9px;color:var(--text-muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;" title="' + extra.join(', ').replace(/"/g, '&quot;') + '">' + (extra.join(', ') || '—') + '</td>' +
+                '</tr>';
+        });
+        html += '</tbody></table>';
+        document.getElementById('securityEvents').innerHTML = html;
+    }).catch(function(e) { alert('Error loading events: ' + e.message); });
 }
 
 function unsuspendUser(email) {
