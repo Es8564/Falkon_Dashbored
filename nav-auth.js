@@ -87,3 +87,29 @@
     s.defer = true;
     document.body.appendChild(s);
 })();
+
+// ── Load AI Chat Assistant on all website pages ──
+(function() {
+    var path = window.location.pathname.toLowerCase();
+    if (path.indexOf('dashbored') >= 0 || path.indexOf('admin') >= 0) return;
+    var s = document.createElement('script');
+    s.src = 'website-ai-chat.js';
+    s.defer = true;
+    document.body.appendChild(s);
+})();
+
+// ── Delayed cleanup: remove any duplicate badges added by inline scripts ──
+(function() {
+    setTimeout(function() {
+        var navLinks = document.querySelectorAll('.nav-links');
+        navLinks.forEach(function(nav) {
+            // Find and hide any span badges that aren't part of our dropdown
+            var spans = nav.querySelectorAll('span');
+            spans.forEach(function(s) {
+                if (s.textContent.trim().length === 1 && s.style.cursor === 'pointer' && !s.closest('.nav-profile-dropdown')) {
+                    s.style.display = 'none';
+                }
+            });
+        });
+    }, 500); // Run 500ms after page load to catch inline scripts
+})();
