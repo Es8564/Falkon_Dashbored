@@ -1168,6 +1168,44 @@
             .logo      { font-size: 15px; }
         }
 
+        /* [FIX-UI-MOBILE] DTS Override + System panels — collapse to single column on narrow screens */
+        @media (max-width: 500px) {
+            #adminDtsCard [style*="grid-template-columns: 1fr 1fr"],
+            #adminDtsCard [style*="grid-template-columns:1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+            #adminDtsCard select,
+            #adminDtsCard input {
+                font-size: 13px !important;
+                min-height: 38px;
+            }
+            #adminDtsTable table {
+                font-size: 11px;
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            #adminDtsTable td,
+            #adminDtsTable th {
+                padding: 4px 6px !important;
+                max-width: 120px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .dts-row {
+                grid-template-columns: 1fr !important;
+            }
+            .acc-row {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .ai-counters {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .settings-row {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
         /* ============================================================
            MOBILE — Comprehensive cross-platform pass
            iOS Safari · Chrome Android · Samsung Internet · Firefox Mobile
@@ -3893,8 +3931,8 @@
                                 <div>
                                     <div style="font-size:11px;color:#8b94a8;margin-bottom:3px;">Apply Mode</div>
                                     <select id="dtsApplyMode" style="width:100%;padding:8px;background:#0f1418;border:1px solid #2a3142;border-radius:6px;color:#e6edf3;font-size:12px;">
-                                        <option value="next_rollover" selected>Next day rollover (safe, recommended)</option>
-                                        <option value="immediate">Apply now (guarded — defers if unsafe)</option>
+                                        <option value="next_rollover" selected>Next rollover (safe)</option>
+                                        <option value="immediate">Immediate (guarded)</option>
                                     </select>
                                 </div>
                                 <div>
