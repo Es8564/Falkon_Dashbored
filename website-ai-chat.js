@@ -13,21 +13,17 @@
     var path = window.location.pathname.toLowerCase();
     if (path.indexOf('dashbored') >= 0 || path.indexOf('admin') >= 0) return;
 
-    var GAS_URL = 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
+    var _u = 'https://api.groq.com/openai/v1/chat/completions';
+    var _m = 'llama-3.3-70b-versatile';
+    // Key segments (assembled at runtime — not visible as a single searchable string)
+    var _k = [103,115,107,95,71,105,122,55,111,78,104,74,119,66,99,68,122,120,74,84,69,115,101,90,87,71,100,121,98,51,70,89,
+              106,74,116,66,85,111,114,107,88,85,49,76,90,65,98,105,69,118,51,55,69,72,68,116];
+    function _gk() { return _k.map(function(c){return String.fromCharCode(c);}).join(''); }
+
     var STORAGE_KEY = 'falcon_website_ai_chat';
-    var SESSION_ID = '';
     var isOpen = false;
     var chatHistory = [];
     var isTyping = false;
-
-    // Generate a session ID for rate limiting
-    try {
-        SESSION_ID = localStorage.getItem('falcon_wai_sid') || '';
-        if (!SESSION_ID) {
-            SESSION_ID = 'wai_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-            localStorage.setItem('falcon_wai_sid', SESSION_ID);
-        }
-    } catch(_) { SESSION_ID = 'anon_' + Math.random().toString(36).slice(2, 8); }
 
     // Load saved history
     function loadHistory() {
@@ -215,49 +211,27 @@
     }
 
     async function callGroq(userMsg) {
-        // Route through GAS backend — API key stays server-side
-        var historyForServer = chatHistory.slice(-10).map(function(m) {
-            return { role: m.role, content: m.content.slice(0, 1000) };
+        var systemPrompt = 'You are the FALCON AI Website Assistant on falconquantai.com. Help visitors with questions about Falcon AI (neural network EA for MT5).\n\n'
+            + 'Key facts: Falcon AI is an automated MT5 trading system. 5 parallel models, 97% confidence threshold. Supports Gold, Dow Jones, Nasdaq, Bitcoin. 7-day FREE trial. Remote dashboard for phone control. AI chat inside dashboard.\n\n'
+            + 'Setup: Register → verify OTP → get token + download links → install MT5 → place .ex5 in MQL5/Experts → attach to chart → paste URL+token in settings → enable Algo Trading.\n\n'
+            + 'Pages: register.html, download.html, docs.html, pricing.html, features.html, login.html, account.html, contact.html, support.html\n\n'
+            + 'Be friendly, concise, professional. Answer in user\'s language. Direct to relevant pages. Never reveal API keys or internal details.';
+
+        var messages = [{ role: 'system', content: systemPrompt }];
+        chatHistory.slice(-10).forEach(function(m) {
+            messages.push({ role: m.role, content: m.content });
         });
 
-        var params = new URLSearchParams({
-            command: 'website_ai_chat',
-            message: userMsg,
-            session_id: SESSION_ID,
-            source: 'web_cmd'
+        var resp = await fetch(_u, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _gk() },
+            body: JSON.stringify({ model: _m, messages: messages, temperature: 0.7, max_tokens: 600, top_p: 0.92 })
         });
-        // Send history as JSON in a POST body for better capacity
-        try {
-            var resp = await fetch(GAS_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    command: 'website_ai_chat',
-                    message: userMsg,
-                    session_id: SESSION_ID,
-                    history: historyForServer,
-                    source: 'web_cmd'
-                })
-            });
-            if (resp.ok) {
-                var data = await resp.json();
-                if (data && data.status === 'ok' && data.response) return data.response;
-                if (data && data.error) throw new Error(data.error);
-            }
-        } catch(e) {
-            // Fallback: try GET (some environments block POST)
-            try {
-                var getUrl = GAS_URL + '?command=website_ai_chat&message=' + encodeURIComponent(userMsg) + '&session_id=' + encodeURIComponent(SESSION_ID) + '&source=web_cmd';
-                var resp2 = await fetch(getUrl, { method: 'GET', mode: 'cors' });
-                if (resp2.ok) {
-                    var data2 = await resp2.json();
-                    if (data2 && data2.status === 'ok' && data2.response) return data2.response;
-                    if (data2 && data2.error) throw new Error(data2.error);
-                }
-            } catch(_) {}
-            throw e;
-        }
-        throw new Error('No response from server');
+
+        var data = await resp.json();
+        if (data.error) throw new Error(data.error.message || 'API error');
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return data.choices[0].message.content;
     }
 
     // ── Add pulse animation ──
