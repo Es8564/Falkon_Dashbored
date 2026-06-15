@@ -98,6 +98,16 @@
     document.body.appendChild(s);
 })();
 
+// ── Load Website Search Engine on all pages ──
+(function() {
+    var path = window.location.pathname.toLowerCase();
+    if (path.indexOf('dashbored') >= 0 || path.indexOf('admin') >= 0) return;
+    var s = document.createElement('script');
+    s.src = 'website-search.js';
+    s.defer = true;
+    document.body.appendChild(s);
+})();
+
 // ── Delayed cleanup: remove any duplicate badges added by inline scripts ──
 (function() {
     setTimeout(function() {
