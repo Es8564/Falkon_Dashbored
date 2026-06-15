@@ -13,13 +13,21 @@
     var path = window.location.pathname.toLowerCase();
     if (path.indexOf('dashbored') >= 0 || path.indexOf('admin') >= 0) return;
 
-    var GROQ_KEY = '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';
-    var GROQ_MODEL = 'llama-3.3-70b-versatile';
-    var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+    var GAS_URL = 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
     var STORAGE_KEY = 'falcon_website_ai_chat';
+    var SESSION_ID = '';
     var isOpen = false;
     var chatHistory = [];
     var isTyping = false;
+
+    // Generate a session ID for rate limiting
+    try {
+        SESSION_ID = localStorage.getItem('falcon_wai_sid') || '';
+        if (!SESSION_ID) {
+            SESSION_ID = 'wai_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+            localStorage.setItem('falcon_wai_sid', SESSION_ID);
+        }
+    } catch(_) { SESSION_ID = 'anon_' + Math.random().toString(36).slice(2, 8); }
 
     // Load saved history
     function loadHistory() {
@@ -32,112 +40,7 @@
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory.slice(-20))); } catch(_) {}
     }
 
-    // ── SYSTEM PROMPT — comprehensive knowledge base ──
-    var SYSTEM_PROMPT = `You are the FALCON AI Website Assistant — an expert support chatbot embedded on the Falcon Quant AI website (falconquantai.com). You help visitors and customers with any questions about the product, setup, licensing, features, troubleshooting, and workflows.
-
-=== ABOUT FALCON AI ===
-Falcon AI is an advanced neural network Expert Advisor (EA) for MetaTrader 5. It trades automatically using deep learning, institutional market structure analysis, and real-time adaptive intelligence. It supports Gold (XAUUSD), Dow Jones (US30/DJ30), Nasdaq (US100/NAS100), Bitcoin (BTCUSD), and other major instruments.
-
-Key features:
-• 5 parallel trading models (Neural Network, Zone Strategy, On-Demand Zone, Confluence Entry, Zone Reversal)
-• 97% minimum confidence threshold — only trades on very high-conviction signals
-• Daily Target System (DTS) — stops trading after reaching daily profit goal
-• Self-healing diagnostics — auto-repairs issues without user intervention
-• Online learning — continuously improves from live trade outcomes
-• Remote control dashboard — manage the EA from any device (phone, tablet, PC)
-• AI Chat inside the dashboard — ask questions, get analysis, send commands to the EA
-• Emotional AI module — models market fear/greed to improve decision timing
-
-=== PRICING & PLANS ===
-• 7-day FREE trial — full access to everything, no credit card required
-• After trial: paid subscription required (monthly or yearly)
-• Payment methods: PayPal, Stripe (credit/debit cards)
-• All plans include: full EA, dashboard, live support, updates, AI chat
-
-=== GETTING STARTED (STEP BY STEP) ===
-1. Register at falconquantai.com/register.html — enter name, email, phone, country, create password
-2. Verify email with OTP code sent to your inbox
-3. After registration, you receive a Welcome Email with:
-   - Your Secret Token (connection key)
-   - Download links for EA (.ex5 file) and Dashboard (.html file)
-   - Server URL (for EA connection)
-4. Install MetaTrader 5 on your PC/VPS (download from your broker or metaquotes.net)
-5. Download the FALCON_AI.ex5 file and place it in: MT5 → File → Open Data Folder → MQL5 → Experts
-6. Restart MT5 or right-click Navigator → Refresh
-7. Open a chart (e.g., XAUUSD H1) and drag FALCON_AI from Navigator onto the chart
-8. In the EA settings dialog:
-   - Go to "Inputs" tab
-   - Paste your Server URL into the endpoint field
-   - Paste your Secret Token into the token field
-   - Make sure "Allow Algo Trading" is enabled (button on MT5 toolbar)
-9. Click OK — the EA will connect to the server and start analyzing
-10. Open the Dashboard (DASHBORED.html) on your phone or any browser — it connects automatically using the same token
-
-=== DASHBOARD ===
-The Remote Control Dashboard is an HTML file you open in any browser. Features:
-• Real-time monitoring of EA status, positions, and profit
-• Daily Target progress bar and profit tracking
-• Enable/disable EA trading remotely
-• Pause/resume specific symbols
-• AI Chat — ask questions about the EA's decisions, get analysis
-• Live Support chat — message the admin team directly
-• Emergency stop — halt all trading instantly from your phone
-• Works offline as a PWA (installable on phone home screen)
-
-=== LICENSING & ACTIVATION ===
-• License is tied to your account (broker server + login number)
-• The EA validates your license online on every startup
-• Maximum 3 devices per account (for security)
-• License issues? Contact support via the dashboard or website
-
-=== COMMON ISSUES & TROUBLESHOOTING ===
-Q: EA shows "License validation failed"
-A: Check your internet connection. Make sure the endpoint URL and token are correct in EA settings. Contact support if it persists.
-
-Q: EA is not trading
-A: Check: (1) Is "Allow Algo Trading" enabled in MT5? (2) Is the EA attached to a chart? (3) Is the confidence threshold being met? (The EA only trades on 97%+ confidence signals — this is normal.) (4) Check the Daily Target — if reached, trading stops for the day.
-
-Q: Dashboard shows "Offline" or won't connect
-A: Make sure you're using the correct Secret Token. Check your internet connection. Try refreshing the page.
-
-Q: How do I update the EA?
-A: Download the new .ex5 file from your account or email. Replace the old file in MT5 → MQL5 → Experts. Restart MT5.
-
-Q: Can I use multiple brokers?
-A: Yes, each broker/account gets its own license entry. Contact support to register additional accounts.
-
-Q: What timeframe should I use?
-A: H1 (1 hour) is recommended. The EA analyzes multiple timeframes internally regardless of the chart timeframe.
-
-Q: Is my money safe?
-A: The EA uses strict risk management: dynamic position sizing based on equity, ATR-based stop losses, maximum drawdown limits, and the Daily Target System to lock in profits.
-
-=== WEBSITE PAGES ===
-• Home (index.html) — overview, key features, call to action
-• Features (features.html) — detailed feature list
-• Pricing (pricing.html) — subscription plans and pricing
-• Compare (compare.html) — comparison with other EAs
-• About (about.html) — company information
-• Blog (blog.html) — articles and updates
-• Docs (docs.html) — documentation and guides
-• Download (download.html) — download EA and dashboard
-• Login (login.html) — sign in to your account
-• Register (register.html) — create a new account
-• Account (account.html) — manage your account, subscription, devices
-• Contact (contact.html) — contact form for support
-• Support (support.html) — FAQ and help resources
-• Affiliate (affiliate.html) — referral program
-
-=== RESPONSE GUIDELINES ===
-• Be friendly, professional, and concise
-• Answer in the same language the user writes in
-• Provide specific steps when guiding users through processes
-• Link to relevant pages when appropriate (e.g., "Visit falconquantai.com/register.html to create your account")
-• If you don't know something specific, direct users to contact support
-• Never reveal API keys, admin credentials, or internal system details
-• Encourage users to try the free trial
-• Be honest about what the EA can and cannot do
-• Keep responses to 2-4 paragraphs maximum unless detailed steps are needed`;
+    // System prompt is stored server-side in GAS (not exposed in client code)
 
     // ── Create Widget UI ──
     function createWidget() {
@@ -312,33 +215,49 @@ A: The EA uses strict risk management: dynamic position sizing based on equity, 
     }
 
     async function callGroq(userMsg) {
-        var messages = [{ role: 'system', content: SYSTEM_PROMPT }];
-        // Add last 10 messages for context
-        chatHistory.slice(-10).forEach(function(m) {
-            messages.push({ role: m.role, content: m.content });
-        });
-        // Current message already in history, but also explicitly add
-        // (it's the last item in chatHistory already)
-
-        var resp = await fetch(GROQ_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + GROQ_KEY
-            },
-            body: JSON.stringify({
-                model: GROQ_MODEL,
-                messages: messages,
-                temperature: 0.7,
-                max_tokens: 800,
-                top_p: 0.92
-            })
+        // Route through GAS backend — API key stays server-side
+        var historyForServer = chatHistory.slice(-10).map(function(m) {
+            return { role: m.role, content: m.content.slice(0, 1000) };
         });
 
-        var data = await resp.json();
-        if (data.error) throw new Error(data.error.message || 'API error');
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        return data.choices[0].message.content;
+        var params = new URLSearchParams({
+            command: 'website_ai_chat',
+            message: userMsg,
+            session_id: SESSION_ID,
+            source: 'web_cmd'
+        });
+        // Send history as JSON in a POST body for better capacity
+        try {
+            var resp = await fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    command: 'website_ai_chat',
+                    message: userMsg,
+                    session_id: SESSION_ID,
+                    history: historyForServer,
+                    source: 'web_cmd'
+                })
+            });
+            if (resp.ok) {
+                var data = await resp.json();
+                if (data && data.status === 'ok' && data.response) return data.response;
+                if (data && data.error) throw new Error(data.error);
+            }
+        } catch(e) {
+            // Fallback: try GET (some environments block POST)
+            try {
+                var getUrl = GAS_URL + '?command=website_ai_chat&message=' + encodeURIComponent(userMsg) + '&session_id=' + encodeURIComponent(SESSION_ID) + '&source=web_cmd';
+                var resp2 = await fetch(getUrl, { method: 'GET', mode: 'cors' });
+                if (resp2.ok) {
+                    var data2 = await resp2.json();
+                    if (data2 && data2.status === 'ok' && data2.response) return data2.response;
+                    if (data2 && data2.error) throw new Error(data2.error);
+                }
+            } catch(_) {}
+            throw e;
+        }
+        throw new Error('No response from server');
     }
 
     // ── Add pulse animation ──
