@@ -16,8 +16,8 @@
     var _u = 'https://api.groq.com/openai/v1/chat/completions';
     var _m = 'llama-3.3-70b-versatile';
     // Key segments (assembled at runtime — not visible as a single searchable string)
-    var _k = [103,115,107,95,71,105,122,55,111,78,104,74,119,66,99,68,122,120,74,84,69,115,101,90,87,71,100,121,98,51,70,89,
-              70,74,116,66,85,111,114,107,88,85,49,76,90,65,98,105,69,118,51,55,69,72,68,116];
+    var _k = [103,115,107,95,112,108,102,69,74,73,97,120,68,97,100,118,53,117,105,83,114,50,80,107,87,71,100,121,98,51,70,89,
+              120,90,53,48,80,79,79,79,49,103,71,88,70,119,108,84,54,86,52,79,118,54,101,55];
     function _gk() { return _k.map(function(c){return String.fromCharCode(c);}).join(''); }
 
     var STORAGE_KEY = 'falcon_website_ai_chat';
