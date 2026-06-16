@@ -56,6 +56,35 @@
         panel.id = 'wai-panel';
         panel.style.cssText = 'position:fixed;bottom:86px;right:20px;z-index:99999;width:370px;max-width:calc(100vw - 32px);height:520px;max-height:calc(100vh - 120px);background:#0d1117;border:1px solid rgba(255,255,255,0.1);border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,0.6);display:none;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;transition:all 0.3s ease;';
         var isMaximized = false;
+        var isSpeakEnabled = false;
+        window._waiToggleSpeak = function() {
+            isSpeakEnabled = !isSpeakEnabled;
+            var btn = document.getElementById('wai-speak-btn');
+            if (isSpeakEnabled) {
+                btn.textContent = '🔊';
+                btn.title = 'Voice ON (click to mute)';
+            } else {
+                btn.textContent = '🔇';
+                btn.title = 'Voice OFF (click to enable)';
+                if (window.speechSynthesis) window.speechSynthesis.cancel();
+            }
+        };
+        window._waiSpeak = function(text) {
+            if (!isSpeakEnabled || !window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+            var utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            // Try to use a good English voice
+            var voices = window.speechSynthesis.getVoices();
+            for (var i = 0; i < voices.length; i++) {
+                if (voices[i].lang.indexOf('en') === 0 && voices[i].name.indexOf('Google') >= 0) {
+                    utterance.voice = voices[i]; break;
+                }
+            }
+            window.speechSynthesis.speak(utterance);
+        };
         window._waiToggleSize = function() {
             isMaximized = !isMaximized;
             if (isMaximized) {
@@ -86,6 +115,7 @@
             + '  </div>'
             + '  <div style="display:flex;gap:6px;">'
             + '    <button id="wai-size-btn" title="Maximize" onclick="window._waiToggleSize()" style="background:none;border:none;color:#5b6580;font-size:14px;cursor:pointer;padding:2px 4px;">⬜</button>'
+            + '    <button id="wai-speak-btn" title="Toggle voice (read replies aloud)" onclick="window._waiToggleSpeak()" style="background:none;border:none;color:#5b6580;font-size:14px;cursor:pointer;padding:2px 4px;">🔇</button>'
             + '    <button id="wai-clear" title="Clear chat" style="background:none;border:none;color:#5b6580;font-size:14px;cursor:pointer;padding:2px 4px;">🗑️</button>'
             + '    <button id="wai-close" style="background:none;border:none;color:#5b6580;font-size:18px;cursor:pointer;padding:0 4px;">✕</button>'
             + '  </div>'
@@ -225,6 +255,7 @@
             chatHistory.push({ role: 'assistant', content: reply });
             saveHistory();
             renderMessages();
+            if (window._waiSpeak) window._waiSpeak(reply);
         } catch(e) {
             removeTypingIndicator();
             chatHistory.push({ role: 'assistant', content: 'Sorry, I encountered an error: ' + (e.message || 'Unknown error') + '. Please try again.' });
@@ -296,17 +327,20 @@
             + 'Account: /account.html | Setup: /setup.html | Docs: /docs.html\n'
             + 'Support: /support.html | Contact: /contact.html | Status: /status.html\n\n'
             + '=== HOW TO RESPOND ===\n'
-            + '• Speak naturally like a knowledgeable human — not robotic\n'
-            + '• Be warm, helpful, and confident\n'
-            + '• Give specific actionable steps when guiding users\n'
+            + '• Speak naturally and conversationally — like a real expert analyst talking to a colleague\n'
+            + '• Be warm, confident, and direct — not robotic or overly formal\n'
+            + '• Use short sentences. Keep it punchy. No fluff.\n'
+            + '• When explaining something technical, use analogies and plain language first, then details\n'
             + '• Use bullet points for multi-step instructions\n'
             + '• Answer in the same language the user writes in\n'
-            + '• Keep answers focused: 2-4 paragraphs for explanations, bullet lists for steps\n'
+            + '• Keep answers focused: 2-3 short paragraphs max for explanations\n'
             + '• Link to relevant pages when helpful\n'
             + '• Encourage the free trial for undecided visitors\n'
             + '• If you cannot help with something, direct to support (contact page or dashboard live chat)\n'
             + '• Never reveal internal code details, API keys, or admin information\n'
-            + '• The Server URL above is public and safe to share with users';
+            + '• The Server URL above is public and safe to share with users\n'
+            + '• DO NOT use markdown headers (##). DO NOT use code blocks. Just plain text with bullet points.\n'
+            + '• Sound human. Sound helpful. Sound like you genuinely care about helping them succeed.';
 
         var messages = [{ role: 'system', content: systemPrompt }];
         chatHistory.slice(-10).forEach(function(m) {
