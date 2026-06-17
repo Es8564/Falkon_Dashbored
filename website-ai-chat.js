@@ -1,4 +1,4 @@
-// ═══════════════════════════════════════════════════════════
+﻿// ═══════════════════════════════════════════════════════════
 // FALCON AI — Website AI Chat Assistant
 // Intelligent support chatbot for the public website.
 // Answers questions about the EA, licensing, setup, features,
@@ -137,9 +137,14 @@
             + '<div id="wai-messages" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;"></div>'
             + '<div id="wai-suggestions" style="padding:6px 12px;border-top:1px solid rgba(255,255,255,0.05);display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;"></div>'
             + '<div style="padding:10px 12px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px;flex-shrink:0;">'
+            + '  <label style="display:flex;align-items:center;cursor:pointer;padding:4px;" title="Attach image for AI analysis">'
+            + '    <input type="file" id="wai-file" accept="image/*" style="display:none;" onchange="window._waiFileSelected(this)">'
+            + '    <span style="font-size:18px;">📎</span>'
+            + '  </label>'
             + '  <input id="wai-input" type="text" placeholder="Ask me anything about Falcon AI..." style="flex:1;padding:10px 14px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e6edf3;font-size:13px;outline:none;font-family:inherit;">'
             + '  <button id="wai-send" style="background:linear-gradient(135deg,#00d9ff,#00ff88);border:none;color:#0d1117;font-weight:700;font-size:12px;padding:10px 16px;border-radius:8px;cursor:pointer;white-space:nowrap;">Send</button>'
-            + '</div>';
+            + '</div>'
+            + '<div id="wai-file-preview" style="display:none;padding:4px 12px 8px;font-size:10px;color:#00d9ff;"></div>';
         document.body.appendChild(panel);
 
         // Events
@@ -250,10 +255,14 @@
         if (isTyping) return;
         var input = document.getElementById('wai-input');
         var text = input.value.trim();
-        if (!text) return;
+        if (!text && !_pendingImage) return;
 
         input.value = '';
-        chatHistory.push({ role: 'user', content: text });
+        var imageData = _pendingImage;
+        window._waiClearFile();
+
+        var userContent = text || '(image attached)';
+        chatHistory.push({ role: 'user', content: userContent });
         saveHistory();
         renderMessages();
 
@@ -264,7 +273,7 @@
         addTypingIndicator();
 
         try {
-            var reply = await callGroq(text);
+            var reply = await callGroq(userContent, imageData);
             removeTypingIndicator();
             chatHistory.push({ role: 'assistant', content: reply });
             saveHistory();
@@ -279,7 +288,7 @@
         isTyping = false;
     }
 
-    async function callGroq(userMsg) {
+    async function callGroq(userMsg, imageData) {
         var systemPrompt = 'You are the FALCON AI Website Assistant — an expert support agent embedded on falconquantai.com. You speak like a knowledgeable, friendly senior trading systems analyst. You help visitors understand the product, guide them through setup, and resolve issues — like a real human support agent would.\n\n'
             + '=== ABOUT FALCON AI ===\n'
             + 'Falcon AI is an advanced multi-modal neural network Expert Advisor (EA) for MetaTrader 5. It trades automatically using deep learning, institutional market structure analysis, and real-time adaptive intelligence.\n\n'
@@ -361,10 +370,24 @@
             messages.push({ role: m.role, content: m.content });
         });
 
+        // Use vision model if image is attached
+        var model = _m; // default: llama-3.3-70b-versatile (text)
+        if (imageData && imageData.base64) {
+            model = 'llama-3.2-90b-vision-preview';
+            // Replace the last user message with multimodal content
+            messages[messages.length - 1] = {
+                role: 'user',
+                content: [
+                    { type: 'text', text: userMsg || 'What do you see in this image?' },
+                    { type: 'image_url', image_url: { url: imageData.base64 } }
+                ]
+            };
+        }
+
         var resp = await fetch(_u, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _getNextKey() },
-            body: JSON.stringify({ model: _m, messages: messages, temperature: 0.7, max_tokens: 600, top_p: 0.92 })
+            body: JSON.stringify({ model: model, messages: messages, temperature: 0.7, max_tokens: 600, top_p: 0.92 })
         });
 
         // If rate limited, try next keys
@@ -376,7 +399,7 @@
                 var resp2 = await fetch(_u, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _dk(_keyIndex) },
-                    body: JSON.stringify({ model: _m, messages: messages, temperature: 0.7, max_tokens: 600, top_p: 0.92 })
+                    body: JSON.stringify({ model: model, messages: messages, temperature: 0.7, max_tokens: 600, top_p: 0.92 })
                 });
                 if (resp2.status !== 429) { resp = resp2; break; }
                 _markKeyCooldown(_keyIndex);
@@ -407,6 +430,29 @@
     var style = document.createElement('style');
     style.textContent = '@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}';
     document.head.appendChild(style);
+
+    // ── Image attachment state ──
+    var _pendingImage = null; // { base64: "data:image/...;base64,...", name: "file.png" }
+    window._waiFileSelected = function(input) {
+        if (!input.files || !input.files[0]) return;
+        var file = input.files[0];
+        if (file.size > 4 * 1024 * 1024) { alert('Image too large. Maximum 4MB.'); input.value = ''; return; }
+        var reader = new FileReader();
+        reader.onload = function() {
+            _pendingImage = { base64: reader.result, name: file.name };
+            var preview = document.getElementById('wai-file-preview');
+            preview.style.display = 'block';
+            preview.innerHTML = '📷 ' + file.name + ' <span onclick="window._waiClearFile()" style="cursor:pointer;color:#ff6b6b;margin-left:8px;">✕ Remove</span>';
+        };
+        reader.readAsDataURL(file);
+    };
+    window._waiClearFile = function() {
+        _pendingImage = null;
+        var preview = document.getElementById('wai-file-preview');
+        if (preview) { preview.style.display = 'none'; preview.innerHTML = ''; }
+        var fileInput = document.getElementById('wai-file');
+        if (fileInput) fileInput.value = '';
+    };
 
     // ── Initialize ──
     if (document.readyState === 'loading') {

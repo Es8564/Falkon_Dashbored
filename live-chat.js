@@ -60,9 +60,14 @@
             + '  <input id="fchat-name" type="text" placeholder="Your name" style="width:100%;padding:8px 10px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#e6edf3;font-size:12px;outline:none;">'
             + '</div>'
             + '<div style="padding:10px 12px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px;">'
+            + '  <label style="display:flex;align-items:center;cursor:pointer;padding:4px;" title="Attach file">'
+            + '    <input type="file" id="fchat-file" accept="image/*,.pdf,.doc,.docx,.txt" style="display:none;" onchange="document.getElementById(\'fchat-file-name\').textContent=this.files[0]?this.files[0].name:\'\'">'
+            + '    <span style="font-size:18px;">📎</span>'
+            + '  </label>'
             + '  <input id="fchat-input" type="text" placeholder="Type a message..." style="flex:1;padding:9px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e6edf3;font-size:13px;outline:none;font-family:inherit;">'
             + '  <button id="fchat-send" style="background:linear-gradient(135deg,#00d9ff,#00ff88);border:none;color:#0d1117;font-weight:700;font-size:12px;padding:9px 14px;border-radius:8px;cursor:pointer;">Send</button>'
-            + '</div>';
+            + '</div>'
+            + '<div id="fchat-file-name" style="padding:0 12px 6px;font-size:10px;color:#00d9ff;"></div>';
         document.body.appendChild(panel);
 
         // Events
@@ -196,10 +201,54 @@
 
     function doSend(session, body, senderName) {
         var input = document.getElementById('fchat-input');
+        var fileInput = document.getElementById('fchat-file');
         input.value = '';
         input.disabled = true;
 
         var url = session.endpoint || GAS_URL;
+
+        // Check if file is attached
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+            var file = fileInput.files[0];
+            var reader = new FileReader();
+            reader.onload = function() {
+                var b64 = reader.result; // data:mime;base64,...
+                var params = 'token=' + encodeURIComponent(session.token)
+                    + '&command=chat_upload&source=web_cmd'
+                    + '&body=' + encodeURIComponent(body || file.name)
+                    + '&sender_name=' + encodeURIComponent(senderName || 'Customer')
+                    + '&file_name=' + encodeURIComponent(file.name)
+                    + '&file_type=' + encodeURIComponent(file.type)
+                    + '&t=' + Date.now();
+
+                // POST with file data (too large for GET)
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        token: session.token,
+                        command: 'chat_upload',
+                        source: 'web_cmd',
+                        body: body || file.name,
+                        sender_name: senderName || 'Customer',
+                        file_data: b64,
+                        file_name: file.name,
+                        file_type: file.type
+                    })
+                }).then(function(r) { return r.json(); })
+                .then(function(data) {
+                    input.disabled = false;
+                    fileInput.value = '';
+                    document.getElementById('fchat-file-name').textContent = '';
+                    if (data && data.status === 'ok') { loadMessages(); startPolling(); }
+                    else alert('Failed to send file.');
+                }).catch(function() { input.disabled = false; alert('Cannot reach server.'); });
+            };
+            reader.readAsDataURL(file);
+            return;
+        }
+
+        // Text-only message (original flow)
         var params = 'token=' + encodeURIComponent(session.token)
             + '&command=chat_send&source=web_cmd'
             + '&body=' + encodeURIComponent(body)
