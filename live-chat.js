@@ -61,13 +61,31 @@
             + '</div>'
             + '<div style="padding:10px 12px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px;">'
             + '  <label style="display:flex;align-items:center;cursor:pointer;padding:4px;" title="Attach file">'
-            + '    <input type="file" id="fchat-file" accept="image/*,.pdf,.doc,.docx,.txt" style="display:none;" onchange="document.getElementById(\'fchat-file-name\').textContent=this.files[0]?this.files[0].name:\'\'">'
+            + '    <input type="file" id="fchat-file" accept="image/*,.pdf,.doc,.docx,.txt" style="display:none;" onchange="window._fchatFileChange(this)">'
             + '    <span style="font-size:18px;">📎</span>'
             + '  </label>'
             + '  <input id="fchat-input" type="text" placeholder="Type a message..." style="flex:1;padding:9px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e6edf3;font-size:13px;outline:none;font-family:inherit;">'
             + '  <button id="fchat-send" style="background:linear-gradient(135deg,#00d9ff,#00ff88);border:none;color:#0d1117;font-weight:700;font-size:12px;padding:9px 14px;border-radius:8px;cursor:pointer;">Send</button>'
             + '</div>'
-            + '<div id="fchat-file-name" style="padding:0 12px 6px;font-size:10px;color:#00d9ff;"></div>';
+            + '<div id="fchat-file-name" style="padding:0 12px 6px;font-size:10px;color:#00d9ff;display:none;"></div>';
+
+        // File selection handler with remove option
+        window._fchatFileChange = function(input) {
+            var el = document.getElementById('fchat-file-name');
+            if (input.files && input.files[0]) {
+                el.style.display = 'block';
+                el.innerHTML = '📎 ' + input.files[0].name + ' <span onclick="window._fchatClearFile()" style="cursor:pointer;color:#ff6b6b;margin-left:8px;font-weight:700;">✕</span>';
+            } else {
+                el.style.display = 'none';
+                el.innerHTML = '';
+            }
+        };
+        window._fchatClearFile = function() {
+            var fileInput = document.getElementById('fchat-file');
+            if (fileInput) fileInput.value = '';
+            var el = document.getElementById('fchat-file-name');
+            if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+        };
         document.body.appendChild(panel);
 
         // Events
