@@ -180,15 +180,17 @@
 
     function sendMessage() {
         var input = document.getElementById('fchat-input');
+        var fileInput = document.getElementById('fchat-file');
         var body = input.value.trim();
-        if (!body) return;
+        if (!body && !(fileInput && fileInput.files && fileInput.files[0])) return;
 
         var session = loadSession();
 
         // First message — need to get/create token
         if (!session || !session.token) {
             var nameInput = document.getElementById('fchat-name');
-            var name = (nameInput.value || '').trim() || 'Website Visitor';
+            var name = (nameInput && nameInput.value) ? nameInput.value.trim() : 'Website Visitor';
+            if (!name) name = 'Website Visitor';
 
             // Use a stored config token if user is logged in
             var cfg = {};
@@ -228,34 +230,23 @@
         // Check if file is attached
         if (fileInput && fileInput.files && fileInput.files[0]) {
             var file = fileInput.files[0];
-            if (file.size > 500000) { // 500KB max for GET-based upload
-                alert('File too large for live chat. Maximum 500KB. Use the dashboard for larger files.');
+            // Send message with file name reference (file content not sent via live chat — use dashboard for full upload)
+            var params = 'token=' + encodeURIComponent(session.token)
+                + '&command=chat_send&source=web_cmd'
+                + '&body=' + encodeURIComponent((body || '') + ' [Attached: ' + file.name + ']')
+                + '&sender_name=' + encodeURIComponent(senderName || 'Customer')
+                + '&t=' + Date.now();
+
+            fetch(url + '?' + params, { method: 'GET', mode: 'cors' })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
                 input.disabled = false;
                 fileInput.value = '';
-                document.getElementById('fchat-file-name').textContent = '';
-                return;
-            }
-            var reader = new FileReader();
-            reader.onload = function() {
-                var b64 = reader.result;
-                // Use GET with encoded params (same as text messages — avoids CORS POST issues)
-                var params = 'token=' + encodeURIComponent(session.token)
-                    + '&command=chat_send&source=web_cmd'
-                    + '&body=' + encodeURIComponent('[File: ' + file.name + '] ' + (body || ''))
-                    + '&sender_name=' + encodeURIComponent(senderName || 'Customer')
-                    + '&t=' + Date.now();
-
-                fetch(url + '?' + params, { method: 'GET', mode: 'cors' })
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    input.disabled = false;
-                    fileInput.value = '';
-                    document.getElementById('fchat-file-name').textContent = '';
-                    if (data && data.status === 'ok') { loadMessages(); startPolling(); }
-                    else alert('Failed to send. Try again.');
-                }).catch(function() { input.disabled = false; alert('Cannot reach server.'); });
-            };
-            reader.readAsDataURL(file);
+                var fn = document.getElementById('fchat-file-name');
+                if (fn) { fn.style.display = 'none'; fn.innerHTML = ''; }
+                if (data && data.status === 'ok') { loadMessages(); startPolling(); }
+                else alert('Failed to send. Try again.');
+            }).catch(function() { input.disabled = false; alert('Cannot reach server.'); });
             return;
         }
 
