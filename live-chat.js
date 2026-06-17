@@ -46,7 +46,7 @@
         // Chat panel
         var panel = document.createElement('div');
         panel.id = 'fchat-panel';
-        panel.style.cssText = 'position:fixed;bottom:86px;right:86px;z-index:99999;width:340px;max-height:480px;background:#0d1117;border:1px solid rgba(255,255,255,0.1);border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,0.5);display:none;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;';
+        panel.style.cssText = 'position:fixed;bottom:86px;right:86px;z-index:99999;width:380px;max-width:calc(100vw - 40px);max-height:560px;height:560px;background:#0d1117;border:1px solid rgba(255,255,255,0.1);border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,0.5);display:none;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;';
         panel.innerHTML = ''
             + '<div style="padding:14px 16px;background:rgba(22,27,34,0.95);border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;">'
             + '  <div style="display:flex;align-items:center;gap:8px;">'
