@@ -210,38 +210,31 @@
         // Check if file is attached
         if (fileInput && fileInput.files && fileInput.files[0]) {
             var file = fileInput.files[0];
+            if (file.size > 500000) { // 500KB max for GET-based upload
+                alert('File too large for live chat. Maximum 500KB. Use the dashboard for larger files.');
+                input.disabled = false;
+                fileInput.value = '';
+                document.getElementById('fchat-file-name').textContent = '';
+                return;
+            }
             var reader = new FileReader();
             reader.onload = function() {
-                var b64 = reader.result; // data:mime;base64,...
+                var b64 = reader.result;
+                // Use GET with encoded params (same as text messages — avoids CORS POST issues)
                 var params = 'token=' + encodeURIComponent(session.token)
-                    + '&command=chat_upload&source=web_cmd'
-                    + '&body=' + encodeURIComponent(body || file.name)
+                    + '&command=chat_send&source=web_cmd'
+                    + '&body=' + encodeURIComponent('[File: ' + file.name + '] ' + (body || ''))
                     + '&sender_name=' + encodeURIComponent(senderName || 'Customer')
-                    + '&file_name=' + encodeURIComponent(file.name)
-                    + '&file_type=' + encodeURIComponent(file.type)
                     + '&t=' + Date.now();
 
-                // POST with file data (too large for GET)
-                fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        token: session.token,
-                        command: 'chat_upload',
-                        source: 'web_cmd',
-                        body: body || file.name,
-                        sender_name: senderName || 'Customer',
-                        file_data: b64,
-                        file_name: file.name,
-                        file_type: file.type
-                    })
-                }).then(function(r) { return r.json(); })
+                fetch(url + '?' + params, { method: 'GET', mode: 'cors' })
+                .then(function(r) { return r.json(); })
                 .then(function(data) {
                     input.disabled = false;
                     fileInput.value = '';
                     document.getElementById('fchat-file-name').textContent = '';
                     if (data && data.status === 'ok') { loadMessages(); startPolling(); }
-                    else alert('Failed to send file.');
+                    else alert('Failed to send. Try again.');
                 }).catch(function() { input.disabled = false; alert('Cannot reach server.'); });
             };
             reader.readAsDataURL(file);
