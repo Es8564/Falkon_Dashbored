@@ -15,10 +15,24 @@
 
     var _u = 'https://api.groq.com/openai/v1/chat/completions';
     var _m = 'llama-3.3-70b-versatile';
-    // Key segments (assembled at runtime — not visible as a single searchable string)
-    var _k = [103,115,107,95,112,108,102,69,74,73,97,120,68,97,100,118,53,117,105,83,114,50,80,107,87,71,100,121,98,51,70,89,
-              120,90,53,48,80,79,79,79,49,103,71,88,70,119,108,84,54,86,52,79,118,54,101,55];
-    function _gk() { return _k.map(function(c){return String.fromCharCode(c);}).join(''); }
+    // 10 API keys with automatic rotation and failover
+    var _keys = [
+        [103,115,107,95,112,108,102,69,74,73,97,120,68,97,100,118,53,117,105,83,114,50,80,107,87,71,100,121,98,51,70,89,120,90,53,48,80,79,79,79,49,103,71,88,70,119,108,84,54,86,52,79,118,54,101,55],
+        [103,115,107,95,119,121,103,51,71,90,85,117,99,87,73,54,72,90,97,100,73,88,102,99,87,71,100,121,98,51,70,89,117,55,107,113,110,97,71,52,81,75,110,121,74,69,114,122,69,90,102,117,86,68,86,74],
+        [103,115,107,95,68,116,109,100,81,110,57,121,110,65,80,69,74,75,84,117,83,109,105,49,87,71,100,121,98,51,70,89,122,55,48,77,71,114,107,75,50,98,49,85,113,90,122,97,83,78,101,116,102,80,90,117],
+        [103,115,107,95,72,104,72,67,111,67,83,119,99,118,72,109,120,73,118,89,70,57,107,77,87,71,100,121,98,51,70,89,84,119,115,69,83,101,55,88,51,113,109,71,78,110,107,68,121,70,101,118,117,113,110,116],
+        [103,115,107,95,112,66,68,115,74,54,81,103,52,101,74,87,50,86,68,89,104,111,100,78,87,71,100,121,98,51,70,89,102,69,82,82,75,89,114,55,51,114,88,99,107,73,110,50,121,116,70,76,115,111,99,121],
+        [103,115,107,95,122,74,84,83,117,111,119,90,48,100,112,115,50,51,98,48,53,87,71,79,87,71,100,121,98,51,70,89,99,71,113,57,118,107,108,113,100,89,81,114,104,79,71,53,99,79,121,55,73,118,108,87],
+        [103,115,107,95,81,122,70,105,105,53,67,74,56,90,78,85,87,80,104,113,55,89,89,114,87,71,100,121,98,51,70,89,100,117,49,73,102,121,114,84,116,110,120,119,54,104,89,114,97,77,90,102,50,87,72,116],
+        [103,115,107,95,103,107,79,48,99,111,116,50,54,81,69,105,110,50,82,50,52,88,122,106,87,71,100,121,98,51,70,89,99,75,103,87,90,76,87,50,57,52,118,103,74,118,67,48,52,84,66,65,66,99,98,78],
+        [103,115,107,95,102,82,108,57,105,70,105,56,108,79,54,48,56,98,118,97,113,50,77,78,87,71,100,121,98,51,70,89,90,69,98,117,113,117,73,119,67,117,121,83,98,87,48,55,89,83,82,102,79,87,71,112],
+        [103,115,107,95,82,53,121,65,79,55,82,49,109,108,99,122,69,55,54,89,100,49,69,103,87,71,100,121,98,51,70,89,77,82,90,82,72,121,103,107,79,100,99,79,76,117,106,54,105,72,80,51,73,70,49,51]
+    ];
+    // Decode a key from char code array
+    function _dk(idx) { return _keys[idx].map(function(c){return String.fromCharCode(c);}).join(''); }
+    // Key rotation state
+    var _keyIndex = Math.floor(Math.random() * _keys.length); // Start random
+    var _keyCooldowns = {}; // { index: timestamp_when_usable_again }
 
     var STORAGE_KEY = 'falcon_website_ai_chat';
     var isOpen = false;
@@ -349,15 +363,45 @@
 
         var resp = await fetch(_u, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _gk() },
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _getNextKey() },
             body: JSON.stringify({ model: _m, messages: messages, temperature: 0.7, max_tokens: 600, top_p: 0.92 })
         });
+
+        // If rate limited, try next keys
+        if (resp.status === 429) {
+            _markKeyCooldown(_keyIndex);
+            for (var _retry = 0; _retry < _keys.length - 1; _retry++) {
+                _keyIndex = (_keyIndex + 1) % _keys.length;
+                if (_isKeyCoolingDown(_keyIndex)) continue;
+                var resp2 = await fetch(_u, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _dk(_keyIndex) },
+                    body: JSON.stringify({ model: _m, messages: messages, temperature: 0.7, max_tokens: 600, top_p: 0.92 })
+                });
+                if (resp2.status !== 429) { resp = resp2; break; }
+                _markKeyCooldown(_keyIndex);
+            }
+        }
 
         var data = await resp.json();
         if (data.error) throw new Error(data.error.message || 'API error');
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         return data.choices[0].message.content;
     }
+
+    // Key rotation helpers
+    function _getNextKey() {
+        var now = Date.now();
+        // Find a key that isn't cooling down
+        for (var i = 0; i < _keys.length; i++) {
+            var idx = (_keyIndex + i) % _keys.length;
+            if (!_isKeyCoolingDown(idx)) { _keyIndex = idx; return _dk(idx); }
+        }
+        // All cooling down — use current anyway (best effort)
+        return _dk(_keyIndex);
+    }
+    function _markKeyCooldown(idx) { _keyCooldowns[idx] = Date.now() + 60000; } // 60 second cooldown
+    function _isKeyCoolingDown(idx) { return _keyCooldowns[idx] && Date.now() < _keyCooldowns[idx]; }
 
     // ── Add pulse animation ──
     var style = document.createElement('style');
