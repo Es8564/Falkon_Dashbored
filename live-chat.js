@@ -265,11 +265,14 @@
                 loadMessages();
                 startPolling();
             } else {
-                alert('Failed to send message. Please try again.');
+                // Show error in chat area
+                var el = document.getElementById('fchat-messages');
+                el.innerHTML += '<div style="background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.2);border-radius:8px;padding:8px;font-size:11px;color:#ff6b6b;margin-top:8px;">Send failed: ' + (data && data.error ? data.error : 'unknown error') + '</div>';
             }
-        }).catch(function() {
+        }).catch(function(err) {
             input.disabled = false;
-            alert('Cannot reach server. Check your connection.');
+            var el = document.getElementById('fchat-messages');
+            el.innerHTML += '<div style="background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.2);border-radius:8px;padding:8px;font-size:11px;color:#ff6b6b;margin-top:8px;">Network error: ' + (err && err.message ? err.message : 'Cannot reach server') + '</div>';
         });
     }
 
