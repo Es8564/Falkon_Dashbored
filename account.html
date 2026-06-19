@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
@@ -309,7 +309,7 @@
 
     // Load user info from auth system
     async function loadAccount() {
-        var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
+        var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbzeVMqn14muVXajBBwAYKfNetnf8oOFE-wl3jxwmHqK1K95bV2od3e5ZLoKr2HsSD2QBQ/exec';
         if (!url) return;
 
         // Get subscription status
@@ -409,7 +409,7 @@
         // Show connection settings card
         document.getElementById('connectionCard').style.display = 'block';
         var _cfgLocal = {}; try { _cfgLocal = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch(_){}
-        var _endUrl = _cfgLocal.endpointUrl || 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
+        var _endUrl = _cfgLocal.endpointUrl || 'https://script.google.com/macros/s/AKfycbzeVMqn14muVXajBBwAYKfNetnf8oOFE-wl3jxwmHqK1K95bV2od3e5ZLoKr2HsSD2QBQ/exec';
         document.getElementById('endpointUrlInput').value = _endUrl;
     }
 
@@ -458,7 +458,7 @@ async function _accNotifyPayment(method) {
     if (el) { el.style.display = 'block'; el.style.color = '#00d9ff'; el.textContent = 'Payment window opened. Complete payment there, then wait for activation.'; }
     try {
         var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
-        var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
+        var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbzeVMqn14muVXajBBwAYKfNetnf8oOFE-wl3jxwmHqK1K95bV2od3e5ZLoKr2HsSD2QBQ/exec';
         var token = cfg.secretToken || '';
         // Payment notification removed — webhook handles activation automatically
     } catch (_) {}
