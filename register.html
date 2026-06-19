@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
@@ -340,7 +340,7 @@ function regStep1() {
 async function _sendVerificationCode(email) {
     // OTP is generated server-side for security — client just triggers the send
     try {
-        var url = 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
+        var url = 'https://script.google.com/macros/s/AKfycbzeVMqn14muVXajBBwAYKfNetnf8oOFE-wl3jxwmHqK1K95bV2od3e5ZLoKr2HsSD2QBQ/exec';
         var params = { command: 'auth_send_otp', email: _regData.email, name: _regData.name };
 
         // Send via POST (email never in URL)
@@ -393,7 +393,7 @@ async function regStep2() {
 
     // Call GAS to verify OTP and create account
     try {
-        var url = 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
+        var url = 'https://script.google.com/macros/s/AKfycbzeVMqn14muVXajBBwAYKfNetnf8oOFE-wl3jxwmHqK1K95bV2od3e5ZLoKr2HsSD2QBQ/exec';
         var params = {
             command: 'auth_register',
             email: _regData.email,
