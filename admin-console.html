@@ -1521,7 +1521,8 @@ function renderConversationList(convos) {
         convos.forEach(function(c) {
             var unread = c.unread_count || 0;
             var active = _activeConvoTk === c.token_key ? 'background:var(--bg-hover);border-left:3px solid var(--accent);' : 'border-left:3px solid transparent;';
-            var name = c.nickname || c.account_label || c.token_key.slice(0, 8) + '…';
+            var name = c.user_name || c.nickname || c.account_label || c.token_key.slice(0, 8) + '…';
+            var subLine = c.email || (c.nickname && c.nickname !== name ? c.nickname : '');
             var lastMsg = (c.last_msg && c.last_msg.body) ? c.last_msg.body.slice(0, 40) : '';
             var lastTime = (c.last_msg && c.last_msg.created_at) ? c.last_msg.created_at.slice(0, 16).replace('T', ' ') : (c.last_activity || '').slice(0, 16).replace('T', ' ');
             html += '<div onclick="openConversation(\'' + c.token_key + '\')" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);' + active + '">';
@@ -1529,6 +1530,7 @@ function renderConversationList(convos) {
             html += '<span style="font-size:12px;font-weight:600;color:var(--text-primary);">' + name + '</span>';
             if (unread > 0) html += '<span style="background:var(--accent-red);color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:8px;">' + unread + '</span>';
             html += '</div>';
+            if (subLine) html += '<div style="font-size:9px;color:var(--accent);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + subLine + '</div>';
             html += '<div style="font-size:10px;color:var(--text-muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + lastMsg + '</div>';
             html += '<div style="font-size:9px;color:var(--text-muted);margin-top:2px;">' + lastTime + '</div>';
             html += '</div>';
@@ -1543,7 +1545,10 @@ function filterConversations() {
     var filtered = _chatConversations.filter(function(c) {
         return (c.nickname || '').toLowerCase().indexOf(q) > -1 ||
                (c.account_label || '').toLowerCase().indexOf(q) > -1 ||
-               (c.token_key || '').toLowerCase().indexOf(q) > -1;
+               (c.token_key || '').toLowerCase().indexOf(q) > -1 ||
+               (c.email || '').toLowerCase().indexOf(q) > -1 ||
+               (c.user_name || '').toLowerCase().indexOf(q) > -1 ||
+               (c.phone || '').toLowerCase().indexOf(q) > -1;
     });
     renderConversationList(filtered);
 }
@@ -1557,15 +1562,24 @@ function openConversation(tokenKey) {
     // Fetch this specific conversation's messages
     callAdmin({ command: 'chat_admin_poll', token_key: tokenKey }).then(function(data) {
         var messages = (data && data.thread) || [];
-        // Find nickname from conversations list
-        var name = tokenKey.slice(0, 8) + '…';
+        // Find user details from conversations list
+        var convo = null;
         for (var i = 0; i < _chatConversations.length; i++) {
-            if (_chatConversations[i].token_key === tokenKey) {
-                name = _chatConversations[i].nickname || _chatConversations[i].account_label || name;
-                break;
-            }
+            if (_chatConversations[i].token_key === tokenKey) { convo = _chatConversations[i]; break; }
         }
-        document.getElementById('chatHeader').innerHTML = '<span style="color:var(--text-primary);">💬 ' + name + '</span><span style="font-size:10px;color:var(--text-muted);margin-left:12px;">' + messages.length + ' messages</span>';
+        var name = (convo && convo.user_name) || (convo && convo.nickname) || (convo && convo.account_label) || tokenKey.slice(0, 8) + '…';
+        var email = (convo && convo.email) || '';
+        var phone = (convo && convo.phone) || '';
+        var headerHtml = '<span style="color:var(--text-primary);font-weight:700;">💬 ' + name + '</span>';
+        headerHtml += '<span style="font-size:10px;color:var(--text-muted);margin-left:12px;">' + messages.length + ' messages</span>';
+        if (email || phone) {
+            headerHtml += '<div style="margin-top:4px;font-size:10px;color:var(--text-muted);">';
+            if (email) headerHtml += '📧 <span style="color:var(--accent);">' + email + '</span>';
+            if (email && phone) headerHtml += '  &nbsp;·&nbsp;  ';
+            if (phone) headerHtml += '📱 ' + phone;
+            headerHtml += '</div>';
+        }
+        document.getElementById('chatHeader').innerHTML = headerHtml;
 
         var html = '';
         messages.forEach(function(m) {
