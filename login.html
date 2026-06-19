@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
@@ -117,7 +117,7 @@ async function doLogin() {
 
     try {
         var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
-        var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
+        var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbzeVMqn14muVXajBBwAYKfNetnf8oOFE-wl3jxwmHqK1K95bV2od3e5ZLoKr2HsSD2QBQ/exec';
 
         var data = null;
 
@@ -194,7 +194,7 @@ async function doForgotPassword() {
     _resetEmail = email;
 
     try {
-        var url = 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
+        var url = 'https://script.google.com/macros/s/AKfycbzeVMqn14muVXajBBwAYKfNetnf8oOFE-wl3jxwmHqK1K95bV2od3e5ZLoKr2HsSD2QBQ/exec';
         var params = { command: 'auth_forgot_password', email: email };
         var qs = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
         try { await fetch(url + '?' + qs + '&t=' + Date.now(), { method: 'GET', mode: 'cors' }); } catch (_) {}
@@ -225,7 +225,7 @@ async function doResetPassword() {
     _showStatus('Resetting password…', '#8b94a8');
 
     try {
-        var url = 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
+        var url = 'https://script.google.com/macros/s/AKfycbzeVMqn14muVXajBBwAYKfNetnf8oOFE-wl3jxwmHqK1K95bV2od3e5ZLoKr2HsSD2QBQ/exec';
         var data = null;
 
         // Try GET first (reliable)

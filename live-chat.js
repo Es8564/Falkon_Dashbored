@@ -1,4 +1,4 @@
-// ═══════════════════════════════════════════════════════════
+﻿// ═══════════════════════════════════════════════════════════
 // FALCON AI — Live Chat Widget for Website
 // Add to any page: <script src="live-chat.js"></script>
 // Connects to the same GAS chat system as the Customer Dashboard
@@ -8,7 +8,7 @@
 (function() {
     'use strict';
 
-    var GAS_URL = 'https://script.google.com/macros/s/AKfycbw4NbVvTCOI1ZKXw3NhaKDPQGyHWhk6ILinaZ32PtwTBHzsRMRr-njfllSmhKtUcmr9/exec';
+    var GAS_URL = 'https://script.google.com/macros/s/AKfycbzeVMqn14muVXajBBwAYKfNetnf8oOFE-wl3jxwmHqK1K95bV2od3e5ZLoKr2HsSD2QBQ/exec';
     var STORAGE_KEY = 'falcon_livechat';
     var POLL_INTERVAL = 8000; // Poll for admin replies every 8 seconds
     var pollTimer = null;
