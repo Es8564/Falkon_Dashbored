@@ -224,55 +224,59 @@
         var fileInput = document.getElementById('fchat-file');
         input.value = '';
         input.disabled = true;
+        document.getElementById('fchat-send').disabled = true;
 
         var url = session.endpoint || GAS_URL;
+        var displayBody = body || '';
 
         // Check if file is attached
         if (fileInput && fileInput.files && fileInput.files[0]) {
             var file = fileInput.files[0];
-            // Send message with file name reference (file content not sent via live chat — use dashboard for full upload)
-            var params = 'token=' + encodeURIComponent(session.token)
-                + '&command=chat_send&source=web_cmd'
-                + '&body=' + encodeURIComponent((body || '') + ' [Attached: ' + file.name + ']')
-                + '&sender_name=' + encodeURIComponent(senderName || 'Customer')
-                + '&t=' + Date.now();
-
-            fetch(url + '?' + params, { method: 'GET', mode: 'cors' })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                input.disabled = false;
-                fileInput.value = '';
-                var fn = document.getElementById('fchat-file-name');
-                if (fn) { fn.style.display = 'none'; fn.innerHTML = ''; }
-                if (data && data.status === 'ok') { loadMessages(); startPolling(); }
-                else alert('Failed to send. Try again.');
-            }).catch(function() { input.disabled = false; alert('Cannot reach server.'); });
-            return;
+            displayBody = (body || '') + ' [📎 ' + file.name + ']';
         }
 
-        // Text-only message (original flow)
+        // ── OPTIMISTIC UI: show the message immediately ──
+        var el = document.getElementById('fchat-messages');
+        var msgDiv = document.createElement('div');
+        msgDiv.style.cssText = 'max-width:80%;padding:8px 12px;border-radius:10px;font-size:12px;margin-left:auto;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.15);';
+        msgDiv.innerHTML = '<div style="font-size:9px;color:#5b6580;margin-bottom:3px;">👤 You • now</div>'
+            + '<div style="color:#e6edf3;word-wrap:break-word;">' + displayBody.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>'
+            + '<div style="font-size:9px;color:#5b6580;margin-top:3px;" id="fchat-send-status">⏳ Sending…</div>';
+        el.appendChild(msgDiv);
+        el.scrollTop = el.scrollHeight;
+
+        // Build the message body for server
+        var msgBody = displayBody;
+
         var params = 'token=' + encodeURIComponent(session.token)
             + '&command=chat_send&source=web_cmd'
-            + '&body=' + encodeURIComponent(body)
+            + '&body=' + encodeURIComponent(msgBody)
             + '&sender_name=' + encodeURIComponent(senderName || 'Customer')
             + '&t=' + Date.now();
+
+        // Clear file input
+        if (fileInput) fileInput.value = '';
+        var fn = document.getElementById('fchat-file-name');
+        if (fn) { fn.style.display = 'none'; fn.innerHTML = ''; }
 
         fetch(url + '?' + params, { method: 'GET', mode: 'cors' })
         .then(function(r) { return r.json(); })
         .then(function(data) {
             input.disabled = false;
+            document.getElementById('fchat-send').disabled = false;
+            var statusEl = document.getElementById('fchat-send-status');
             if (data && data.status === 'ok') {
-                loadMessages();
+                if (statusEl) statusEl.innerHTML = '<span style="color:#00ff88;">✓ Sent</span>';
+                setTimeout(function() { loadMessages(); }, 500);
                 startPolling();
             } else {
-                // Show error in chat area
-                var el = document.getElementById('fchat-messages');
-                el.innerHTML += '<div style="background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.2);border-radius:8px;padding:8px;font-size:11px;color:#ff6b6b;margin-top:8px;">Send failed: ' + (data && data.error ? data.error : 'unknown error') + '</div>';
+                if (statusEl) statusEl.innerHTML = '<span style="color:#ff6b6b;">✗ Failed: ' + (data && data.error ? data.error : 'unknown') + '</span>';
             }
         }).catch(function(err) {
             input.disabled = false;
-            var el = document.getElementById('fchat-messages');
-            el.innerHTML += '<div style="background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.2);border-radius:8px;padding:8px;font-size:11px;color:#ff6b6b;margin-top:8px;">Network error: ' + (err && err.message ? err.message : 'Cannot reach server') + '</div>';
+            document.getElementById('fchat-send').disabled = false;
+            var statusEl = document.getElementById('fchat-send-status');
+            if (statusEl) statusEl.innerHTML = '<span style="color:#ff6b6b;">✗ Network error: ' + (err && err.message ? err.message : 'Cannot reach server') + '</span>';
         });
     }
 
