@@ -116,6 +116,11 @@
             }
             // Hide badge
             document.getElementById('fchat-badge').style.display = 'none';
+            _lastUnreadCount = 0;
+            // Request notification permission on first open
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
         } else {
             stopPolling();
         }
@@ -288,10 +293,82 @@
         if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
     }
 
+    // ── Background notification polling (runs even when chat is closed) ──
+    var _bgPollTimer = null;
+    var _lastUnreadCount = 0;
+
+    function _startBackgroundPoll() {
+        var session = loadSession();
+        if (!session || !session.token) return;
+        _bgCheckUnread();
+        if (_bgPollTimer) clearInterval(_bgPollTimer);
+        _bgPollTimer = setInterval(_bgCheckUnread, 20000); // Every 20 seconds
+    }
+
+    function _bgCheckUnread() {
+        if (isOpen) return; // Skip if chat is open (active polling handles it)
+        var session = loadSession();
+        if (!session || !session.token) return;
+
+        fetch(GAS_URL + '?token=' + encodeURIComponent(session.token) + '&command=chat_poll&source=web_cmd&t=' + Date.now(), { method: 'GET', mode: 'cors' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data && data.status === 'ok') {
+                var msgs = data.messages || data.thread || [];
+                var unread = 0;
+                for (var i = 0; i < msgs.length; i++) {
+                    if (msgs[i].direction === 'admin_to_customer' && !msgs[i].read_by_customer) unread++;
+                }
+                // Update badge
+                var badge = document.getElementById('fchat-badge');
+                if (badge) {
+                    if (unread > 0) {
+                        badge.textContent = unread;
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+                // Show browser notification + bounce animation if new messages arrived
+                if (unread > _lastUnreadCount && _lastUnreadCount >= 0) {
+                    _showChatNotification(unread);
+                }
+                _lastUnreadCount = unread;
+            }
+        }).catch(function() {});
+    }
+
+    function _showChatNotification(count) {
+        // Bounce the chat button
+        var btn = document.getElementById('fchat-btn');
+        if (btn) {
+            btn.style.animation = 'fchat-bounce 0.6s ease 3';
+            setTimeout(function() { btn.style.animation = ''; }, 2000);
+        }
+        // Browser notification (if permitted)
+        if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+                var n = new Notification('Falcon AI Support', {
+                    body: 'You have ' + count + ' new message' + (count > 1 ? 's' : '') + ' from support',
+                    icon: 'icon.svg',
+                    tag: 'falcon-chat'
+                });
+                setTimeout(function() { n.close(); }, 5000);
+                n.onclick = function() { window.focus(); toggleChat(); };
+            } catch(_) {}
+        }
+    }
+
+    // Add bounce animation style
+    var _fcStyle = document.createElement('style');
+    _fcStyle.textContent = '@keyframes fchat-bounce{0%,100%{transform:translateY(0)}25%{transform:translateY(-8px)}50%{transform:translateY(0)}75%{transform:translateY(-4px)}}';
+    document.head.appendChild(_fcStyle);
+
     // ── Initialize ──
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', createWidget);
+        document.addEventListener('DOMContentLoaded', function() { createWidget(); _startBackgroundPoll(); });
     } else {
         createWidget();
+        _startBackgroundPoll();
     }
 })();
