@@ -60,7 +60,7 @@
         // Chat panel
         var panel = document.createElement('div');
         panel.id = 'wai-panel';
-        panel.style.cssText = 'position:fixed;bottom:86px;right:20px;z-index:99999;width:370px;max-width:calc(100vw - 32px);height:520px;max-height:calc(100vh - 120px);background:#0d1117;border:1px solid rgba(255,255,255,0.1);border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,0.6);display:none;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;transition:all 0.3s ease;';
+        panel.style.cssText = 'position:fixed;bottom:86px;right:20px;z-index:99999;width:420px;max-width:calc(100vw - 32px);height:680px;max-height:calc(100vh - 120px);background:#0d1117;border:1px solid rgba(255,255,255,0.1);border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,0.6);display:none;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;transition:all 0.3s ease;';
         var isMaximized = false;
         var isSpeakEnabled = false;
         window._waiToggleSpeak = function() {
@@ -103,8 +103,8 @@
                 document.getElementById('wai-size-btn').textContent = '🗗';
                 document.getElementById('wai-size-btn').title = 'Minimize';
             } else {
-                panel.style.width = '370px';
-                panel.style.height = '520px';
+                panel.style.width = '420px';
+                panel.style.height = '680px';
                 panel.style.maxWidth = 'calc(100vw - 32px)';
                 panel.style.bottom = '86px';
                 panel.style.right = '20px';
