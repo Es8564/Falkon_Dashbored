@@ -347,6 +347,7 @@
         .loading { text-align: center; padding: 40px; color: var(--text-muted); font-size: 13px; }
         .spin { animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     </style>
 </head>
 <body>
@@ -380,7 +381,7 @@
         <div class="nav-item" data-panel="subscriptions"><span class="icon">📋</span> Subscriptions</div>
 
         <div class="nav-section-label">Communication</div>
-        <div class="nav-item" data-panel="chat"><span class="icon">💬</span> Support Inbox</div>
+        <div class="nav-item" data-panel="chat"><span class="icon">💬</span> Support Inbox <span id="chatNavBadge" style="display:none;background:#ff4444;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;margin-left:6px;"></span></div>
         <div class="nav-item" data-panel="messages"><span class="icon">📢</span> Announcements</div>
         <div class="nav-item" data-panel="email"><span class="icon">✉️</span> Email</div>
 
@@ -839,6 +840,7 @@ function adminLogin() {
             document.getElementById('sidebarEl').style.display = 'flex';
             document.getElementById('mainEl').style.display = 'flex';
             loadDashboard();
+            _startChatNotificationPoll();
         } else {
             showLoginError(data && data.error ? data.error : 'Authentication failed');
         }
@@ -870,6 +872,8 @@ function showLoginError(msg) {
         document.getElementById('sidebarEl').style.display = 'flex';
         document.getElementById('mainEl').style.display = 'flex';
         loadDashboard();
+        // Start background notification polling for Support Inbox
+        _startChatNotificationPoll();
     }
 })();
 
@@ -1501,6 +1505,110 @@ function loadAudit() {
 var _chatConversations = [];
 var _activeConvoTk = '';
 var _chatPollTimer = null;
+var _chatNotifTimer = null;
+var _chatLastUnreadCount = 0;
+var _chatNotifSound = null;
+
+// Background polling for new support messages (runs every 15 seconds)
+function _startChatNotificationPoll() {
+    // Request browser notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+    // Create notification sound (short beep)
+    try {
+        var AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) _chatNotifSound = new AudioCtx();
+    } catch(_) {}
+
+    _chatCheckUnread(); // Check immediately
+    if (_chatNotifTimer) clearInterval(_chatNotifTimer);
+    _chatNotifTimer = setInterval(_chatCheckUnread, 15000);
+}
+
+function _chatPlayNotifSound() {
+    try {
+        if (!_chatNotifSound) return;
+        var osc = _chatNotifSound.createOscillator();
+        var gain = _chatNotifSound.createGain();
+        osc.connect(gain);
+        gain.connect(_chatNotifSound.destination);
+        osc.frequency.value = 800;
+        gain.gain.value = 0.3;
+        osc.start();
+        osc.stop(_chatNotifSound.currentTime + 0.15);
+        setTimeout(function() {
+            var osc2 = _chatNotifSound.createOscillator();
+            var gain2 = _chatNotifSound.createGain();
+            osc2.connect(gain2);
+            gain2.connect(_chatNotifSound.destination);
+            osc2.frequency.value = 1200;
+            gain2.gain.value = 0.3;
+            osc2.start();
+            osc2.stop(_chatNotifSound.currentTime + 0.15);
+        }, 180);
+    } catch(_) {}
+}
+
+function _chatCheckUnread() {
+    callAdmin({ command: 'chat_admin_poll' }).then(function(data) {
+        var convos = (data && data.conversations) || [];
+        var totalUnread = 0;
+        var newMsgFrom = '';
+        convos.forEach(function(c) { 
+            totalUnread += (c.unread_count || 0);
+            if (c.unread_count > 0 && !newMsgFrom) newMsgFrom = c.user_name || c.nickname || c.email || 'Customer';
+        });
+
+        // Update sidebar badge
+        var badge = document.getElementById('chatNavBadge');
+        if (badge) {
+            if (totalUnread > 0) {
+                badge.textContent = totalUnread;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        // If new unread messages appeared since last check — notify
+        if (totalUnread > _chatLastUnreadCount && _chatLastUnreadCount >= 0) {
+            _chatPlayNotifSound();
+            // Show browser notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+                try {
+                    var n = new Notification('New Support Message', {
+                        body: newMsgFrom + ' sent a message',
+                        icon: 'icon.svg',
+                        tag: 'falcon-chat-notif'
+                    });
+                    setTimeout(function() { n.close(); }, 5000);
+                } catch(_) {}
+            }
+            // Show in-page toast
+            _chatShowToast('💬 New message from ' + newMsgFrom);
+        }
+        _chatLastUnreadCount = totalUnread;
+    }).catch(function() {});
+}
+
+function _chatShowToast(msg) {
+    var existing = document.getElementById('chatToast');
+    if (existing) existing.remove();
+    var toast = document.createElement('div');
+    toast.id = 'chatToast';
+    toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;background:linear-gradient(135deg,#1a1f2e,#0d1117);border:1px solid rgba(0,217,255,0.3);border-radius:10px;padding:14px 20px;font-size:13px;color:#e6edf3;box-shadow:0 8px 32px rgba(0,0,0,0.5);animation:slideIn 0.3s ease;cursor:pointer;';
+    toast.innerHTML = msg;
+    toast.onclick = function() {
+        toast.remove();
+        // Navigate to Support Inbox
+        document.querySelectorAll('.nav-item').forEach(function(item) {
+            if (item.dataset.panel === 'chat') item.click();
+        });
+    };
+    document.body.appendChild(toast);
+    setTimeout(function() { if (toast.parentNode) toast.remove(); }, 6000);
+}
 
 function loadChatInbox() {
     // Use chat_admin_poll (without token_key) to get all conversations
