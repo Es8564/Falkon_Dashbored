@@ -113,6 +113,8 @@
             if (session && session.token) {
                 loadMessages();
                 startPolling();
+                // Mark messages as read by customer
+                _markReadByCustomer(session);
             }
             // Hide badge
             document.getElementById('fchat-badge').style.display = 'none';
@@ -124,6 +126,13 @@
         } else {
             stopPolling();
         }
+    }
+
+    function _markReadByCustomer(session) {
+        var url = (session && session.endpoint) || GAS_URL;
+        var token = (session && session.token) || '';
+        if (!token) return;
+        fetch(url + '?token=' + encodeURIComponent(token) + '&command=chat_mark_read&side=customer&source=web_cmd&t=' + Date.now(), { method: 'GET', mode: 'cors' }).catch(function(){});
     }
 
     function showNameBar() {
@@ -170,7 +179,15 @@
             if (data && data.status === 'ok') {
                 var msgs = data.messages || data.thread || [];
                 renderMessages(msgs);
-                // Check for unread admin messages
+                // If chat is open, mark as read
+                if (isOpen) {
+                    var hasUnread = false;
+                    for (var i = 0; i < msgs.length; i++) {
+                        if (msgs[i].direction === 'admin_to_customer' && !msgs[i].read_by_customer) { hasUnread = true; break; }
+                    }
+                    if (hasUnread) _markReadByCustomer(session);
+                }
+                // Check for unread admin messages (badge when closed)
                 if (!isOpen) {
                     var unread = msgs.filter(function(m) { return m.direction === 'admin_to_customer' && !m.read_by_customer; }).length;
                     if (unread > 0) {
