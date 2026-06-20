@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
@@ -309,7 +309,7 @@
 
     // Activate free trial on demand
     window._activateFreeTrial = async function() {
-        var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbzeVMqn14muVXajBBwAYKfNetnf8oOFE-wl3jxwmHqK1K95bV2od3e5ZLoKr2HsSD2QBQ/exec';
+        var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbxYeFety2_oNtEByTjny0jXD3hBmeZWdU5fHqwyH7slF6Z6tXBwChjbY5Drj0wnefI2/exec';
         var token = cfg.secretToken || '';
         if (!token) { alert('Please log in first.'); return; }
         if (!confirm('Start your 7-day free trial now? The countdown begins immediately.')) return;
@@ -330,7 +330,7 @@
 
     // Load user info from auth system
     async function loadAccount() {
-        var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbzeVMqn14muVXajBBwAYKfNetnf8oOFE-wl3jxwmHqK1K95bV2od3e5ZLoKr2HsSD2QBQ/exec';
+        var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbxYeFety2_oNtEByTjny0jXD3hBmeZWdU5fHqwyH7slF6Z6tXBwChjbY5Drj0wnefI2/exec';
         if (!url) return;
 
         // Get subscription status
@@ -436,7 +436,7 @@
         // Show connection settings card
         document.getElementById('connectionCard').style.display = 'block';
         var _cfgLocal = {}; try { _cfgLocal = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch(_){}
-        var _endUrl = _cfgLocal.endpointUrl || 'https://script.google.com/macros/s/AKfycbzeVMqn14muVXajBBwAYKfNetnf8oOFE-wl3jxwmHqK1K95bV2od3e5ZLoKr2HsSD2QBQ/exec';
+        var _endUrl = _cfgLocal.endpointUrl || 'https://script.google.com/macros/s/AKfycbxYeFety2_oNtEByTjny0jXD3hBmeZWdU5fHqwyH7slF6Z6tXBwChjbY5Drj0wnefI2/exec';
         document.getElementById('endpointUrlInput').value = _endUrl;
     }
 
@@ -485,7 +485,7 @@ async function _accNotifyPayment(method) {
     if (el) { el.style.display = 'block'; el.style.color = '#00d9ff'; el.textContent = 'Payment window opened. Complete payment there, then wait for activation.'; }
     try {
         var cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}');
-        var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbzeVMqn14muVXajBBwAYKfNetnf8oOFE-wl3jxwmHqK1K95bV2od3e5ZLoKr2HsSD2QBQ/exec';
+        var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbxYeFety2_oNtEByTjny0jXD3hBmeZWdU5fHqwyH7slF6Z6tXBwChjbY5Drj0wnefI2/exec';
         var token = cfg.secretToken || '';
         // Payment notification removed — webhook handles activation automatically
     } catch (_) {}
