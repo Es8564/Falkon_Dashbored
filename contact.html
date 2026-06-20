@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
@@ -137,7 +137,7 @@ function submitContact() {
     // Send to GAS backend
     var cfg = {};
     try { cfg = JSON.parse(localStorage.getItem('falconConfig') || '{}'); } catch (_) {}
-    var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbzeVMqn14muVXajBBwAYKfNetnf8oOFE-wl3jxwmHqK1K95bV2od3e5ZLoKr2HsSD2QBQ/exec';
+    var url = cfg.endpointUrl || 'https://script.google.com/macros/s/AKfycbxYeFety2_oNtEByTjny0jXD3hBmeZWdU5fHqwyH7slF6Z6tXBwChjbY5Drj0wnefI2/exec';
 
     var params = { command: 'contact_submit', name: name, email: email, subject: subject, message: message, source: 'web_cmd' };
     var qs = Object.keys(params).map(function(k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
