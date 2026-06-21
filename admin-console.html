@@ -2132,9 +2132,9 @@ function renderSubs(users) {
         var html = '';
         
         var active = users.filter(function(u) { return u.sub_status === 'active'; });
-        var trial = users.filter(function(u) { return u.trial_status === 'active' && u.sub_status !== 'active'; });
+        var trial = users.filter(function(u) { return (u.trial_status === 'active' || u.trial_status === 'demo_active') && u.sub_status !== 'active'; });
         var expired = users.filter(function(u) { return u.trial_status === 'expired' && u.sub_status !== 'active'; });
-        var unpaid = users.filter(function(u) { return !u.sub_status && u.trial_status !== 'active'; });
+        var unpaid = users.filter(function(u) { return !u.sub_status && u.trial_status !== 'active' && u.trial_status !== 'demo_active'; });
 
         html += '<div style="margin-bottom:16px;font-size:12px;color:var(--text-secondary);">';
         html += 'Active: <strong style="color:var(--accent-green);">' + active.length + '</strong> | ';
