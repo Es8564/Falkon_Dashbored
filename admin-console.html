@@ -939,7 +939,7 @@ function loadDashboard() {
         // KPIs
         var users = (usersData && usersData.users) || [];
         _usersCache = users;
-        var activeTrials = users.filter(function(u) { return u.trial_status === 'active'; }).length;
+        var activeTrials = users.filter(function(u) { return u.trial_status === 'active' || u.trial_status === 'demo_active'; }).length;
         var activeSubs = users.filter(function(u) { return u.sub_status === 'active'; }).length;
         var pending = (paymentsData && paymentsData.pending) ? paymentsData.pending.length : 0;
         var locks = (locksData && locksData.locks) ? Object.keys(locksData.locks).length : 0;
@@ -984,8 +984,8 @@ function loadUsers() {
 function renderUsers(users) {
     var html = '';
     users.forEach(function(u) {
-        var statusClass = u.suspended ? 'suspended' : (u.sub_status === 'active' ? 'active' : (u.trial_status === 'active' ? 'trial' : (u.trial_status === 'expired' ? 'expired' : 'unpaid')));
-        var statusText = u.suspended ? 'Suspended' : (u.sub_status === 'active' ? 'Active' : (u.trial_status === 'active' ? 'Trial' : (u.trial_status === 'expired' ? 'Expired' : 'Unpaid')));
+        var statusClass = u.suspended ? 'suspended' : (u.sub_status === 'active' ? 'active' : (u.trial_status === 'active' || u.trial_status === 'demo_active' ? 'trial' : (u.trial_status === 'expired' ? 'expired' : 'unpaid')));
+        var statusText = u.suspended ? 'Suspended' : (u.sub_status === 'active' ? 'Active' : (u.trial_status === 'active' ? 'Trial (Live)' : (u.trial_status === 'demo_active' ? 'Trial (Demo)' : (u.trial_status === 'expired' ? 'Expired' : 'Unpaid'))));
         html += '<tr>' +
             '<td style="color:var(--text-primary);font-weight:600;">' + (u.name || '—') + '</td>' +
             '<td>' + (u.email || '') + '</td>' +
@@ -1020,6 +1020,7 @@ function viewUser(email) {
             info += '🌍 Country: ' + (u.country || '—') + '\n';
             info += '\n── Account Status ──\n';
             info += 'Trial Status: ' + (u.trial_status || 'none') + '\n';
+            info += 'Trial Type: ' + (u.trial_type || 'live') + (u.allow_live === false ? ' (demo only)' : '') + '\n';
             info += 'Trial Expires: ' + (u.trial_expires || '—') + '\n';
             info += 'Subscription: ' + (u.sub_status || 'unpaid') + '\n';
             info += 'Suspended: ' + (u.suspended ? 'YES' : 'No') + '\n';
