@@ -182,6 +182,12 @@
             border: 1px solid rgba(255,255,255,0.08); background: #000; aspect-ratio: 16/9;
             display: flex; align-items: center; justify-content: center; color: #5b6580; font-size: 14px;
         }
+
+        /* ── CALCULATOR SLIDER ── */
+        #calcCapitalSlider::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 0 8px rgba(0,217,255,0.5); cursor:pointer; border:2px solid #00d9ff; }
+        #calcCapitalSlider::-moz-range-thumb { width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 0 8px rgba(0,217,255,0.5); cursor:pointer; border:2px solid #00d9ff; }
+        #funnelCapSlider::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 0 8px rgba(0,217,255,0.5); cursor:pointer; border:2px solid #00d9ff; }
+        #funnelCapSlider::-moz-range-thumb { width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 0 8px rgba(0,217,255,0.5); cursor:pointer; border:2px solid #00d9ff; }
     </style>
 </head>
 <body>
@@ -342,6 +348,7 @@
         </ul>
         <a href="register.html" class="btn-primary trialBtn" style="display:block;text-align:center;margin-top:20px;">Start Free Trial →</a>
         <p style="margin-top:10px;font-size:11px;color:#5b6580;text-align:center;">7-day free trial • Then £400/month • Cancel anytime</p>
+        <p style="margin-top:14px;font-size:11px;color:#5b6580;text-align:center;padding:10px 16px;background:rgba(0,217,255,0.04);border:1px solid rgba(0,217,255,0.1);border-radius:8px;">💎 Falcon AI is optimized for capital allocations of <strong style="color:#00d9ff;">$5,000+</strong> or Prop Firm funded accounts to ensure maximum cost-to-profit efficiency.</p>
     </div>
 </section>
 
@@ -361,6 +368,319 @@
         <div class="testimonial">
             <p>"The AI adapts to market conditions better than any EA I've used. Very impressed with the risk management."</p>
             <div class="author">— Fund Manager, Istanbul</div>
+        </div>
+    </div>
+</section>
+
+<!-- PROFIT CALCULATOR -->
+<section id="profit-calculator" style="padding:80px 24px;">
+    <div style="max-width:900px;margin:0 auto;">
+        <h2 class="section-title">Calculate Your Potential Profit</h2>
+        <p class="section-sub">See what Falcon AI could earn based on YOUR capital — with the subscription cost already deducted.</p>
+
+        <!-- Calculator Card -->
+        <div style="background:rgba(22,27,34,0.9);border:1px solid rgba(0,217,255,0.15);border-radius:16px;padding:32px;margin-bottom:24px;">
+            <!-- Capital Input -->
+            <div style="margin-bottom:28px;">
+                <label style="display:block;font-size:12px;color:#8b94a8;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Enter Your Investment Capital</label>
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <div style="position:relative;flex:1;min-width:200px;">
+                        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px;font-weight:700;color:#00d9ff;">$</span>
+                        <input type="number" id="calcCapitalInput" value="10000" min="100" max="1000000" step="100" style="width:100%;padding:14px 14px 14px 32px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,217,255,0.3);border-radius:10px;color:#e6edf3;font-size:20px;font-weight:700;font-family:inherit;outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='#00d9ff'" onblur="this.style.borderColor='rgba(0,217,255,0.3)'">
+                    </div>
+                </div>
+                <div style="margin-top:12px;">
+                    <input type="range" id="calcCapitalSlider" min="1000" max="250000" step="1000" value="10000" style="width:100%;height:6px;-webkit-appearance:none;appearance:none;background:linear-gradient(90deg,#00d9ff,#00ff88);border-radius:3px;outline:none;cursor:pointer;">
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:10px;color:#5b6580;margin-top:4px;">
+                    <span>$1,000</span>
+                    <span>$250,000</span>
+                </div>
+            </div>
+
+            <!-- Results Grid -->
+            <div id="calcResults" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;">
+                <div style="background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:12px;padding:18px;text-align:center;">
+                    <div style="font-size:10px;color:#8b94a8;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Monthly Gross Profit</div>
+                    <div id="calcGross" style="font-size:26px;font-weight:800;color:#00ff88;">$0</div>
+                </div>
+                <div style="background:rgba(0,217,255,0.06);border:1px solid rgba(0,217,255,0.2);border-radius:12px;padding:18px;text-align:center;">
+                    <div style="font-size:10px;color:#8b94a8;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Monthly Net Profit</div>
+                    <div id="calcNet" style="font-size:26px;font-weight:800;color:#00d9ff;">$0</div>
+                    <div style="font-size:10px;color:#5b6580;margin-top:4px;">After £400 subscription</div>
+                </div>
+                <div style="background:rgba(255,193,7,0.06);border:1px solid rgba(255,193,7,0.2);border-radius:12px;padding:18px;text-align:center;">
+                    <div style="font-size:10px;color:#8b94a8;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Max Drawdown Risk</div>
+                    <div id="calcDrawdown" style="font-size:26px;font-weight:800;color:#ffc107;">$0</div>
+                </div>
+                <div style="background:rgba(0,217,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:18px;text-align:center;">
+                    <div style="font-size:10px;color:#8b94a8;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Monthly ROI</div>
+                    <div id="calcROI" style="font-size:26px;font-weight:800;color:#e6edf3;">0%</div>
+                </div>
+            </div>
+
+            <!-- Breakeven Warning -->
+            <div id="calcBreakeven" style="display:none;background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.25);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:#ff6b6b;text-align:center;">
+                ⚠️ At this capital level, the subscription cost exceeds your projected profit. Minimum recommended: <strong id="calcBreakevenAmt">$0</strong>
+            </div>
+
+            <!-- Compounded Projections Table -->
+            <div style="margin-bottom:20px;">
+                <div style="font-size:11px;color:#8b94a8;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Compounded Net Projections</div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+                    <div style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:14px;text-align:center;">
+                        <div style="font-size:10px;color:#5b6580;margin-bottom:4px;">3 Months</div>
+                        <div id="calc3m" style="font-size:18px;font-weight:700;color:#00ff88;">$0</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:14px;text-align:center;">
+                        <div style="font-size:10px;color:#5b6580;margin-bottom:4px;">6 Months</div>
+                        <div id="calc6m" style="font-size:18px;font-weight:700;color:#00ff88;">$0</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:14px;text-align:center;">
+                        <div style="font-size:10px;color:#5b6580;margin-bottom:4px;">12 Months</div>
+                        <div id="calc12m" style="font-size:18px;font-weight:700;color:#00ff88;">$0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Myfxbook Badge + Disclaimer -->
+            <div style="text-align:center;">
+                <div id="calcBadge" style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,217,255,0.08);border:1px solid rgba(0,217,255,0.2);border-radius:20px;padding:6px 14px;font-size:11px;color:#00d9ff;font-weight:600;margin-bottom:10px;">
+                    📊 Based on verified <span id="calcPctBadge">8.0%</span> avg monthly return
+                </div>
+                <p style="font-size:11px;color:#5b6580;line-height:1.5;">Past performance does not guarantee future results. Projections are estimates based on historical averages. Trading involves risk.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ACCOUNT COMPATIBILITY FUNNEL -->
+<section id="compatibility-funnel" style="padding:80px 24px;">
+    <div style="max-width:700px;margin:0 auto;">
+        <h2 class="section-title">Check Your Account Compatibility</h2>
+        <p class="section-sub">Answer 3 quick questions and get a personalized optimization report for your setup.</p>
+
+        <div style="background:rgba(22,27,34,0.9);border:1px solid rgba(0,217,255,0.15);border-radius:16px;padding:32px;position:relative;overflow:hidden;">
+            <!-- Progress Bar -->
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:28px;">
+                <div style="flex:1;height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;">
+                    <div id="funnelProgress" style="width:33%;height:100%;background:linear-gradient(90deg,#00d9ff,#00ff88);border-radius:2px;transition:width 0.4s ease;"></div>
+                </div>
+                <span id="funnelStepLabel" style="font-size:10px;color:#5b6580;white-space:nowrap;">Step 1/3</span>
+            </div>
+
+            <!-- STEP 1: Capital -->
+            <div id="funnelStep1" style="transition:opacity 0.3s,transform 0.3s;">
+                <div style="font-size:14px;font-weight:700;margin-bottom:6px;">💰 What is your trading capital?</div>
+                <div style="font-size:12px;color:#8b94a8;margin-bottom:16px;">Enter the amount you plan to trade with.</div>
+                <div style="position:relative;margin-bottom:16px;">
+                    <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:700;color:#00d9ff;">$</span>
+                    <input type="number" id="funnelCapital" value="10000" min="500" max="1000000" step="500" style="width:100%;padding:14px 14px 14px 30px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,217,255,0.3);border-radius:10px;color:#e6edf3;font-size:18px;font-weight:700;font-family:inherit;outline:none;">
+                </div>
+                <input type="range" id="funnelCapSlider" min="1000" max="250000" step="1000" value="10000" style="width:100%;height:6px;-webkit-appearance:none;appearance:none;background:linear-gradient(90deg,#00d9ff,#00ff88);border-radius:3px;outline:none;cursor:pointer;margin-bottom:8px;">
+                <div style="display:flex;justify-content:space-between;font-size:10px;color:#5b6580;"><span>$1,000</span><span>$250,000</span></div>
+                <button onclick="funnelNext(2)" style="width:100%;margin-top:20px;padding:14px;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;border:none;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;">Next →</button>
+            </div>
+
+            <!-- STEP 2: Broker & Leverage -->
+            <div id="funnelStep2" style="display:none;transition:opacity 0.3s,transform 0.3s;">
+                <div style="font-size:14px;font-weight:700;margin-bottom:6px;">🏦 Select Your Broker & Leverage</div>
+                <div style="font-size:12px;color:#8b94a8;margin-bottom:16px;">This helps us assess spread quality and execution speed.</div>
+                <div style="margin-bottom:14px;">
+                    <label style="display:block;font-size:11px;color:#8b94a8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Broker</label>
+                    <select id="funnelBroker" style="width:100%;padding:12px 14px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#e6edf3;font-size:14px;font-family:inherit;outline:none;-webkit-appearance:none;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%276%27%3E%3Cpath d=%27M0 0l5 6 5-6z%27 fill=%27rgba(255,255,255,0.4)%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 14px center;padding-right:32px;">
+                        <option value="">— Select your broker —</option>
+                        <optgroup label="Top-Tier ECN (Lowest Spreads)">
+                            <option value="icmarkets">IC Markets</option>
+                            <option value="pepperstone">Pepperstone</option>
+                            <option value="tickmill">Tickmill</option>
+                            <option value="fpmarkets">FP Markets</option>
+                            <option value="fusionmarkets">Fusion Markets</option>
+                            <option value="vantage">Vantage Markets</option>
+                        </optgroup>
+                        <optgroup label="Mid-Tier">
+                            <option value="fxcm">FXCM</option>
+                            <option value="oanda">Oanda</option>
+                            <option value="xm">XM</option>
+                            <option value="exness">Exness</option>
+                            <option value="roboforex">RoboForex</option>
+                        </optgroup>
+                        <optgroup label="Other">
+                            <option value="other">Other broker</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div style="margin-bottom:14px;">
+                    <label style="display:block;font-size:11px;color:#8b94a8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Leverage</label>
+                    <select id="funnelLeverage" style="width:100%;padding:12px 14px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#e6edf3;font-size:14px;font-family:inherit;outline:none;-webkit-appearance:none;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%276%27%3E%3Cpath d=%27M0 0l5 6 5-6z%27 fill=%27rgba(255,255,255,0.4)%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 14px center;padding-right:32px;">
+                        <option value="500">1:500</option>
+                        <option value="200">1:200</option>
+                        <option value="100" selected>1:100</option>
+                        <option value="50">1:50</option>
+                        <option value="30">1:30 (EU/AU regulated)</option>
+                    </select>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button onclick="funnelBack(1)" style="flex:1;padding:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#e6edf3;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;">← Back</button>
+                    <button onclick="funnelNext(3)" style="flex:2;padding:14px;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;border:none;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;">Next →</button>
+                </div>
+            </div>
+
+            <!-- STEP 3: Account Type -->
+            <div id="funnelStep3" style="display:none;transition:opacity 0.3s,transform 0.3s;">
+                <div style="font-size:14px;font-weight:700;margin-bottom:6px;">📋 Account Type</div>
+                <div style="font-size:12px;color:#8b94a8;margin-bottom:16px;">This determines the recommended risk profile.</div>
+                <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+                    <label style="display:flex;align-items:center;gap:12px;padding:16px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.08);border-radius:10px;cursor:pointer;transition:border-color 0.2s;" onclick="this.querySelector('input').checked=true;document.querySelectorAll('#funnelStep3 label').forEach(l=>l.style.borderColor='rgba(255,255,255,0.08)');this.style.borderColor='#00d9ff';">
+                        <input type="radio" name="funnelAccType" value="personal" checked style="width:18px;height:18px;accent-color:#00d9ff;">
+                        <div>
+                            <div style="font-size:13px;font-weight:600;">Personal Account</div>
+                            <div style="font-size:11px;color:#8b94a8;">Trading with your own capital</div>
+                        </div>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:12px;padding:16px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.08);border-radius:10px;cursor:pointer;transition:border-color 0.2s;" onclick="this.querySelector('input').checked=true;document.querySelectorAll('#funnelStep3 label').forEach(l=>l.style.borderColor='rgba(255,255,255,0.08)');this.style.borderColor='#00d9ff';">
+                        <input type="radio" name="funnelAccType" value="propfirm" style="width:18px;height:18px;accent-color:#00d9ff;">
+                        <div>
+                            <div style="font-size:13px;font-weight:600;">Prop Firm (Funded / Evaluation)</div>
+                            <div style="font-size:11px;color:#8b94a8;">Trading on a funded account with strict rules</div>
+                        </div>
+                    </label>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button onclick="funnelBack(2)" style="flex:1;padding:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#e6edf3;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;">← Back</button>
+                    <button onclick="funnelAnalyze()" style="flex:2;padding:14px;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;border:none;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;">🔍 Analyze My Setup</button>
+                </div>
+            </div>
+
+            <!-- RESULT -->
+            <div id="funnelResult" style="display:none;transition:opacity 0.3s,transform 0.3s;">
+                <div style="text-align:center;margin-bottom:20px;">
+                    <div style="font-size:12px;color:#8b94a8;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Your Falcon Optimization Report</div>
+                    <div style="font-size:11px;color:#5b6580;">Personalized for your trading parameters</div>
+                </div>
+
+                <!-- Score Circle -->
+                <div style="text-align:center;margin-bottom:24px;">
+                    <div style="display:inline-flex;align-items:center;justify-content:center;width:110px;height:110px;border-radius:50%;border:4px solid #00d9ff;background:rgba(0,217,255,0.06);position:relative;">
+                        <div>
+                            <div id="funnelScore" style="font-size:32px;font-weight:900;color:#00d9ff;">0%</div>
+                            <div style="font-size:9px;color:#8b94a8;text-transform:uppercase;">Compatibility</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report Cards -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+                    <div style="background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:10px;padding:14px;text-align:center;">
+                        <div style="font-size:10px;color:#8b94a8;text-transform:uppercase;margin-bottom:4px;">Risk Profile</div>
+                        <div id="funnelRisk" style="font-size:14px;font-weight:700;color:#00ff88;">—</div>
+                    </div>
+                    <div style="background:rgba(0,217,255,0.06);border:1px solid rgba(0,217,255,0.2);border-radius:10px;padding:14px;text-align:center;">
+                        <div style="font-size:10px;color:#8b94a8;text-transform:uppercase;margin-bottom:4px;">Monthly Net Profit</div>
+                        <div id="funnelProfit" style="font-size:14px;font-weight:700;color:#00d9ff;">—</div>
+                    </div>
+                </div>
+
+                <!-- Detail Rows -->
+                <div style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:14px;margin-bottom:20px;">
+                    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;"><span style="color:#5b6580;">Capital</span><span id="funnelDetCapital" style="color:#e6edf3;font-weight:600;">—</span></div>
+                    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;"><span style="color:#5b6580;">Broker</span><span id="funnelDetBroker" style="color:#e6edf3;font-weight:600;">—</span></div>
+                    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;"><span style="color:#5b6580;">Leverage</span><span id="funnelDetLeverage" style="color:#e6edf3;font-weight:600;">—</span></div>
+                    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;"><span style="color:#5b6580;">Account Type</span><span id="funnelDetType" style="color:#e6edf3;font-weight:600;">—</span></div>
+                    <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px;"><span style="color:#5b6580;">12-Month Projection</span><span id="funnelDet12m" style="color:#00ff88;font-weight:700;">—</span></div>
+                </div>
+
+                <!-- CTA -->
+                <a href="register.html" style="display:block;width:100%;padding:16px;background:linear-gradient(135deg,#00d9ff,#00ff88);color:#0d1117;border:none;border-radius:10px;font-weight:800;font-size:15px;text-align:center;text-decoration:none;cursor:pointer;">Start Your Trial with This Configuration →</a>
+                <p style="text-align:center;margin-top:10px;font-size:11px;color:#5b6580;">7-day free trial • No credit card required</p>
+                <button onclick="funnelReset()" style="display:block;margin:12px auto 0;background:none;border:none;color:#5b6580;font-size:12px;cursor:pointer;text-decoration:underline;">← Start over</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- PROP FIRM COMPATIBILITY -->
+<section id="prop-firm" style="padding:60px 24px 80px;">
+    <div style="max-width:900px;margin:0 auto;">
+        <h2 class="section-title">Prop Firm & Institutional Risk Compliance</h2>
+        <p class="section-sub">Strict risk management that meets funded account requirements. No shortcuts, no dangerous strategies.</p>
+
+        <!-- Capital Tiers -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:36px;">
+            <div style="background:rgba(22,27,34,0.7);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:24px;text-align:center;">
+                <div style="font-size:24px;margin-bottom:8px;">💰</div>
+                <div style="font-size:14px;font-weight:700;margin-bottom:6px;">$1,000 – $4,999</div>
+                <div style="font-size:12px;color:#ffc107;font-weight:600;margin-bottom:8px;">Works, but tight margins</div>
+                <p style="font-size:11px;color:#8b94a8;">Subscription cost takes a larger share of profits. Best for testing and learning the system.</p>
+            </div>
+            <div style="background:rgba(0,217,255,0.05);border:1px solid rgba(0,217,255,0.25);border-radius:12px;padding:24px;text-align:center;position:relative;overflow:hidden;">
+                <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#00d9ff,#00ff88);"></div>
+                <div style="font-size:24px;margin-bottom:8px;">🎯</div>
+                <div style="font-size:14px;font-weight:700;margin-bottom:6px;">$5,000 – $24,999</div>
+                <div style="font-size:12px;color:#00ff88;font-weight:600;margin-bottom:8px;">✓ Recommended</div>
+                <p style="font-size:11px;color:#8b94a8;">Strong net returns after subscription. The sweet spot for most serious traders.</p>
+            </div>
+            <div style="background:rgba(22,27,34,0.7);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:24px;text-align:center;">
+                <div style="font-size:24px;margin-bottom:8px;">🏦</div>
+                <div style="font-size:14px;font-weight:700;margin-bottom:6px;">$25,000+</div>
+                <div style="font-size:12px;color:#00d9ff;font-weight:600;margin-bottom:8px;">Optimal — maximum ROI</div>
+                <p style="font-size:11px;color:#8b94a8;">Subscription cost becomes negligible. Ideal for funded accounts and prop firms.</p>
+            </div>
+        </div>
+
+        <!-- Prop Firm Badges -->
+        <div style="background:rgba(22,27,34,0.8);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:28px;margin-bottom:24px;">
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;text-align:center;">Risk & Compliance Badges</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">
+                <div style="display:flex;align-items:center;gap:10px;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:10px;padding:14px;">
+                    <span style="font-size:20px;">✓</span>
+                    <div>
+                        <div style="font-size:13px;font-weight:600;color:#00ff88;">No Martingale</div>
+                        <div style="font-size:10px;color:#8b94a8;">Zero dangerous position averaging</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:10px;padding:14px;">
+                    <span style="font-size:20px;">✓</span>
+                    <div>
+                        <div style="font-size:13px;font-weight:600;color:#00ff88;">No Grid Trading</div>
+                        <div style="font-size:10px;color:#8b94a8;">Clean single-direction entries only</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:10px;padding:14px;">
+                    <span style="font-size:20px;">✓</span>
+                    <div>
+                        <div style="font-size:13px;font-weight:600;color:#00ff88;">Daily DD &lt; 5%</div>
+                        <div style="font-size:10px;color:#8b94a8;">Strict daily drawdown limit enforced</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:10px;padding:14px;">
+                    <span style="font-size:20px;">✓</span>
+                    <div>
+                        <div style="font-size:13px;font-weight:600;color:#00ff88;">Max DD &lt; 10%</div>
+                        <div style="font-size:10px;color:#8b94a8;">Total drawdown within prop firm rules</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:10px;padding:14px;">
+                    <span style="font-size:20px;">✓</span>
+                    <div>
+                        <div style="font-size:13px;font-weight:600;color:#00ff88;">Low-Latency Execution</div>
+                        <div style="font-size:10px;color:#8b94a8;">Optimized for funded account speed rules</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:10px;padding:14px;">
+                    <span style="font-size:20px;">✓</span>
+                    <div>
+                        <div style="font-size:13px;font-weight:600;color:#00ff88;">Evaluation Ready</div>
+                        <div style="font-size:10px;color:#8b94a8;">Designed to pass prop firm challenges</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div style="text-align:center;">
+            <a href="register.html" class="btn-primary">Start Free Trial →</a>
+            <p style="margin-top:10px;font-size:11px;color:#5b6580;">7-day full access • No credit card required</p>
         </div>
     </div>
 </section>
@@ -480,6 +800,248 @@ function _siteLang(lang) {
         var btns = document.querySelectorAll('.trialBtn');
         btns.forEach(function(b) { b.href = 'account.html'; b.textContent = 'Go to My Account →'; });
     }
+})();
+</script>
+
+<!-- PROFIT CALCULATOR LOGIC -->
+<script>
+(function() {
+    // Configuration
+    var GAS_URL = 'https://script.google.com/macros/s/AKfycbxYeFety2_oNtEByTjny0jXD3hBmeZWdU5fHqwyH7slF6Z6tXBwChjbY5Drj0wnefI2/exec';
+    var DEFAULTS = { monthlyPct: 8.0, maxDrawdownPct: 4.0, winRate: 75, subscriptionCostUSD: 500 };
+    var stats = Object.assign({}, DEFAULTS);
+    window._falconProfitStats = stats; // Share with compatibility funnel
+    var capitalInput = document.getElementById('calcCapitalInput');
+    var capitalSlider = document.getElementById('calcCapitalSlider');
+
+    // Format currency
+    function fmt(n) {
+        if (n < 0) return '-$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+
+    // Calculate and update display
+    function calculate() {
+        var capital = Math.max(100, Math.min(1000000, Number(capitalInput.value) || 0));
+        var sub = stats.subscriptionCostUSD || 500;
+        var mp = stats.monthlyPct / 100;
+        var dd = stats.maxDrawdownPct / 100;
+
+        var grossMonthly = capital * mp;
+        var netMonthly = grossMonthly - sub;
+        var maxDD = capital * dd;
+        var roi = capital > 0 ? ((netMonthly / capital) * 100) : 0;
+        var breakeven = mp > 0 ? Math.ceil(sub / mp) : 999999;
+
+        // Compounded projections (each month: balance grows, sub deducted)
+        var balance = capital;
+        var net3 = 0, net6 = 0, net12 = 0;
+        for (var i = 1; i <= 12; i++) {
+            var monthProfit = balance * mp;
+            balance = balance + monthProfit - sub;
+            if (i === 3) net3 = balance - capital;
+            if (i === 6) net6 = balance - capital;
+            if (i === 12) net12 = balance - capital;
+        }
+
+        // Update DOM
+        document.getElementById('calcGross').textContent = fmt(Math.round(grossMonthly));
+        var netEl = document.getElementById('calcNet');
+        netEl.textContent = fmt(Math.round(netMonthly));
+        netEl.style.color = netMonthly >= 0 ? '#00d9ff' : '#ff6b6b';
+        document.getElementById('calcDrawdown').textContent = fmt(Math.round(maxDD));
+        document.getElementById('calcROI').textContent = roi.toFixed(1) + '%';
+        document.getElementById('calcROI').style.color = roi >= 0 ? '#e6edf3' : '#ff6b6b';
+
+        document.getElementById('calc3m').textContent = fmt(Math.round(net3));
+        document.getElementById('calc3m').style.color = net3 >= 0 ? '#00ff88' : '#ff6b6b';
+        document.getElementById('calc6m').textContent = fmt(Math.round(net6));
+        document.getElementById('calc6m').style.color = net6 >= 0 ? '#00ff88' : '#ff6b6b';
+        document.getElementById('calc12m').textContent = fmt(Math.round(net12));
+        document.getElementById('calc12m').style.color = net12 >= 0 ? '#00ff88' : '#ff6b6b';
+
+        // Breakeven warning
+        var bkEl = document.getElementById('calcBreakeven');
+        if (capital < breakeven) {
+            bkEl.style.display = 'block';
+            document.getElementById('calcBreakevenAmt').textContent = fmt(breakeven);
+        } else {
+            bkEl.style.display = 'none';
+        }
+    }
+
+    // Sync slider ↔ input
+    capitalInput.addEventListener('input', function() {
+        var v = Number(this.value) || 0;
+        if (v >= 1000 && v <= 250000) capitalSlider.value = v;
+        calculate();
+    });
+    capitalSlider.addEventListener('input', function() {
+        capitalInput.value = this.value;
+        calculate();
+    });
+
+    // Fetch stats from GAS (lazy — on scroll into view)
+    var fetched = false;
+    function fetchStats() {
+        if (fetched) return;
+        fetched = true;
+        fetch(GAS_URL + '?command=get_profit_stats&t=' + Date.now(), { method: 'GET', mode: 'cors', cache: 'no-cache' })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data && data.status === 'ok') {
+                    stats.monthlyPct = Number(data.monthlyPct) || DEFAULTS.monthlyPct;
+                    stats.maxDrawdownPct = Number(data.maxDrawdownPct) || DEFAULTS.maxDrawdownPct;
+                    stats.winRate = Number(data.winRate) || DEFAULTS.winRate;
+                    stats.subscriptionCostUSD = Number(data.subscriptionCostUSD) || DEFAULTS.subscriptionCostUSD;
+                    // Share stats globally for the compatibility funnel
+                    window._falconProfitStats = stats;
+                    // Update badge
+                    document.getElementById('calcPctBadge').textContent = stats.monthlyPct.toFixed(1) + '%';
+                    if (data.source === 'myfxbook') {
+                        document.getElementById('calcBadge').querySelector('span').previousSibling.textContent = '📊 Verified on Myfxbook: ';
+                    }
+                    calculate();
+                }
+            })
+            .catch(function() { calculate(); }); // Use defaults on error
+    }
+
+    // IntersectionObserver: fetch when section enters viewport
+    if ('IntersectionObserver' in window) {
+        var section = document.getElementById('profit-calculator');
+        var obs = new IntersectionObserver(function(entries) {
+            if (entries[0].isIntersecting) { fetchStats(); obs.disconnect(); }
+        }, { threshold: 0.1 });
+        obs.observe(section);
+    } else {
+        fetchStats(); // Fallback: fetch immediately
+    }
+
+    // Initial calculation with defaults
+    calculate();
+})();
+</script>
+
+<!-- COMPATIBILITY FUNNEL LOGIC -->
+<script>
+(function() {
+    var topTier = ['icmarkets','pepperstone','tickmill','fpmarkets','fusionmarkets','vantage'];
+    var midTier = ['fxcm','oanda','xm','exness','roboforex'];
+
+    // Sync slider ↔ input
+    var capInput = document.getElementById('funnelCapital');
+    var capSlider = document.getElementById('funnelCapSlider');
+    if (capInput && capSlider) {
+        capInput.addEventListener('input', function() {
+            var v = Number(this.value) || 0;
+            if (v >= 1000 && v <= 250000) capSlider.value = v;
+        });
+        capSlider.addEventListener('input', function() {
+            capInput.value = this.value;
+        });
+    }
+
+    window.funnelNext = function(step) {
+        // Validate current step
+        if (step === 2) {
+            var cap = Number(document.getElementById('funnelCapital').value) || 0;
+            if (cap < 500) { alert('Please enter at least $500 capital.'); return; }
+        }
+        if (step === 3) {
+            var broker = document.getElementById('funnelBroker').value;
+            if (!broker) { alert('Please select your broker.'); return; }
+        }
+        showStep(step);
+    };
+
+    window.funnelBack = function(step) {
+        showStep(step);
+    };
+
+    function showStep(step) {
+        document.getElementById('funnelStep1').style.display = step === 1 ? 'block' : 'none';
+        document.getElementById('funnelStep2').style.display = step === 2 ? 'block' : 'none';
+        document.getElementById('funnelStep3').style.display = step === 3 ? 'block' : 'none';
+        document.getElementById('funnelResult').style.display = 'none';
+        document.getElementById('funnelProgress').style.width = (step * 33) + '%';
+        document.getElementById('funnelStepLabel').textContent = 'Step ' + step + '/3';
+    }
+
+    window.funnelAnalyze = function() {
+        var capital = Math.max(500, Number(document.getElementById('funnelCapital').value) || 0);
+        var broker = document.getElementById('funnelBroker').value;
+        var leverage = Number(document.getElementById('funnelLeverage').value) || 100;
+        var accType = document.querySelector('input[name="funnelAccType"]:checked').value;
+
+        // Score calculation
+        var score = 70;
+        if (topTier.indexOf(broker) >= 0) score += 20;
+        else if (midTier.indexOf(broker) >= 0) score += 10;
+        if (capital >= 5000) score += 5;
+        if (capital >= 25000) score += 5;
+        if (leverage < 30) score -= 5;
+        score = Math.min(100, Math.max(50, score));
+
+        // Risk profile
+        var risk = 'Balanced';
+        if (accType === 'propfirm') risk = 'Conservative';
+        else if (capital >= 25000) risk = 'Growth';
+        else if (capital < 5000) risk = 'Conservative';
+
+        // Net projection (reuse cached profit stats from calculator)
+        var mp = (window._falconProfitStats && window._falconProfitStats.monthlyPct) || 8.0;
+        var sub = (window._falconProfitStats && window._falconProfitStats.subscriptionCostUSD) || 500;
+        var grossMonthly = capital * (mp / 100);
+        var netMonthly = grossMonthly - sub;
+
+        // 12-month compounded
+        var balance = capital;
+        for (var i = 0; i < 12; i++) {
+            balance = balance + (balance * mp / 100) - sub;
+        }
+        var net12m = balance - capital;
+
+        // Display results
+        document.getElementById('funnelStep1').style.display = 'none';
+        document.getElementById('funnelStep2').style.display = 'none';
+        document.getElementById('funnelStep3').style.display = 'none';
+        document.getElementById('funnelResult').style.display = 'block';
+        document.getElementById('funnelProgress').style.width = '100%';
+        document.getElementById('funnelStepLabel').textContent = 'Complete ✓';
+
+        // Score with color
+        var scoreEl = document.getElementById('funnelScore');
+        scoreEl.textContent = score + '%';
+        scoreEl.style.color = score >= 90 ? '#00ff88' : score >= 75 ? '#00d9ff' : '#ffc107';
+        scoreEl.parentElement.parentElement.style.borderColor = score >= 90 ? '#00ff88' : score >= 75 ? '#00d9ff' : '#ffc107';
+
+        // Risk profile
+        var riskEl = document.getElementById('funnelRisk');
+        riskEl.textContent = risk + ' Mode';
+        riskEl.style.color = risk === 'Conservative' ? '#ffc107' : risk === 'Growth' ? '#00ff88' : '#00d9ff';
+
+        // Net profit
+        var profitEl = document.getElementById('funnelProfit');
+        profitEl.textContent = (netMonthly >= 0 ? '+$' : '-$') + Math.abs(Math.round(netMonthly)).toLocaleString('en-US');
+        profitEl.style.color = netMonthly >= 0 ? '#00d9ff' : '#ff6b6b';
+
+        // Detail rows
+        document.getElementById('funnelDetCapital').textContent = '$' + capital.toLocaleString('en-US');
+        var brokerNames = {icmarkets:'IC Markets',pepperstone:'Pepperstone',tickmill:'Tickmill',fpmarkets:'FP Markets',fusionmarkets:'Fusion Markets',vantage:'Vantage',fxcm:'FXCM',oanda:'Oanda',xm:'XM',exness:'Exness',roboforex:'RoboForex',other:'Other'};
+        document.getElementById('funnelDetBroker').textContent = brokerNames[broker] || broker;
+        document.getElementById('funnelDetLeverage').textContent = '1:' + leverage;
+        document.getElementById('funnelDetType').textContent = accType === 'propfirm' ? 'Prop Firm' : 'Personal';
+        document.getElementById('funnelDet12m').textContent = (net12m >= 0 ? '+$' : '-$') + Math.abs(Math.round(net12m)).toLocaleString('en-US');
+        document.getElementById('funnelDet12m').style.color = net12m >= 0 ? '#00ff88' : '#ff6b6b';
+    };
+
+    window.funnelReset = function() {
+        showStep(1);
+    };
+
+    // Share profit stats with calculator (expose globally)
+    window._falconProfitStats = window._falconProfitStats || null;
 })();
 </script>
 </body>

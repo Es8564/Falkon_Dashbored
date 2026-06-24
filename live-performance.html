@@ -87,6 +87,16 @@
     <!-- YOUTUBE LIVE STREAM -->
     <div class="section">
         <div class="section-title">🔴 Live MT5 Stream</div>
+        <!-- SAFE MODE BANNER -->
+        <div id="safeModeBar" style="display:none;background:linear-gradient(135deg,rgba(255,193,7,0.12),rgba(255,150,0,0.08));border:1px solid rgba(255,193,7,0.4);border-radius:12px;padding:16px 20px;margin-bottom:14px;text-align:center;">
+            <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;">
+                <span style="font-size:18px;">⚡</span>
+                <span id="safeModeText" style="font-size:13px;font-weight:700;color:#ffc107;">Safe Mode Active — Standing aside during high-impact news to protect capital.</span>
+            </div>
+            <div style="margin-top:10px;">
+                <a href="https://www.myfxbook.com/portfolio/falcon-ai-demo/12084640" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);color:#00ff88;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;">📊 View Long-Term Verified History on Myfxbook →</a>
+            </div>
+        </div>
         <div class="widget-container" style="padding:0;overflow:hidden;position:relative;padding-bottom:56.25%;height:0;">
             <iframe id="ytLiveStream" src="https://www.youtube.com/embed/live_stream?channel=UC5dqpXt0lvsKc6JdbiX5Vg&autoplay=1&mute=1" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;border-radius:14px;" allow="autoplay;encrypted-media" allowfullscreen></iframe>
         </div>
@@ -166,5 +176,28 @@
 
 <script src="nav-auth.js"></script>
 <script src="consent-banner.js"></script>
+<script>
+// Safe Mode Banner — polls GAS every 30 seconds
+(function() {
+    var GAS_URL = 'https://script.google.com/macros/s/AKfycbxYeFety2_oNtEByTjny0jXD3hBmeZWdU5fHqwyH7slF6Z6tXBwChjbY5Drj0wnefI2/exec';
+    function checkSafeMode() {
+        fetch(GAS_URL + '?command=get_safe_mode_status&t=' + Date.now(), { method: 'GET', mode: 'cors', cache: 'no-cache' })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var bar = document.getElementById('safeModeBar');
+                var text = document.getElementById('safeModeText');
+                if (data && data.status === 'ok' && data.safe_mode_active) {
+                    if (bar) bar.style.display = 'block';
+                    if (text && data.safe_mode_message) text.textContent = data.safe_mode_message;
+                } else {
+                    if (bar) bar.style.display = 'none';
+                }
+            })
+            .catch(function() {}); // Silent on error
+    }
+    checkSafeMode();
+    setInterval(checkSafeMode, 30000);
+})();
+</script>
 </body>
 </html>
