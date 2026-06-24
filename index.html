@@ -446,7 +446,7 @@
             <!-- Myfxbook Badge + Disclaimer -->
             <div style="text-align:center;">
                 <div id="calcBadge" style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,217,255,0.08);border:1px solid rgba(0,217,255,0.2);border-radius:20px;padding:6px 14px;font-size:11px;color:#00d9ff;font-weight:600;margin-bottom:10px;">
-                    📊 Based on verified <span id="calcPctBadge">8.0%</span> avg monthly return
+                    📊 Based on verified <span id="calcPctBadge">15.0%</span> avg monthly return
                 </div>
                 <p style="font-size:11px;color:#5b6580;line-height:1.5;">Past performance does not guarantee future results. Projections are estimates based on historical averages. Trading involves risk.</p>
             </div>
@@ -808,7 +808,7 @@ function _siteLang(lang) {
 (function() {
     // Configuration
     var GAS_URL = 'https://script.google.com/macros/s/AKfycbxYeFety2_oNtEByTjny0jXD3hBmeZWdU5fHqwyH7slF6Z6tXBwChjbY5Drj0wnefI2/exec';
-    var DEFAULTS = { monthlyPct: 8.0, maxDrawdownPct: 4.0, winRate: 75, subscriptionCostUSD: 500 };
+    var DEFAULTS = { monthlyPct: 15.0, maxDrawdownPct: 4.0, winRate: 75, subscriptionCostUSD: 500 };
     var stats = Object.assign({}, DEFAULTS);
     window._falconProfitStats = stats; // Share with compatibility funnel
     var capitalInput = document.getElementById('calcCapitalInput');
@@ -990,7 +990,7 @@ function _siteLang(lang) {
         else if (capital < 5000) risk = 'Conservative';
 
         // Net projection (reuse cached profit stats from calculator)
-        var mp = (window._falconProfitStats && window._falconProfitStats.monthlyPct) || 8.0;
+        var mp = (window._falconProfitStats && window._falconProfitStats.monthlyPct) || 15.0;
         var sub = (window._falconProfitStats && window._falconProfitStats.subscriptionCostUSD) || 500;
         var grossMonthly = capital * (mp / 100);
         var netMonthly = grossMonthly - sub;
