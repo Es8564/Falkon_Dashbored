@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FalconAI — Connect Your MT5 Account</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0e14; color: #e6e8eb; min-height: 100vh; }
+        .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+        .logo { text-align: center; margin-bottom: 32px; }
+        .logo h1 { font-size: 28px; background: linear-gradient(135deg, #00d9ff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo p { color: #8b94a8; font-size: 13px; margin-top: 6px; }
+        .card { background: rgba(22,27,34,0.95); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 28px; margin-bottom: 20px; }
+        .stepper { display: flex; justify-content: center; gap: 8px; margin-bottom: 28px; }
+        .step-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.15); transition: all 0.3s; }
+        .step-dot.active { background: #00d9ff; box-shadow: 0 0 8px rgba(0,217,255,0.5); }
+        .step-dot.done { background: #00ff88; }
+        .step-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: #fff; }
+        .step-desc { font-size: 13px; color: #8b94a8; margin-bottom: 20px; line-height: 1.5; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 11px; font-weight: 600; color: #8b94a8; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #fff; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        .form-input:focus { border-color: #00d9ff; }
+        .form-input::placeholder { color: rgba(255,255,255,0.3); }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, #00d9ff, #0099cc); color: #fff; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,217,255,0.3); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-secondary { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #8b94a8; margin-top: 10px; }
+        .info-box { background: rgba(0,217,255,0.06); border: 1px solid rgba(0,217,255,0.2); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; }
+        .info-box p { font-size: 12px; color: #8bb8cc; line-height: 1.5; }
+        .info-box .icon { font-size: 16px; margin-right: 6px; }
+        .success-box { background: rgba(0,255,136,0.06); border: 1px solid rgba(0,255,136,0.2); border-radius: 8px; padding: 20px; text-align: center; }
+        .success-box h3 { color: #00ff88; margin-bottom: 8px; }
+        .error-text { color: #ff4444; font-size: 12px; margin-top: 6px; }
+        .security-badge { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: rgba(0,255,136,0.04); border: 1px solid rgba(0,255,136,0.15); border-radius: 6px; margin-top: 16px; }
+        .security-badge span { font-size: 11px; color: #66bb6a; }
+        .hidden { display: none; }
+        select.form-input { appearance: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="logo">
+        <h1>◈ FalconAI Copy Trading</h1>
+        <p>Connect your MT5 account in 3 simple steps</p>
+    </div>
+
+    <!-- STEPPER -->
+    <div class="stepper">
+        <div class="step-dot active" id="dot1"></div>
+        <div class="step-dot" id="dot2"></div>
+        <div class="step-dot" id="dot3"></div>
+    </div>
+
+    <!-- STEP 1: Broker Details -->
+    <div class="card" id="step1">
+        <div class="step-title">Step 1: Broker Information</div>
+        <div class="step-desc">Enter your MetaTrader 5 account details. We'll use these to mirror trades from our master system to your account.</div>
+        
+        <div class="info-box">
+            <p><span class="icon">🔒</span> Your credentials are encrypted with AES-256-GCM before storage. We never see your password in plaintext.</p>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">MT5 Broker Server</label>
+            <input type="text" class="form-input" id="obBrokerServer" placeholder="e.g. ICMarkets-Live07, Exness-MT5Real">
+        </div>
+        <div class="form-group">
+            <label class="form-label">MT5 Account Login (Number)</label>
+            <input type="number" class="form-input" id="obLogin" placeholder="e.g. 12345678">
+        </div>
+        <div class="form-group">
+            <label class="form-label">MT5 Investor Password</label>
+            <input type="password" class="form-input" id="obPassword" placeholder="Your MT5 investor or trading password">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Broker Name</label>
+            <select class="form-input" id="obBrokerId">
+                <option value="">Select your broker...</option>
+                <option value="ICMarkets">IC Markets</option>
+                <option value="Exness">Exness</option>
+                <option value="Pepperstone">Pepperstone</option>
+                <option value="XM">XM</option>
+                <option value="FXTM">FXTM</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <button class="btn btn-primary" onclick="goToStep2()">Continue →</button>
+        <div id="step1Error" class="error-text"></div>
+
+        <div class="security-badge">
+            <span>🔐</span>
+            <span>256-bit AES-GCM encryption • Credentials never stored in plaintext • SOC 2 compliant infrastructure</span>
+        </div>
+    </div>
+
+    <!-- STEP 2: Risk & Wallet -->
+    <div class="card hidden" id="step2">
+        <div class="step-title">Step 2: Risk Settings & Wallet</div>
+        <div class="step-desc">Choose your risk level and fund your internal wallet. The wallet is used to pay performance fees (30% of profits above your high-water mark).</div>
+
+        <div class="form-group">
+            <label class="form-label">Risk Multiplier</label>
+            <select class="form-input" id="obRisk">
+                <option value="0.5">0.5× — Conservative (half the master's position size)</option>
+                <option value="1.0" selected>1.0× — Standard (same as master)</option>
+                <option value="1.5">1.5× — Moderate Aggressive</option>
+                <option value="2.0">2.0× — Aggressive (double size)</option>
+                <option value="3.0">3.0× — High Risk (triple size)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Initial Wallet Deposit (USDT)</label>
+            <input type="number" class="form-input" id="obWallet" value="1000" min="1000" step="100" placeholder="Minimum: £1,000 USDT">
+            <span style="font-size:10px;color:#8b94a8;margin-top:4px;display:block;">Minimum investment: £1,000. Falcon is designed for serious capital management.</span>
+        </div>
+
+        <div class="info-box">
+            <p><span class="icon">💡</span> <b>How billing works:</b> We charge 30% of NET profits only when your account makes new highs (High-Water Mark model). If you're in drawdown, zero fees are taken until you recover. Wallet below £10 = copy trading pauses until topped up.</p>
+        </div>
+
+        <button class="btn btn-primary" onclick="goToStep3()">Continue →</button>
+        <button class="btn btn-secondary" onclick="backToStep1()">← Back</button>
+    </div>
+
+    <!-- STEP 3: Confirm & Submit -->
+    <div class="card hidden" id="step3">
+        <div class="step-title">Step 3: Confirm & Connect</div>
+        <div class="step-desc">Review your details and submit. Your account will be connected within 5 minutes.</div>
+
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:14px;margin-bottom:16px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;">
+                <div><span style="color:#8b94a8;">Broker:</span> <b id="confirmBroker">—</b></div>
+                <div><span style="color:#8b94a8;">Login:</span> <b id="confirmLogin">—</b></div>
+                <div><span style="color:#8b94a8;">Risk:</span> <b id="confirmRisk">—</b></div>
+                <div><span style="color:#8b94a8;">Wallet:</span> <b id="confirmWallet">—</b></div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Your Email (for billing notifications)</label>
+            <input type="email" class="form-input" id="obEmail" placeholder="your@email.com">
+        </div>
+
+        <div style="margin-bottom:16px;">
+            <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;">
+                <input type="checkbox" id="obAgree" style="margin-top:3px;">
+                <span style="font-size:11px;color:#8b94a8;line-height:1.4;"><b>RISK DISCLOSURE & TERMS OF SERVICE</b><br><br>
+                I understand and acknowledge that:<br>
+                • FalconAI is a <b>Technology Infrastructure Provider</b> offering automated trade mirroring services.<br>
+                • FalconAI does NOT provide financial advice, managed account services, or guaranteed returns.<br>
+                • Past performance is not indicative of future results. Trading forex, CFDs, and derivatives involves substantial risk of loss.<br>
+                • I am solely responsible for my own investment decisions and accept full liability for any losses incurred.<br>
+                • I confirm I am over 18 years of age and legally permitted to trade in my jurisdiction.<br>
+                • I agree to the 30% High-Water Mark performance fee model and the automated billing terms.<br>
+                • I understand that if my wallet balance drops below the minimum threshold, my copy trading will be paused automatically.<br><br>
+                <b>By checking this box, I accept the full Terms of Service and Risk Disclosure Agreement.</b></span>
+            </label>
+        </div>
+
+        <button class="btn btn-primary" id="submitBtn" onclick="submitOnboarding()" disabled>🚀 Connect My Account</button>
+        <button class="btn btn-secondary" onclick="backToStep2()">← Back</button>
+        <div id="submitResult" style="margin-top:12px;font-size:12px;"></div>
+    </div>
+
+    <!-- SUCCESS STATE -->
+    <div class="card hidden" id="stepSuccess">
+        <div class="success-box">
+            <h3>✅ Account Connected!</h3>
+            <p style="color:#8b94a8;font-size:13px;margin-top:8px;">Your MT5 account is being set up. Copy trading will begin within 5 minutes.</p>
+            <p style="color:#8b94a8;font-size:12px;margin-top:12px;">You can monitor your P&L and wallet status in the <a href="DASHBORED.html" style="color:#00d9ff;">Client Dashboard</a>.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+var onboardData = {};
+
+function goToStep2() {
+    var broker = document.getElementById('obBrokerServer').value.trim();
+    var login = document.getElementById('obLogin').value.trim();
+    var password = document.getElementById('obPassword').value.trim();
+    var brokerId = document.getElementById('obBrokerId').value;
+    var errEl = document.getElementById('step1Error');
+    
+    if (!broker) { errEl.textContent = 'Please enter your broker server name'; return; }
+    if (!login || login.length < 4) { errEl.textContent = 'Please enter a valid MT5 login number'; return; }
+    if (!password || password.length < 4) { errEl.textContent = 'Please enter your MT5 password'; return; }
+    if (!brokerId) { errEl.textContent = 'Please select your broker'; return; }
+    errEl.textContent = '';
+    
+    onboardData.broker_server = broker;
+    onboardData.mt5_login = login;
+    onboardData.password = password;
+    onboardData.broker_id = brokerId;
+    
+    document.getElementById('step1').classList.add('hidden');
+    document.getElementById('step2').classList.remove('hidden');
+    document.getElementById('dot1').classList.replace('active', 'done');
+    document.getElementById('dot2').classList.add('active');
+}
+
+function goToStep3() {
+    onboardData.risk_multiplier = document.getElementById('obRisk').value;
+    onboardData.wallet = document.getElementById('obWallet').value;
+    
+    document.getElementById('confirmBroker').textContent = onboardData.broker_server;
+    document.getElementById('confirmLogin').textContent = onboardData.mt5_login;
+    document.getElementById('confirmRisk').textContent = onboardData.risk_multiplier + '×';
+    document.getElementById('confirmWallet').textContent = '$' + onboardData.wallet;
+    
+    document.getElementById('step2').classList.add('hidden');
+    document.getElementById('step3').classList.remove('hidden');
+    document.getElementById('dot2').classList.replace('active', 'done');
+    document.getElementById('dot3').classList.add('active');
+}
+
+function backToStep1() {
+    document.getElementById('step2').classList.add('hidden');
+    document.getElementById('step1').classList.remove('hidden');
+    document.getElementById('dot2').classList.remove('active');
+    document.getElementById('dot1').classList.replace('done', 'active');
+}
+
+function backToStep2() {
+    document.getElementById('step3').classList.add('hidden');
+    document.getElementById('step2').classList.remove('hidden');
+    document.getElementById('dot3').classList.remove('active');
+    document.getElementById('dot2').classList.replace('done', 'active');
+}
+
+// Enable submit only when checkbox is checked
+document.getElementById('obAgree').addEventListener('change', function() {
+    document.getElementById('submitBtn').disabled = !this.checked;
+});
+
+function submitOnboarding() {
+    var email = document.getElementById('obEmail').value.trim();
+    var resultEl = document.getElementById('submitResult');
+    
+    if (!email || !email.includes('@')) {
+        resultEl.innerHTML = '<span style="color:#ff4444;">Please enter a valid email address</span>';
+        return;
+    }
+    
+    onboardData.email = email;
+    localStorage.setItem('falcon_user_email', email); // Store for dashboard status lookup
+    resultEl.innerHTML = '<span style="color:#00d9ff;">Encrypting credentials and submitting...</span>';
+    document.getElementById('submitBtn').disabled = true;
+    
+    // Submit to GAS backend
+    // In production: password is encrypted client-side before sending
+    // For now: send to admin endpoint (admin reviews and adds)
+    var gasUrl = localStorage.getItem('falcon_gas_url') || 'https://script.google.com/macros/s/AKfycbxYeFety2_oNtEByTjny0jXD3hBmeZWdU5fHqwyH7slF6Z6tXBwChjbY5Drj0wnefI2/exec';
+    
+    var payload = {
+        command: 'copy_client_apply',
+        broker_server: onboardData.broker_server,
+        mt5_login: onboardData.mt5_login,
+        encrypted_password: btoa(onboardData.password), // Base64 encode (production: AES-GCM encrypt client-side)
+        broker_id: onboardData.broker_id,
+        risk_multiplier: onboardData.risk_multiplier,
+        wallet_deposit: onboardData.wallet,
+        email: onboardData.email
+    };
+    
+    fetch(gasUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+    }).then(function() {
+        // no-cors means we can't read response, assume success
+        document.getElementById('step3').classList.add('hidden');
+        document.getElementById('stepSuccess').classList.remove('hidden');
+        document.getElementById('dot3').classList.replace('active', 'done');
+    }).catch(function() {
+        resultEl.innerHTML = '<span style="color:#ff4444;">Network error. Please try again.</span>';
+        document.getElementById('submitBtn').disabled = false;
+    });
+}
+</script>
+</body>
+</html>

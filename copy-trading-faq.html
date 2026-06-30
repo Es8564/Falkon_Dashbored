@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FalconAI — Copy Trading FAQ</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0e14; color: #e6e8eb; min-height: 100vh; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+        h1 { font-size: 32px; text-align: center; margin-bottom: 8px; background: linear-gradient(135deg, #00d9ff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { text-align: center; color: #8b94a8; margin-bottom: 40px; font-size: 14px; }
+        .faq-section { margin-bottom: 32px; }
+        .faq-section-title { font-size: 16px; font-weight: 700; color: #00d9ff; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid rgba(0,217,255,0.2); }
+        .faq-item { background: rgba(22,27,34,0.9); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+        .faq-q { padding: 16px 20px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+        .faq-q:hover { background: rgba(255,255,255,0.03); }
+        .faq-q .arrow { color: #00d9ff; font-size: 16px; transition: transform 0.3s; }
+        .faq-a { padding: 0 20px 16px; font-size: 13px; color: #b0b8c4; display: none; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 12px; margin-top: 0; }
+        .faq-item.open .faq-a { display: block; }
+        .faq-item.open .arrow { transform: rotate(180deg); }
+        .highlight { color: #00d9ff; font-weight: 600; }
+        .warn { color: #ffc107; }
+        .back-link { text-align: center; margin-top: 32px; }
+        .back-link a { color: #00d9ff; text-decoration: none; font-size: 13px; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+        .badge-green { background: rgba(0,255,136,0.1); color: #00ff88; border: 1px solid rgba(0,255,136,0.3); }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>◈ FalconAI Copy Trading</h1>
+    <p class="subtitle">Frequently Asked Questions — Everything You Need to Know</p>
+
+    <!-- GETTING STARTED -->
+    <div class="faq-section">
+        <div class="faq-section-title">🚀 Getting Started</div>
+        
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">How do I connect my MT5 account?<span class="arrow">▼</span></div>
+            <div class="faq-a">Visit the <a href="copy-trading-onboard.html" style="color:#00d9ff;">onboarding page</a>, enter your MT5 broker server name, login number, and investor password. Select your risk level, fund your wallet (minimum £1,000), and submit. Your account will be activated within 24 hours after admin verification.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">Which brokers are supported?<span class="arrow">▼</span></div>
+            <div class="faq-a">We support all major MT5 brokers including <span class="highlight">IC Markets, Exness, Pepperstone, XM, FXTM</span>, and most other MetaTrader 5 brokers. If your broker isn't listed in the dropdown, select "Other" and enter your server name manually.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">What is the minimum investment?<span class="arrow">▼</span></div>
+            <div class="faq-a">The minimum wallet deposit is <span class="highlight">£1,000 USDT</span>. FalconAI is designed for serious capital management. Accounts below this threshold cannot sustain proper position sizing and risk management.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">Is my password safe?<span class="arrow">▼</span></div>
+            <div class="faq-a">Absolutely. Your MT5 credentials are encrypted with <span class="highlight">AES-256-GCM</span> (the same encryption used by banks and military systems) before being stored. Your password is <b>never</b> visible in plaintext — not even to our administrators. The encryption key is stored in a hardware-secured environment variable on our dedicated London VPS.</div>
+        </div>
+    </div>
+
+    <!-- BILLING & FEES -->
+    <div class="faq-section">
+        <div class="faq-section-title">💰 Billing & Performance Fees</div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">How does the 30% performance fee work?<span class="arrow">▼</span></div>
+            <div class="faq-a">We use the <span class="highlight">High-Water Mark (HWM) model</span>:<br><br>
+            • We ONLY charge 30% of <b>net new profits</b> above your account's all-time high.<br>
+            • If your account drops (drawdown), <b>zero fees</b> are charged until you fully recover AND make new profit.<br>
+            • Example: Account goes $10,000 → $10,500 (new high). Fee = $500 × 30% = <span class="highlight">$150</span>.<br>
+            • If it drops to $9,800, NO fee until it exceeds $10,500 again.<br><br>
+            This model ensures we only earn when YOU earn.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">When are fees charged?<span class="arrow">▼</span></div>
+            <div class="faq-a">Fees are calculated and deducted <b>daily at 00:05 UTC</b>. The system checks your account balance, compares it to your High-Water Mark, and if there's new profit, 30% is deducted from your USDT wallet. You'll receive an email notification with a detailed invoice for every fee charge.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">What happens if my wallet runs out?<span class="arrow">▼</span></div>
+            <div class="faq-a"><span class="warn">⚠️ Important:</span> If your wallet drops below £10 USDT after a fee deduction, you receive a <b>24-hour alert</b> to top up. If the wallet is not funded within 24 hours, copy trading is automatically paused — no new trades are copied. Your existing positions remain open for manual management. To resume, simply top up your wallet.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">How do I deposit to my wallet?<span class="arrow">▼</span></div>
+            <div class="faq-a">USDT deposits are accepted via <span class="highlight">TRC-20 (Tron)</span> or <span class="highlight">ERC-20 (Ethereum)</span>. Contact support for your unique deposit address. Manual bank transfers are also accepted — reach out via the live chat for details.</div>
+        </div>
+    </div>
+
+    <!-- TRADING & RISK -->
+    <div class="faq-section">
+        <div class="faq-section-title">📊 Trading & Risk Management</div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">What instruments does FalconAI trade?<span class="arrow">▼</span></div>
+            <div class="faq-a">Our master system primarily trades <span class="highlight">Gold (XAUUSD)</span> and <span class="highlight">Dow Jones (US30/DJ30)</span>, with selective exposure to US100 (Nasdaq) and Bitcoin. The EA uses a neural network with 5 parallel trading models for diversified signal generation.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">What is the Risk Multiplier?<span class="arrow">▼</span></div>
+            <div class="faq-a">The risk multiplier controls your position size relative to the master:<br><br>
+            • <b>0.5×</b> — Conservative (half the master's lot size)<br>
+            • <b>1.0×</b> — Standard (proportional to your balance)<br>
+            • <b>1.5×</b> — Moderate aggressive<br>
+            • <b>2.0×</b> — Aggressive (double the proportional size)<br>
+            • <b>3.0×</b> — High risk (triple)<br><br>
+            Higher multipliers mean higher potential returns AND higher risk. Choose based on your risk tolerance.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">Can I change my risk level later?<span class="arrow">▼</span></div>
+            <div class="faq-a">Yes. Contact support to adjust your risk multiplier at any time. Changes take effect within 5 minutes on the next trade signal.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">What is the expected performance?<span class="arrow">▼</span></div>
+            <div class="faq-a">Past performance does not guarantee future results. Our system targets consistent risk-adjusted returns using institutional-grade algorithms. You can view live performance metrics on the dashboard. Individual results vary based on risk multiplier, broker execution, and market conditions.</div>
+        </div>
+    </div>
+
+    <!-- ACCOUNT MANAGEMENT -->
+    <div class="faq-section">
+        <div class="faq-section-title">⚙️ Account Management</div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">Can I disconnect at any time?<span class="arrow">▼</span></div>
+            <div class="faq-a">Yes. Use the <span class="highlight">Emergency Disconnect</span> button in your dashboard, or contact support. Copy trading stops immediately. Your existing open positions remain under your control — you'll need to manage or close them manually through your MT5 terminal.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">Do I keep control of my MT5 account?<span class="arrow">▼</span></div>
+            <div class="faq-a">Yes. FalconAI only copies trades TO your account. You retain full access and can trade manually alongside the copy system (though we recommend not interfering with copied positions to avoid conflicts).</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">What if I withdraw money from my MT5 account?<span class="arrow">▼</span></div>
+            <div class="faq-a">Withdrawals are automatically detected by our system. Your High-Water Mark is adjusted proportionally — ensuring you're never charged fees on capital you withdrew. For example, if you withdraw 30% of your balance, your HWM is reduced by 30%.</div>
+        </div>
+    </div>
+
+    <div class="back-link">
+        <a href="copy-trading-onboard.html">→ Connect Your Account</a> &nbsp;|&nbsp;
+        <a href="DASHBORED.html">→ Client Dashboard</a> &nbsp;|&nbsp;
+        <a href="index.html">→ Home</a>
+    </div>
+</div>
+
+<script>
+function toggleFaq(el) {
+    el.parentElement.classList.toggle('open');
+}
+</script>
+</body>
+</html>

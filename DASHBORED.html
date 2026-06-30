@@ -10,6 +10,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
     <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <script src="dashboard-security.js"></script>
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         html { -webkit-text-size-adjust: 100%; height: 100%; overflow: hidden; }
@@ -3145,6 +3146,125 @@
             <span class="os-resize os-resize-b"></span>
             <span class="os-resize os-resize-br"></span>
         </section>
+        <!-- EA TRADING POWER WINDOW -->
+        <section class="os-window" id="winPower" data-win="power" data-title="EA Power" data-icon="⚡" style="left:14px;top:660px;width:420px;height:280px;">
+            <div class="os-titlebar">
+                <span class="os-title-icon">⚡</span>
+                <span class="os-title-text">EA Trading Power</span>
+                <div class="os-title-controls">
+                    <button class="os-tb-btn os-min" data-action="minimize" title="Minimize">_</button>
+                    <button class="os-tb-btn os-max" data-action="maximize" title="Maximize">▢</button>
+                    <button class="os-tb-btn os-close" data-action="close" title="Close">×</button>
+                </div>
+            </div>
+            <div class="os-window-body">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">⚡ EA Trading Power Status</div>
+                        <div id="powerBadge" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;background:rgba(0,217,255,0.1);color:#00d9ff;border:1px solid rgba(0,217,255,0.3);">L5 Balanced</div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Current Power Level Visual -->
+                        <div style="text-align:center;margin-bottom:12px;">
+                            <div style="font-size:9px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Current Power Level</div>
+                            <div id="powerLevelDisplay" style="font-size:36px;font-weight:900;color:#00d9ff;">5</div>
+                            <div id="powerModeName" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:2px;">Balanced (Default)</div>
+                        </div>
+                        <!-- Power Bar Visual -->
+                        <div style="position:relative;height:8px;background:rgba(255,255,255,0.06);border-radius:4px;margin-bottom:12px;overflow:hidden;">
+                            <div id="powerBar" style="position:absolute;left:0;top:0;height:100%;width:50%;background:linear-gradient(90deg,#4caf50,#00d9ff);border-radius:4px;transition:width 0.5s ease;"></div>
+                        </div>
+                        <!-- Expiration Info -->
+                        <div id="powerExpiryRow" style="display:none;background:rgba(255,193,7,0.08);border:1px solid rgba(255,193,7,0.2);border-radius:6px;padding:8px 10px;margin-bottom:12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <span style="font-size:10px;color:#ffc107;">⏱ Expires</span>
+                                <span id="powerExpiryDate" style="font-size:10px;font-weight:700;color:#ffc107;">--</span>
+                            </div>
+                            <div id="powerExpiryCountdown" style="font-size:9px;color:rgba(255,193,7,0.7);margin-top:3px;text-align:right;">--</div>
+                        </div>
+                        <!-- Token Activation Input -->
+                        <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:12px;">
+                            <div style="font-size:9px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Activate Power Token</div>
+                            <div style="display:flex;gap:8px;">
+                                <input type="text" class="input" id="powerTokenInput" placeholder="Enter activation code" style="flex:1;font-size:12px;padding:8px 10px;">
+                                <button class="btn btn-primary" onclick="activatePowerToken()" style="padding:8px 14px;font-size:11px;font-weight:700;white-space:nowrap;">Activate</button>
+                            </div>
+                            <div id="powerTokenResult" style="font-size:10px;margin-top:6px;min-height:14px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="os-resize os-resize-r"></span>
+            <span class="os-resize os-resize-b"></span>
+            <span class="os-resize os-resize-br"></span>
+        </section>
+        <!-- COPY TRADING STATUS WINDOW (Client-Facing System B) -->
+        <section class="os-window" id="winCopyStatus" data-win="copystatus" data-title="Copy Trading" data-icon="📡" style="left:14px;top:950px;width:420px;height:340px;">
+            <div class="os-titlebar">
+                <span class="os-title-icon">📡</span>
+                <span class="os-title-text">Copy Trading</span>
+                <div class="os-title-controls">
+                    <button class="os-tb-btn os-min" data-action="minimize" title="Minimize">_</button>
+                    <button class="os-tb-btn os-max" data-action="maximize" title="Maximize">▢</button>
+                </div>
+            </div>
+            <div class="os-window-body">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">📡 Copy Trading Status</div>
+                        <div id="copyStatusBadge" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;background:rgba(0,255,136,0.1);color:#00ff88;border:1px solid rgba(0,255,136,0.3);">--</div>
+                    </div>
+                    <div class="card-body">
+                        <div id="copyStatusContent" style="display:none;">
+                            <!-- Wallet Balance -->
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                                <span style="font-size:11px;color:rgba(255,255,255,0.5);">💰 Wallet Balance</span>
+                                <span id="clientWalletBalance" style="font-size:14px;font-weight:700;color:#00d9ff;">$0.00</span>
+                            </div>
+                            <!-- HWM -->
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                                <span style="font-size:11px;color:rgba(255,255,255,0.5);">📈 High-Water Mark</span>
+                                <span id="clientHWM" style="font-size:14px;font-weight:700;color:#fff;">$0.00</span>
+                            </div>
+                            <!-- Account Balance -->
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                                <span style="font-size:11px;color:rgba(255,255,255,0.5);">🏦 MT5 Balance</span>
+                                <span id="clientMT5Balance" style="font-size:14px;font-weight:700;color:#fff;">$0.00</span>
+                            </div>
+                            <!-- Risk -->
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                                <span style="font-size:11px;color:rgba(255,255,255,0.5);">⚡ Risk Level</span>
+                                <span id="clientRiskLevel" style="font-size:14px;font-weight:700;color:#ffc107;">1.0×</span>
+                            </div>
+                            <!-- Total Fees Paid -->
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;">
+                                <span style="font-size:11px;color:rgba(255,255,255,0.5);">📋 Total Fees Paid</span>
+                                <span id="clientTotalFees" style="font-size:14px;font-weight:700;color:#ff9800;">$0.00</span>
+                            </div>
+                        </div>
+                        <div id="copyStatusNotConnected" style="text-align:center;padding:20px;color:rgba(255,255,255,0.4);font-size:12px;">
+                            <p>Not connected to copy trading.</p>
+                            <a href="copy-trading-onboard.html" style="color:#00d9ff;text-decoration:none;font-weight:700;">→ Connect your MT5 account</a>
+                        </div>
+                        <!-- EMERGENCY DISCONNECT BUTTON -->
+                        <div id="copyEmergencySection" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,68,68,0.2);">
+                            <button onclick="emergencyDisconnectCopy()" style="width:100%;padding:10px;background:rgba(255,68,68,0.12);border:2px solid rgba(255,68,68,0.5);border-radius:8px;color:#ff4444;font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.5px;">⚠️ EMERGENCY DISCONNECT — Pause Copy Trading</button>
+                            <p style="font-size:9px;color:rgba(255,255,255,0.3);text-align:center;margin-top:4px;">Instantly suspends all trade copying. Existing positions stay open.</p>
+                        </div>
+                        <!-- MINI TRADE HISTORY (last 5 trades) -->
+                        <div id="copyTradeHistory" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.05);">
+                            <div style="font-size:9px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Recent Trades</div>
+                            <div id="copyTradeList" style="font-size:10px;">
+                                <div style="color:rgba(255,255,255,0.3);text-align:center;padding:8px;">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="os-resize os-resize-r"></span>
+            <span class="os-resize os-resize-b"></span>
+            <span class="os-resize os-resize-br"></span>
+        </section>
         <section class="os-window" id="winSystem" data-win="system" data-title="System" data-icon="🛠" style="left:434px;top:500px;width:480px;height:420px;">
             <div class="os-titlebar">
                 <span class="os-title-icon">🛠</span>
@@ -4350,6 +4470,8 @@
         renderAccount(currentState.account);
         renderLicense(currentState.account);
         renderAI(currentState.ai);
+        // [AGGRESSIVENESS] Update power level display from state
+        if (typeof _updatePowerFromState === 'function') _updatePowerFromState(currentState);
     }
 
     /* ====================================================================
@@ -11957,6 +12079,203 @@ window.addEventListener('appinstalled', function () {
     } else {
         document.getElementById('dashTrialExpiredBanner').style.display = 'block';
     }
+})();
+</script>
+
+<!-- EA POWER LEVEL MODULE -->
+<script>
+(function() {
+    var LEVEL_NAMES = ['','Ultra Conservative','Conservative','Moderate Conservative','Slightly Conservative','Balanced','Slightly Aggressive','Moderate Aggressive','Aggressive','Very Aggressive','Maximum Aggressive'];
+    var LEVEL_COLORS = ['','#4caf50','#66bb6a','#8bc34a','#aed581','#00d9ff','#ffc107','#ff9800','#ff7043','#f44336','#d32f2f'];
+
+    function updatePowerUI(level, expiresAt) {
+        level = Math.max(1, Math.min(10, level || 5));
+        var display = document.getElementById('powerLevelDisplay');
+        var name = document.getElementById('powerModeName');
+        var badge = document.getElementById('powerBadge');
+        var bar = document.getElementById('powerBar');
+        var expiryRow = document.getElementById('powerExpiryRow');
+
+        if (display) { display.textContent = level; display.style.color = LEVEL_COLORS[level]; }
+        if (name) name.textContent = LEVEL_NAMES[level] + (level === 5 ? ' (Default)' : '');
+        if (badge) {
+            badge.textContent = 'L' + level + ' ' + LEVEL_NAMES[level].split(' ').pop();
+            badge.style.color = LEVEL_COLORS[level];
+            badge.style.borderColor = LEVEL_COLORS[level] + '66';
+            badge.style.background = LEVEL_COLORS[level] + '1a';
+        }
+        if (bar) bar.style.width = (level * 10) + '%';
+
+        // Expiry
+        if (expiresAt && level !== 5) {
+            var exp = new Date(expiresAt);
+            if (expiryRow) expiryRow.style.display = 'block';
+            var dateEl = document.getElementById('powerExpiryDate');
+            if (dateEl) dateEl.textContent = exp.toLocaleDateString() + ' ' + exp.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+            startCountdown(exp);
+        } else {
+            if (expiryRow) expiryRow.style.display = 'none';
+        }
+    }
+
+    var _cdInterval = null;
+    function startCountdown(expDate) {
+        if (_cdInterval) clearInterval(_cdInterval);
+        var cdEl = document.getElementById('powerExpiryCountdown');
+        _cdInterval = setInterval(function() {
+            var now = Date.now();
+            var diff = expDate.getTime() - now;
+            if (diff <= 0) {
+                if (cdEl) cdEl.textContent = 'Expired — resetting to Level 5';
+                clearInterval(_cdInterval);
+                updatePowerUI(5, null);
+                return;
+            }
+            var days = Math.floor(diff / 86400000);
+            var hrs = Math.floor((diff % 86400000) / 3600000);
+            var mins = Math.floor((diff % 3600000) / 60000);
+            if (cdEl) cdEl.textContent = (days > 0 ? days + 'd ' : '') + hrs + 'h ' + mins + 'm remaining';
+        }, 30000);
+        // Run once immediately
+        var now = Date.now();
+        var diff = expDate.getTime() - now;
+        if (diff > 0 && document.getElementById('powerExpiryCountdown')) {
+            var days = Math.floor(diff / 86400000);
+            var hrs = Math.floor((diff % 86400000) / 3600000);
+            var mins = Math.floor((diff % 3600000) / 60000);
+            document.getElementById('powerExpiryCountdown').textContent = (days > 0 ? days + 'd ' : '') + hrs + 'h ' + mins + 'm remaining';
+        }
+    }
+
+    // Activate power token
+    window.activatePowerToken = function() {
+        var input = document.getElementById('powerTokenInput');
+        var resultEl = document.getElementById('powerTokenResult');
+        var code = (input ? input.value.trim() : '');
+        if (!code) { resultEl.innerHTML = '<span style="color:#ff4444;">Please enter an activation code</span>'; return; }
+
+        resultEl.innerHTML = '<span style="color:#00d9ff;">Validating...</span>';
+
+        // Call GAS to validate the power token
+        var cfg = (typeof getConfig === 'function') ? getConfig() : {};
+        var token = cfg.secretToken || '';
+        var baseUrl = (cfg.endpointUrl || '').trim();
+        if (!baseUrl || !token) { resultEl.innerHTML = '<span style="color:#ff4444;">Dashboard not configured. Set endpoint in Settings.</span>'; return; }
+        var url = baseUrl + '?command=activate_power_token&token=' + encodeURIComponent(token) +
+                  '&power_code=' + encodeURIComponent(code) + '&source=web_cmd';
+
+        fetch(url)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.status === 'ok') {
+                    var lvl = data.aggressiveness_level || 5;
+                    var exp = data.expires_at || null;
+                    updatePowerUI(lvl, exp);
+                    resultEl.innerHTML = '<span style="color:#4caf50;">✓ Activated! Level ' + lvl + ' (' + LEVEL_NAMES[lvl] + ')</span>';
+                    if (input) input.value = '';
+                } else {
+                    resultEl.innerHTML = '<span style="color:#ff4444;">' + (data.error || 'Invalid code') + '</span>';
+                }
+            })
+            .catch(function() {
+                resultEl.innerHTML = '<span style="color:#ff4444;">Network error — try again</span>';
+            });
+    };
+
+    // On page load / state refresh, check current power level
+    window._updatePowerFromState = function(state) {
+        if (state && typeof state.aggressiveness_level !== 'undefined') {
+            var lvl = parseInt(state.aggressiveness_level) || 5;
+            var exp = state.aggressiveness_expires_at || null;
+            updatePowerUI(lvl, exp);
+        }
+    };
+
+    // Initial state
+    updatePowerUI(5, null);
+})();
+</script>
+
+<!-- COPY TRADING CLIENT STATUS MODULE -->
+<script>
+(function() {
+    function loadCopyStatus() {
+        var cfg = (typeof getConfig === 'function') ? getConfig() : {};
+        var url = (cfg.endpointUrl || '').trim();
+        var email = localStorage.getItem('falcon_user_email') || '';
+        if (!url || !email) return;
+        
+        fetch(url + '?command=copy_client_status&email=' + encodeURIComponent(email) + '&source=web_cmd')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.status === 'ok' && data.copy_status && data.copy_status !== 'not_found') {
+                    document.getElementById('copyStatusContent').style.display = 'block';
+                    document.getElementById('copyStatusNotConnected').style.display = 'none';
+                    document.getElementById('copyEmergencySection').style.display = 'block';
+                    document.getElementById('copyTradeHistory').style.display = 'block';
+                    
+                    var badge = document.getElementById('copyStatusBadge');
+                    badge.textContent = data.copy_status.toUpperCase();
+                    badge.style.color = data.copy_status === 'active' ? '#00ff88' : data.copy_status === 'pending' ? '#ffc107' : '#ff4444';
+                    
+                    document.getElementById('clientWalletBalance').textContent = '$' + (data.wallet_balance || 0).toFixed(2);
+                    document.getElementById('clientHWM').textContent = '$' + (data.high_water_mark || 0).toFixed(2);
+                    document.getElementById('clientMT5Balance').textContent = '$' + (data.current_balance || 0).toFixed(2);
+                    document.getElementById('clientRiskLevel').textContent = (data.risk_multiplier || 1).toFixed(1) + '×';
+                    document.getElementById('clientTotalFees').textContent = '$' + (data.total_fees_paid || 0).toFixed(2);
+                    
+                    // Mini trade history
+                    if (data.recent_trades && data.recent_trades.length > 0) {
+                        var histHtml = data.recent_trades.slice(0, 5).map(function(t) {
+                            var plColor = t.profit >= 0 ? '#00ff88' : '#ff4444';
+                            var plSign = t.profit >= 0 ? '+' : '';
+                            return '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03);">' +
+                                '<span>' + (t.symbol || '?') + '</span>' +
+                                '<span style="color:' + (t.action === 'BUY' ? '#00d9ff' : '#ff9800') + ';">' + (t.action || '?') + '</span>' +
+                                '<span style="color:' + plColor + ';font-weight:700;">' + plSign + '$' + (t.profit || 0).toFixed(2) + '</span></div>';
+                        }).join('');
+                        document.getElementById('copyTradeList').innerHTML = histHtml;
+                    } else {
+                        document.getElementById('copyTradeList').innerHTML = '<div style="color:rgba(255,255,255,0.3);text-align:center;">No trades yet</div>';
+                    }
+                } else {
+                    document.getElementById('copyStatusContent').style.display = 'none';
+                    document.getElementById('copyStatusNotConnected').style.display = 'block';
+                    document.getElementById('copyEmergencySection').style.display = 'none';
+                    document.getElementById('copyTradeHistory').style.display = 'none';
+                    document.getElementById('copyStatusBadge').textContent = 'NOT CONNECTED';
+                    document.getElementById('copyStatusBadge').style.color = '#8b94a8';
+                }
+            })
+            .catch(function() {});
+    }
+    
+    // Load on page start and refresh every 30 seconds
+    setTimeout(loadCopyStatus, 3000);
+    setInterval(loadCopyStatus, 30000);
+
+    // Emergency Disconnect
+    window.emergencyDisconnectCopy = function() {
+        if (!confirm('⚠️ EMERGENCY DISCONNECT\n\nThis will IMMEDIATELY pause all copy trading.\nYour open positions will remain open but no new trades will be copied.\n\nAre you sure?')) return;
+        
+        var cfg = (typeof getConfig === 'function') ? getConfig() : {};
+        var url = (cfg.endpointUrl || '').trim();
+        var email = localStorage.getItem('falcon_user_email') || '';
+        if (!url || !email) { alert('Dashboard not configured.'); return; }
+        
+        // Call GAS to suspend this client
+        fetch(url + '?command=copy_client_disconnect&email=' + encodeURIComponent(email) + '&source=web_cmd')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.status === 'ok') {
+                    alert('✅ Copy trading PAUSED. No new trades will be copied.\nContact support to resume.');
+                    loadCopyStatus();
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown'));
+                }
+            })
+            .catch(function() { alert('Network error. Try again.'); });
+    };
 })();
 </script>
 </body>
