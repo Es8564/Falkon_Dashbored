@@ -8,6 +8,7 @@
     <link rel="icon" type="image/svg+xml" href="icon.svg">
     <link rel="manifest" href="manifest_admin_console.json">
     <meta name="theme-color" content="#0a0d14">
+    <script src="dashboard-security.js"></script>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
@@ -395,6 +396,11 @@
         <div class="nav-item" data-panel="settings"><span class="icon">⚙️</span> Settings</div>
         <div class="nav-item" data-panel="kb"><span class="icon">📚</span> Knowledge Base</div>
         <div class="nav-item" data-panel="referrals"><span class="icon">🤝</span> Referrals</div>
+        <div class="nav-item" data-panel="fleet-risk"><span class="icon">📊</span> Fleet Risk</div>
+        <div class="nav-item" data-panel="exec-telemetry"><span class="icon">⚡</span> Execution</div>
+        <div class="nav-item" data-panel="aggressiveness"><span class="icon">🎚️</span> Aggressiveness</div>
+        <div class="nav-item" data-panel="copy-trading"><span class="icon">📡</span> Copy Trading</div>
+        <div class="nav-item" data-panel="user-control"><span class="icon">👑</span> User Control</div>
         <div class="nav-item" data-panel="audit"><span class="icon">📜</span> Audit Log</div>
         <div class="nav-item" data-panel="backup"><span class="icon">💾</span> Backup</div>
     </nav>
@@ -409,6 +415,8 @@
     <div class="topbar">
         <div class="topbar-title" id="topbarTitle">Dashboard</div>
         <div class="topbar-actions">
+            <span id="latencyBadge" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:12px;font-size:10px;font-weight:700;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.25);color:#00ff88;letter-spacing:0.03em;">● --ms</span>
+            <span id="eaCountBadge" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;font-size:10px;font-weight:700;background:rgba(0,217,255,0.08);border:1px solid rgba(0,217,255,0.2);color:#00d9ff;">⚡ 0 EAs</span>
             <button class="topbar-btn" onclick="refreshCurrentPanel()">🔄 Refresh</button>
             <button class="topbar-btn" onclick="adminLogout()">🚪 Logout</button>
         </div>
@@ -553,6 +561,10 @@
                     <div class="form-group"><label class="form-label">System Endpoint URL</label><input type="text" class="form-input" id="settEndpoint" placeholder="GAS endpoint URL"></div>
                     <button class="btn btn-primary" onclick="setEndpointUrl()">Save</button>
                 </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">USDT Deposit Address (TRC-20)</label><input type="text" class="form-input" id="settUsdtAddress" placeholder="Your TRC-20 USDT address (e.g. TVx...)"></div>
+                    <button class="btn btn-primary" onclick="setUsdtAddress()">Save</button>
+                </div>
             </div>
             <div class="card">
                 <div class="card-title">EA Version Management</div>
@@ -583,6 +595,13 @@
                     <button class="btn btn-danger" onclick="rotateMasterToken()">🔄 Rotate Now</button>
                 </div>
                 <div id="rotateResult" style="margin-top:8px;"></div>
+            </div>
+            <div class="card" style="border-color:rgba(255,193,7,0.3);">
+                <div class="card-title">🗄️ Storage Management</div>
+                <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;">Google Apps Script has a 500KB storage limit. If you see "property storage exceeded" errors, run cleanup to free space.</p>
+                <button class="btn" style="background:rgba(255,193,7,0.15);border:1px solid rgba(255,193,7,0.4);color:#ffc107;padding:8px 16px;font-size:11px;font-weight:700;" onclick="runStorageCleanup()">🧹 Run Storage Cleanup</button>
+                <div id="storageCleanupResult" style="font-size:11px;margin-top:10px;"></div>
+            </div>
             </div>
             <div class="card">
                 <div class="card-title">Per-Account Controls</div>
@@ -625,6 +644,177 @@
                     <div id="emotionalGlobalResult" style="margin-top:8px;font-size:11px;"></div>
                 </div>
             </div>
+
+            <!-- Safe Mode Controls -->
+            <div class="card" style="margin-top:16px;">
+                <div style="padding:16px;">
+                    <h3 style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text-primary);">⚡ Live Stream Safe Mode</h3>
+                    <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">When active, a professional banner appears over the live stream during high-impact news events (FOMC, CPI, NFP).</p>
+                    <div id="safeModeStatus" style="margin-bottom:12px;padding:8px 12px;background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text-muted);">Loading...</div>
+                    <div class="form-row" style="margin-bottom:8px;">
+                        <div class="form-group"><label class="form-label">Custom Message (optional)</label><input type="text" class="form-input" id="safeModeMsg" placeholder="Falcon is currently in Safe Mode – Standing aside during high-impact news to protect capital."></div>
+                    </div>
+                    <div class="form-row">
+                        <button class="btn btn-primary" onclick="setSafeMode(true)" style="background:linear-gradient(135deg,#ffc107,#ff9800);color:#0d1117;">⚡ Activate Safe Mode</button>
+                        <button class="btn btn-ghost" onclick="setSafeMode(false)">✓ Deactivate</button>
+                        <button class="btn btn-ghost" onclick="checkSafeModeStatus()">🔄 Check</button>
+                    </div>
+                    <div id="safeModeResult" style="margin-top:8px;font-size:11px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FLEET RISK PANEL -->
+        <div class="panel" id="panel-fleet-risk">
+            <!-- KILL SWITCH -->
+            <div class="card" style="border-color:rgba(255,68,68,0.3);">
+                <div class="card-title" style="color:var(--accent-red);">🚨 Global Kill Switch</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                    <button onclick="killSwitchSuspend()" style="padding:16px;background:rgba(255,193,7,0.15);border:2px solid rgba(255,193,7,0.5);color:#ffc107;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;">⏸ SUSPEND SYSTEM<br><span style="font-size:10px;font-weight:400;opacity:0.7;">Block new trades, keep positions</span></button>
+                    <button id="flattenBtn" onclick="killSwitchFlatten()" style="padding:16px;background:rgba(255,68,68,0.15);border:2px solid rgba(255,68,68,0.5);color:#ff4444;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;">☢ FLATTEN ALL<br><span style="font-size:10px;font-weight:400;opacity:0.7;">Close ALL positions + freeze</span></button>
+                </div>
+                <div id="killSwitchStatus" style="font-size:11px;color:var(--text-muted);text-align:center;"></div>
+            </div>
+
+            <!-- AGGREGATE EXPOSURE -->
+            <div class="card">
+                <div class="card-title">📊 Aggregate Exposure (Real-Time)</div>
+                <div id="fleetExposureGrid" style="margin-bottom:12px;"><p style="color:var(--text-muted);font-size:12px;">Connect to relay server to view live exposure data.</p></div>
+                <div id="fleetTotals" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:12px;"></div>
+                <div id="fleetAlerts" style="display:none;background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.3);border-radius:8px;padding:10px;margin-bottom:12px;"></div>
+            </div>
+
+            <!-- RISK CONFIGURATOR -->
+            <div class="card">
+                <div class="card-title">⚙️ Exposure Threshold Configurator</div>
+                <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Set maximum aggregate lots allowed per symbol. Alerts trigger when breached.</p>
+                <div id="thresholdInputs" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+                    <div><label style="font-size:10px;color:var(--text-muted);">XAUUSD</label><input type="number" class="form-input" id="thresh_XAUUSD" value="50" style="width:100%;"></div>
+                    <div><label style="font-size:10px;color:var(--text-muted);">EURUSD</label><input type="number" class="form-input" id="thresh_EURUSD" value="30" style="width:100%;"></div>
+                    <div><label style="font-size:10px;color:var(--text-muted);">GBPUSD</label><input type="number" class="form-input" id="thresh_GBPUSD" value="30" style="width:100%;"></div>
+                    <div><label style="font-size:10px;color:var(--text-muted);">BTCUSD</label><input type="number" class="form-input" id="thresh_BTCUSD" value="10" style="width:100%;"></div>
+                </div>
+                <button class="btn btn-primary" onclick="saveThresholds()">💾 Save Thresholds</button>
+                <div id="thresholdResult" style="margin-top:8px;font-size:11px;"></div>
+            </div>
+
+            <!-- PDF EXPORT -->
+            <div class="card">
+                <div class="card-title">📄 Executive PDF Report</div>
+                <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Generate a multi-page institutional report with live fleet status and 24-hour historical analytics.</p>
+                <button class="btn btn-primary" onclick="generatePDFReport()" style="width:100%;">📄 Generate Falcon Quant Report (PDF)</button>
+                <div id="pdfStatus" style="margin-top:8px;font-size:11px;color:var(--text-muted);"></div>
+            </div>
+        </div>
+
+        <!-- EXECUTION TELEMETRY PANEL -->
+        <div class="panel" id="panel-exec-telemetry">
+            <div class="card" style="border-color:rgba(0,217,255,0.2);">
+                <div class="card-title">⚡ Live Execution Telemetry</div>
+                <!-- Threshold Config -->
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding:10px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;">
+                    <span style="font-size:10px;color:var(--text-muted);white-space:nowrap;">Alert Thresholds:</span>
+                    <label style="font-size:10px;color:var(--text-muted);">Max Latency (ms)</label>
+                    <input type="number" class="form-input" id="execThreshLatency" value="300" style="width:70px;padding:5px 8px;font-size:11px;">
+                    <label style="font-size:10px;color:var(--text-muted);">Max Slippage (pips)</label>
+                    <input type="number" class="form-input" id="execThreshSlippage" value="1.5" step="0.1" style="width:70px;padding:5px 8px;font-size:11px;">
+                    <button class="btn btn-ghost" style="padding:4px 10px;font-size:10px;" onclick="saveExecThresholds()">Save</button>
+                    <span id="execThreshResult" style="font-size:10px;"></span>
+                </div>
+                <!-- Live Feed Grid -->
+                <div id="execTelemetryGrid" style="max-height:400px;overflow-y:auto;">
+                    <table class="data-table" style="font-size:11px;">
+                        <thead>
+                            <tr><th>Time</th><th>Account</th><th>Symbol</th><th>Dir</th><th>Volume</th><th>Latency</th><th>Slippage</th><th>Type</th><th>Status</th></tr>
+                        </thead>
+                        <tbody id="execTelemetryBody">
+                            <tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">Waiting for execution data from EAs...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Execution Stats Summary -->
+            <div class="card">
+                <div class="card-title">📈 Execution Quality Summary</div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;" id="execSummaryGrid">
+                    <div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--text-muted);">AVG LATENCY</div><div style="font-size:18px;font-weight:700;" id="execAvgLatency">--</div></div>
+                    <div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--text-muted);">AVG SLIPPAGE</div><div style="font-size:18px;font-weight:700;" id="execAvgSlippage">--</div></div>
+                    <div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--text-muted);">POSITIVE SLIPS</div><div style="font-size:18px;font-weight:700;color:var(--accent);" id="execPosSlips">0</div></div>
+                    <div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--text-muted);">NEGATIVE SLIPS</div><div style="font-size:18px;font-weight:700;color:var(--accent-red);" id="execNegSlips">0</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AGGRESSIVENESS CONTROL PANEL -->
+        <div class="panel" id="panel-aggressiveness">
+            <div class="card" style="border-color:rgba(0,217,255,0.3);">
+                <div class="card-title">🎚️ EA Aggressiveness Control (Server-Controlled)</div>
+                <p style="font-size:11px;color:var(--text-secondary);margin-bottom:16px;">
+                    Controls how aggressively the EA trades. Level is delivered to EAs via poll response — no MT5 input change required.
+                    Level 5 = current behavior (Balanced). Changes take effect within 2-5 seconds on all connected EAs.
+                </p>
+                <!-- Level Slider -->
+                <div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                        <span style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;">Aggressiveness Level</span>
+                        <span id="aggrLevelDisplay" style="font-size:22px;font-weight:900;color:var(--accent);">5</span>
+                    </div>
+                    <input type="range" id="aggrSlider" min="1" max="10" value="5" step="1" style="width:100%;height:8px;appearance:none;background:linear-gradient(90deg,#4caf50 0%,#ffc107 50%,#ff4444 100%);border-radius:4px;outline:none;cursor:pointer;">
+                    <div style="display:flex;justify-content:space-between;margin-top:6px;">
+                        <span style="font-size:9px;color:#4caf50;">1 Ultra Conservative</span>
+                        <span style="font-size:9px;color:#ffc107;">5 Balanced</span>
+                        <span style="font-size:9px;color:#ff4444;">10 Max Aggressive</span>
+                    </div>
+                </div>
+                <!-- Multiplier Preview -->
+                <div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:16px;">
+                    <div style="font-size:10px;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">Active Multipliers (Preview)</div>
+                    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;text-align:center;" id="aggrMultipliersGrid">
+                        <div><div style="font-size:9px;color:var(--text-muted);">CONFIDENCE</div><div id="aggrM_conf" style="font-size:14px;font-weight:700;">×1.000</div></div>
+                        <div><div style="font-size:9px;color:var(--text-muted);">RISK/LOT</div><div id="aggrM_risk" style="font-size:14px;font-weight:700;">×1.00</div></div>
+                        <div><div style="font-size:9px;color:var(--text-muted);">COOLDOWN</div><div id="aggrM_cool" style="font-size:14px;font-weight:700;">×1.00</div></div>
+                        <div><div style="font-size:9px;color:var(--text-muted);">DISTANCE</div><div id="aggrM_dist" style="font-size:14px;font-weight:700;">×1.00</div></div>
+                        <div><div style="font-size:9px;color:var(--text-muted);">MAX POS</div><div id="aggrM_pos" style="font-size:14px;font-weight:700;">×1.00</div></div>
+                    </div>
+                </div>
+                <!-- Target Selector + Apply -->
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                    <select class="form-input" id="aggrTarget" style="flex:1;min-width:150px;">
+                        <option value="*">All EAs (Global)</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="applyAggressiveness()" style="padding:10px 24px;font-weight:700;">🚀 Apply Level</button>
+                </div>
+                <div id="aggrResult" style="margin-top:10px;font-size:11px;"></div>
+            </div>
+            <!-- Level Description Card -->
+            <div class="card">
+                <div class="card-title">📋 Level Reference</div>
+                <table class="data-table" style="font-size:10px;">
+                    <thead><tr><th>Level</th><th>Mode</th><th>Confidence</th><th>Risk/Lot</th><th>Cooldown</th><th>Distance</th><th>Max Pos</th></tr></thead>
+                    <tbody>
+                        <tr><td><b>1</b></td><td style="color:#4caf50;">Ultra Conservative</td><td>×1.050 (+5%)</td><td>×0.50 (half)</td><td>×2.00 (600s)</td><td>×1.50 (wider)</td><td>×0.50 (4/sym)</td></tr>
+                        <tr><td><b>3</b></td><td style="color:#8bc34a;">Conservative</td><td>×1.020 (+2%)</td><td>×0.80</td><td>×1.40 (420s)</td><td>×1.20</td><td>×0.75 (6/sym)</td></tr>
+                        <tr style="background:rgba(0,217,255,0.05);"><td><b>5</b></td><td style="color:var(--accent);">Balanced (Default)</td><td>×1.000</td><td>×1.00</td><td>×1.00 (300s)</td><td>×1.00</td><td>×1.00 (8/sym)</td></tr>
+                        <tr><td><b>7</b></td><td style="color:#ff9800;">Aggressive</td><td>×0.975 (−2.5%)</td><td>×1.35</td><td>×0.70 (210s)</td><td>×0.80</td><td>×1.25 (10/sym)</td></tr>
+                        <tr><td><b>10</b></td><td style="color:#ff4444;">Maximum</td><td>×0.930 (−7%)</td><td>×2.00 (double)</td><td>×0.33 (100s)</td><td>×0.50 (half)</td><td>×1.50 (12/sym)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Power Token Generator -->
+            <div class="card" style="border-color:rgba(255,193,7,0.2);">
+                <div class="card-title">🎫 Generate Power Token (for Customer)</div>
+                <p style="font-size:11px;color:var(--text-secondary);margin-bottom:12px;">Generate an expiring activation code that customers redeem from their dashboard to change their EA power level.</p>
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
+                    <label style="font-size:10px;color:var(--text-muted);">Level (1-10)</label>
+                    <input type="number" class="form-input" id="ptGenLevel" min="1" max="10" value="7" style="width:60px;padding:5px 8px;font-size:11px;">
+                    <label style="font-size:10px;color:var(--text-muted);">Days Valid</label>
+                    <input type="number" class="form-input" id="ptGenDays" min="1" max="365" value="30" style="width:60px;padding:5px 8px;font-size:11px;">
+                    <label style="font-size:10px;color:var(--text-muted);">Target (optional)</label>
+                    <input type="text" class="form-input" id="ptGenTarget" placeholder="Leave empty for any user" style="width:150px;padding:5px 8px;font-size:11px;">
+                    <button class="btn btn-primary" onclick="generatePowerToken()" style="padding:6px 14px;font-size:11px;">Generate</button>
+                </div>
+                <div id="ptGenResult" style="font-size:11px;min-height:20px;"></div>
+            </div>
         </div>
 
         <!-- AUDIT PANEL -->
@@ -632,6 +822,189 @@
             <div class="card">
                 <div class="card-title">Admin Audit Log</div>
                 <div id="auditList"><div class="loading">Loading...</div></div>
+            </div>
+        </div>
+
+        <!-- USER CONTROL CENTER (God-Mode) -->
+        <div class="panel" id="panel-user-control">
+            <div class="card" style="border-color:rgba(255,193,7,0.3);">
+                <div class="card-title">👑 User Control Center (God-Mode)</div>
+                <p style="font-size:11px;color:var(--text-secondary);margin-bottom:14px;">Full administrative control over all copy trading clients. Every action is logged in the tamper-evident audit trail.</p>
+                <button class="btn btn-ghost" onclick="loadUserControl()" style="margin-bottom:12px;">🔄 Load Users</button>
+                <div id="userControlTable" style="max-height:400px;overflow-y:auto;">
+                    <table class="data-table" style="font-size:10px;">
+                        <thead><tr><th>ID</th><th>Email</th><th>Status</th><th>Fee %</th><th>Wallet</th><th>Flags</th><th>Actions</th></tr></thead>
+                        <tbody id="userControlBody"><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px;">Click Load Users</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-title">⚡ Quick Admin Actions</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div style="padding:10px;background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;">
+                        <div style="font-size:9px;color:var(--text-muted);margin-bottom:6px;">SET CUSTOM FEE</div>
+                        <input class="form-input" id="ucFeeId" placeholder="Client ID" style="margin-bottom:4px;padding:5px;font-size:10px;">
+                        <input class="form-input" id="ucFeeRate" type="number" step="0.01" min="0" max="1" value="0.15" placeholder="Rate (0.15=15%)" style="margin-bottom:4px;padding:5px;font-size:10px;">
+                        <button class="btn btn-primary" onclick="ucSetFee()" style="padding:5px;font-size:10px;width:100%;">Set Fee</button>
+                    </div>
+                    <div style="padding:10px;background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;">
+                        <div style="font-size:9px;color:var(--text-muted);margin-bottom:6px;">BLACKLIST USER</div>
+                        <input class="form-input" id="ucBanId" placeholder="Client ID" style="margin-bottom:4px;padding:5px;font-size:10px;">
+                        <input class="form-input" id="ucBanReason" placeholder="Reason (fraud, TOS, etc.)" style="margin-bottom:4px;padding:5px;font-size:10px;">
+                        <button class="btn" onclick="ucBlacklist()" style="padding:5px;font-size:10px;width:100%;background:rgba(255,68,68,0.15);border:1px solid rgba(255,68,68,0.4);color:#ff4444;">Ban User</button>
+                    </div>
+                </div>
+                <div id="ucActionResult" style="font-size:11px;margin-top:10px;min-height:16px;"></div>
+            </div>
+        </div>
+
+        <!-- COPY TRADING PANEL (System B) -->
+        <div class="panel" id="panel-copy-trading">
+            <!-- Fleet Overview -->
+            <div class="card" style="border-color:rgba(0,255,136,0.3);">
+                <div class="card-title">📡 Copy Trading Fleet</div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:14px;" id="copyFleetKPIs">
+                    <div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--text-muted);">TOTAL CLIENTS</div><div style="font-size:20px;font-weight:700;" id="copyKpiTotal">0</div></div>
+                    <div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--text-muted);">ACTIVE</div><div style="font-size:20px;font-weight:700;color:var(--accent-green);" id="copyKpiActive">0</div></div>
+                    <div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--text-muted);">PENDING</div><div style="font-size:20px;font-weight:700;color:var(--accent);" id="copyKpiPending">0</div></div>
+                    <div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--text-muted);">SUSPENDED</div><div style="font-size:20px;font-weight:700;color:var(--accent-yellow);" id="copyKpiSuspended">0</div></div>
+                    <div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--text-muted);">TOTAL FEES</div><div style="font-size:20px;font-weight:700;color:var(--accent);" id="copyKpiFees">0 USDT</div></div>
+                </div>
+                <button class="btn btn-ghost" onclick="loadCopyFleet()" style="margin-right:8px;">🔄 Refresh</button>
+                <button class="btn btn-primary" onclick="showAddCopyClient()">+ Add Client</button>
+            </div>
+
+            <!-- Pending Applications (Approve/Reject) -->
+            <div class="card" id="copyPendingCard" style="border-color:rgba(0,217,255,0.3);display:none;">
+                <div class="card-title">⏳ Pending Applications — Awaiting Your Approval</div>
+                <p style="font-size:11px;color:var(--text-secondary);margin-bottom:12px;">These clients signed up via the website. Review their details and approve or reject.</p>
+                <div id="copyPendingList"></div>
+            </div>
+
+            <!-- Pending Deposits (TX Hash Verification & Approval) -->
+            <div class="card" id="copyPendingDepositsCard" style="border-color:rgba(0,255,136,0.3);display:none;">
+                <div class="card-title">💰 Pending USDT Deposits — Verify & Approve</div>
+                <p style="font-size:11px;color:var(--text-secondary);margin-bottom:12px;">Clients have submitted TX hashes for deposit verification. On-chain checks have been performed automatically. Review and approve or reject.</p>
+                <div id="copyPendingDepositsList"></div>
+            </div>
+
+            <!-- Client List -->
+            <div class="card">
+                <div class="card-title">👥 Copy Trading Clients</div>
+                <div style="margin-bottom:10px;">
+                    <input type="text" class="form-input" id="copyClientSearch" placeholder="Search by login, broker, email..." oninput="filterCopyClients()" style="max-width:300px;">
+                </div>
+                <div id="copyClientList" style="max-height:450px;overflow-y:auto;">
+                    <table class="data-table" style="font-size:11px;">
+                        <thead><tr><th>ID</th><th>Login</th><th>Broker</th><th>Email</th><th>Risk</th><th>Wallet</th><th>HWM</th><th>Fee %</th><th>Status</th><th>Actions</th></tr></thead>
+                        <tbody id="copyClientBody"><tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:20px;">Click Refresh to load clients</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Client Detail/Edit Panel (hidden, shown on "Manage" click) -->
+            <div class="card" id="copyManagePanel" style="display:none;border-color:rgba(0,217,255,0.3);">
+                <div class="card-title">⚙️ Manage Client: <span id="copyManageTitle">—</span></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+                    <div style="background:var(--bg-primary);padding:10px;border-radius:6px;border:1px solid var(--border);">
+                        <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;">Client ID</div>
+                        <div style="font-size:14px;font-weight:700;" id="copyManageId">—</div>
+                    </div>
+                    <div style="background:var(--bg-primary);padding:10px;border-radius:6px;border:1px solid var(--border);">
+                        <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;">MT5 Login</div>
+                        <div style="font-size:14px;font-weight:700;" id="copyManageLogin">—</div>
+                    </div>
+                    <div style="background:var(--bg-primary);padding:10px;border-radius:6px;border:1px solid var(--border);">
+                        <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;">Broker</div>
+                        <div style="font-size:14px;font-weight:700;" id="copyManageBroker">—</div>
+                    </div>
+                    <div style="background:var(--bg-primary);padding:10px;border-radius:6px;border:1px solid var(--border);">
+                        <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;">Email</div>
+                        <div style="font-size:14px;font-weight:700;" id="copyManageEmail">—</div>
+                    </div>
+                    <div style="background:var(--bg-primary);padding:10px;border-radius:6px;border:1px solid var(--border);">
+                        <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;">Wallet</div>
+                        <div style="font-size:14px;font-weight:700;color:var(--accent-green);" id="copyManageWallet">—</div>
+                    </div>
+                    <div style="background:var(--bg-primary);padding:10px;border-radius:6px;border:1px solid var(--border);">
+                        <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;">Status</div>
+                        <div style="font-size:14px;font-weight:700;" id="copyManageStatus">—</div>
+                    </div>
+                </div>
+
+                <!-- Actions Grid -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+                    <!-- Risk Multiplier -->
+                    <div style="background:var(--bg-primary);padding:12px;border-radius:6px;border:1px solid var(--border);">
+                        <label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:4px;">Risk Multiplier</label>
+                        <div style="display:flex;gap:6px;">
+                            <input type="number" class="form-input" id="copyManageRisk" step="0.1" min="0.1" max="5.0" value="1.0" style="flex:1;">
+                            <button class="btn btn-primary" style="padding:6px 10px;font-size:10px;" onclick="copySetRisk()">Set</button>
+                        </div>
+                    </div>
+                    <!-- Fee Rate -->
+                    <div style="background:var(--bg-primary);padding:12px;border-radius:6px;border:1px solid var(--border);">
+                        <label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:4px;">Fee Rate %</label>
+                        <div style="display:flex;gap:6px;">
+                            <input type="number" class="form-input" id="copyManageFee" step="1" min="0" max="100" value="30" style="flex:1;">
+                            <button class="btn btn-primary" style="padding:6px 10px;font-size:10px;" onclick="copySetFee()">Set</button>
+                        </div>
+                    </div>
+                    <!-- Wallet Deposit/Withdraw -->
+                    <div style="background:var(--bg-primary);padding:12px;border-radius:6px;border:1px solid var(--border);">
+                        <label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:4px;">Wallet Deposit/Withdraw</label>
+                        <div style="display:flex;gap:6px;">
+                            <input type="number" class="form-input" id="copyManageWalletAmt" value="100" min="1" style="flex:1;">
+                            <button class="btn btn-primary" style="padding:4px 8px;font-size:9px;" onclick="copyWalletAction('deposit')">+Dep</button>
+                            <button class="btn btn-danger" style="padding:4px 8px;font-size:9px;" onclick="copyWalletAction('withdraw')">-Wd</button>
+                        </div>
+                    </div>
+                    <!-- Fee Exempt Toggle -->
+                    <div style="background:var(--bg-primary);padding:12px;border-radius:6px;border:1px solid var(--border);">
+                        <label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:4px;">Fee Exempt (Zero-Fee)</label>
+                        <div style="display:flex;gap:6px;">
+                            <button class="btn btn-primary" style="padding:6px 10px;font-size:10px;flex:1;" onclick="copyFeeExempt(true)">✓ Enable</button>
+                            <button class="btn btn-ghost" style="padding:6px 10px;font-size:10px;flex:1;" onclick="copyFeeExempt(false)">✗ Disable</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Actions -->
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                    <button class="btn btn-primary" style="padding:6px 14px;font-size:11px;" onclick="copyAdminAction('copy_admin_activate')">✅ Activate</button>
+                    <button class="btn" style="background:rgba(255,193,7,0.15);border:1px solid rgba(255,193,7,0.4);color:#ffc107;padding:6px 14px;font-size:11px;" onclick="copyAdminAction('copy_admin_suspend')">⏸️ Suspend</button>
+                    <button class="btn btn-danger" style="padding:6px 14px;font-size:11px;" onclick="copyAdminAction('copy_admin_blacklist')">🚫 Blacklist</button>
+                    <button class="btn btn-ghost" style="padding:6px 14px;font-size:11px;" onclick="copyAdminAction('copy_admin_unblacklist')">↩️ Un-Blacklist</button>
+                    <button class="btn btn-ghost" style="padding:6px 14px;font-size:11px;" onclick="copyAdminAction('copy_admin_whitelist')">⭐ Whitelist (bypass min deposit)</button>
+                    <button class="btn btn-danger" style="padding:6px 14px;font-size:11px;" onclick="removeCopyClient(_copyManageClientId)">🗑️ Remove</button>
+                </div>
+                <div id="copyManageResult" style="font-size:11px;margin-top:6px;"></div>
+                <button class="btn btn-ghost" style="margin-top:8px;" onclick="document.getElementById('copyManagePanel').style.display='none'">Close</button>
+            </div>
+
+            <!-- Add Client Form (hidden by default) -->
+            <div class="card" id="copyAddForm" style="display:none;border-color:rgba(0,217,255,0.2);">
+                <div class="card-title">➕ Add Copy Trading Client</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+                    <div><label style="font-size:10px;color:var(--text-muted);">Broker Server</label><input class="form-input" id="copyNewBroker" placeholder="ICMarkets-Live07"></div>
+                    <div><label style="font-size:10px;color:var(--text-muted);">MT5 Login</label><input class="form-input" id="copyNewLogin" type="number" placeholder="12345678"></div>
+                    <div><label style="font-size:10px;color:var(--text-muted);">Password (encrypted)</label><input class="form-input" id="copyNewPass" type="password" placeholder="Encrypted via CryptoEngine"></div>
+                    <div><label style="font-size:10px;color:var(--text-muted);">Broker ID</label><input class="form-input" id="copyNewBrokerId" placeholder="ICMarkets"></div>
+                    <div><label style="font-size:10px;color:var(--text-muted);">Risk Multiplier</label><input class="form-input" id="copyNewRisk" type="number" step="0.1" value="1.0" min="0.1" max="5.0"></div>
+                    <div><label style="font-size:10px;color:var(--text-muted);">Initial Wallet (USDT)</label><input class="form-input" id="copyNewWallet" type="number" value="100" min="100"></div>
+                </div>
+                <button class="btn btn-primary" onclick="addCopyClient()">✓ Add Client</button>
+                <button class="btn btn-ghost" onclick="document.getElementById('copyAddForm').style.display='none'">Cancel</button>
+                <div id="copyAddResult" style="font-size:11px;margin-top:8px;"></div>
+            </div>
+
+            <!-- HWM Billing -->
+            <div class="card" style="border-color:rgba(255,193,7,0.2);">
+                <div class="card-title">💰 HWM Billing Engine</div>
+                <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;">30% performance fee on new profits above High-Water Mark. Profit measured in USD/GBP, fee deducted in USDT (1:1 rate). Auto-disconnect at &lt;100 USDT wallet.</p>
+                <button class="btn" style="background:rgba(255,193,7,0.15);border:1px solid rgba(255,193,7,0.4);color:#ffc107;padding:8px 16px;font-size:11px;font-weight:700;" onclick="runBilling()">⚡ Run Billing Now</button>
+                <div id="copyBillingResult" style="font-size:11px;margin-top:10px;"></div>
             </div>
         </div>
 
@@ -841,8 +1214,17 @@ function adminLogin() {
             document.getElementById('mainEl').style.display = 'flex';
             loadDashboard();
             _startChatNotificationPoll();
+            _startEnterpriseAutoRefresh();
+            // [SECURITY] Log successful admin login to audit trail
+            if (window.FalconSecurity && window.FalconSecurity.logLogin) {
+                window.FalconSecurity.logLogin(endpoint, token);
+            }
         } else {
             showLoginError(data && data.error ? data.error : 'Authentication failed');
+            // [SECURITY] Track failed login
+            if (window.FalconSecurity && window.FalconSecurity.trackCommandResult) {
+                window.FalconSecurity.trackCommandResult(false);
+            }
         }
     }).catch(function(e) {
         showLoginError('Connection failed: ' + e.message);
@@ -874,8 +1256,92 @@ function showLoginError(msg) {
         loadDashboard();
         // Start background notification polling for Support Inbox
         _startChatNotificationPoll();
+        // [ENTERPRISE] Pre-fetch critical data immediately + start auto-refresh
+        _startEnterpriseAutoRefresh();
     }
 })();
+
+// ── [ENTERPRISE] Auto-Refresh Engine & Latency Monitor ──
+// Keeps all visible data live without manual refresh.
+// Measures relay latency for the topbar badge.
+var _enterpriseRefreshTimer = null;
+var _latencyPingTimer = null;
+
+function _startEnterpriseAutoRefresh() {
+    // Pre-fetch users list immediately (cached for all panels)
+    callAdmin({ command: 'admin_list_users' }).then(function(data) {
+        if (data && data.users) _usersCache = data.users;
+    }).catch(function(){});
+
+    // Auto-refresh active panel every 5 seconds
+    if (_enterpriseRefreshTimer) clearInterval(_enterpriseRefreshTimer);
+    _enterpriseRefreshTimer = setInterval(function() {
+        var activeItem = document.querySelector('.nav-item.active');
+        if (!activeItem) return;
+        var panel = activeItem.getAttribute('data-panel');
+        // Silently refresh based on active panel (no loading spinners)
+        try {
+            if (panel === 'dashboard') loadDashboard();
+            else if (panel === 'users') loadUsers();
+            else if (panel === 'payments') loadPayments();
+            else if (panel === 'locks') loadLocks();
+            else if (panel === 'security') loadSecurity();
+        } catch(_) {}
+    }, 5000);
+
+    // Latency ping every 3 seconds
+    if (_latencyPingTimer) clearInterval(_latencyPingTimer);
+    _latencyPingTimer = setInterval(_measureLatency, 3000);
+    _measureLatency(); // First measurement immediately
+}
+
+function _measureLatency() {
+    var badge = document.getElementById('latencyBadge');
+    var eaBadge = document.getElementById('eaCountBadge');
+    if (!badge) return;
+
+    // If relay is connected, measure WebSocket latency
+    if (typeof FalconRelay !== 'undefined' && FalconRelay.isConnected()) {
+        var start = Date.now();
+        // Use relay health endpoint for latency measurement
+        fetch('http://localhost:8080/health', { method: 'GET', cache: 'no-cache' })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var latency = Date.now() - start;
+                var color, bg, border;
+                if (latency < 100) { color = '#00ff88'; bg = 'rgba(0,255,136,0.08)'; border = 'rgba(0,255,136,0.25)'; }
+                else if (latency < 300) { color = '#ffc107'; bg = 'rgba(255,193,7,0.08)'; border = 'rgba(255,193,7,0.25)'; }
+                else { color = '#ff4444'; bg = 'rgba(255,68,68,0.08)'; border = 'rgba(255,68,68,0.25)'; }
+                badge.style.color = color;
+                badge.style.borderColor = border;
+                badge.style.background = bg;
+                badge.innerHTML = '● ' + latency + 'ms';
+                // Update EA count badge
+                if (eaBadge && data.connected_eas !== undefined) {
+                    eaBadge.innerHTML = '⚡ ' + data.connected_eas + ' EAs';
+                }
+            })
+            .catch(function() {
+                badge.style.color = '#ff4444';
+                badge.style.borderColor = 'rgba(255,68,68,0.25)';
+                badge.style.background = 'rgba(255,68,68,0.08)';
+                badge.innerHTML = '● Relay Offline';
+            });
+    } else {
+        // Fallback: measure GAS latency
+        var start2 = Date.now();
+        callAdmin({ command: 'admin_list_locks' }).then(function() {
+            var latency = Date.now() - start2;
+            badge.style.color = '#ffc107';
+            badge.style.borderColor = 'rgba(255,193,7,0.25)';
+            badge.style.background = 'rgba(255,193,7,0.08)';
+            badge.innerHTML = '● ' + latency + 'ms (GAS)';
+        }).catch(function() {
+            badge.style.color = '#ff4444';
+            badge.innerHTML = '● Offline';
+        });
+    }
+}
 
 // ── API CALL ──
 function callAdmin(payload) {
@@ -913,7 +1379,9 @@ document.querySelectorAll('.nav-item').forEach(function(item) {
         else if (panel === 'kb') loadKb();
         else if (panel === 'audit') loadAudit();
         else if (panel === 'referrals') loadReferrals();
-        else if (panel === 'settings') loadEmotionalModeStatus();
+        else if (panel === 'copy-trading') loadCopyFleet();
+        else if (panel === 'settings') { loadEmotionalModeStatus(); checkSafeModeStatus(); }
+        else if (panel === 'fleet-risk') { try { fetch('http://localhost:8080/exposure?master_token='+encodeURIComponent(_masterToken)).then(function(r){return r.json();}).then(function(d){if(window._renderFleetExp)window._renderFleetExp(d);}).catch(function(){}); } catch(_){} }
     });
 });
 
@@ -1303,6 +1771,31 @@ function setEndpointUrl() {
     });
 }
 
+function setUsdtAddress() {
+    var addr = document.getElementById('settUsdtAddress').value.trim();
+    if (!addr || addr.length < 30) { alert('Please enter a valid USDT TRC-20 address'); return; }
+    callAdmin({ command: 'admin_set_property', key: 'FALCON_USDT_ADDRESS', value: addr }).then(function(data) {
+        if (data && data.status === 'ok') alert('✓ USDT deposit address saved. On-chain verification will now check this address.');
+        else alert('Error: ' + (data && data.error || 'unknown'));
+    });
+}
+
+function runStorageCleanup() {
+    var el = document.getElementById('storageCleanupResult');
+    el.innerHTML = '<span style="color:var(--accent);">Running cleanup...</span>';
+    callAdmin({ command: 'admin_storage_cleanup' }).then(function(data) {
+        if (data && data.status === 'ok') {
+            el.innerHTML = '<div style="color:#4caf50;font-weight:700;">✓ Cleanup complete</div>' +
+                '<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">' +
+                'Keys deleted: ' + data.deleted_keys + ' | Freed: ~' + Math.round(data.freed_bytes_approx / 1024) + ' KB<br>' +
+                'Storage used: ' + Math.round(data.storage_used_bytes / 1024) + ' KB / 500 KB (' + data.storage_pct + '%)<br>' +
+                'Total keys remaining: ' + data.total_keys_remaining + '</div>';
+        } else {
+            el.innerHTML = '<span style="color:#ff4444;">' + (data && data.error || 'Error') + '</span>';
+        }
+    });
+}
+
 // ── EA VERSION ──
 function setEaVersion() {
     var version = document.getElementById('settEaVersion').value.trim();
@@ -1384,6 +1877,29 @@ function selectSettingsCustomer(tokenKey, displayName) {
     document.getElementById('settAccSelected').style.display = 'block';
     document.getElementById('settAccSearchResults').style.display = 'none';
     document.getElementById('settAccSearch').value = displayName;
+
+    // Fetch real current emotional state for this account from server
+    var emSel = document.getElementById('settEmotional');
+    var perAccResult = document.getElementById('perAccResult');
+    if (emSel) {
+        emSel.disabled = true;
+        if (perAccResult) perAccResult.innerHTML = '<span style="color:var(--text-muted);">Loading emotional state…</span>';
+    }
+    callAdmin({ command: 'admin_get_user_emotional_state', token_key: tokenKey })
+        .then(function(data) {
+            if (emSel) emSel.disabled = false;
+            if (data && data.status === 'ok') {
+                // emotional_mode: true = ON (disable_emotional_bias=false), false = OFF
+                if (emSel) emSel.value = data.emotional_mode ? '1' : '0';
+                if (perAccResult) perAccResult.innerHTML = '<span style="color:var(--text-muted);">Emotional Mode currently: <strong style="color:' + (data.emotional_mode ? 'var(--accent-green)' : 'var(--accent-red)') + ';">' + (data.emotional_mode ? 'ENABLED' : 'DISABLED') + '</strong></span>';
+            } else {
+                if (perAccResult) perAccResult.innerHTML = '<span style="color:var(--accent-red);">Could not load state: ' + (data && data.error || 'unknown') + '</span>';
+            }
+        })
+        .catch(function(e) {
+            if (emSel) emSel.disabled = false;
+            if (perAccResult) perAccResult.innerHTML = '<span style="color:var(--accent-red);">Error: ' + e.message + '</span>';
+        });
 }
 function clearSettingsCustomer() {
     document.getElementById('settAccToken').value = '';
@@ -1393,13 +1909,22 @@ function clearSettingsCustomer() {
 function setEmotionalMode() {
     var token = document.getElementById('settAccToken').value.trim();
     var enabled = document.getElementById('settEmotional').value === '1';
-    if (!token) { alert('Enter customer token key first'); return; }
-    callAdmin({ command: 'admin_set_emotional_mode', token: token, enabled: enabled }).then(function(data) {
+    if (!token) { alert('Select a customer first'); return; }
+    var perAccResult = document.getElementById('perAccResult');
+    if (perAccResult) perAccResult.innerHTML = '<span style="color:var(--text-muted);">Saving…</span>';
+    callAdmin({ command: 'admin_set_emotional_mode', token_key: token, enabled: enabled }).then(function(data) {
         if (data && data.status === 'ok') {
-            document.getElementById('perAccResult').innerHTML = '<span style="color:var(--accent-green);">✓ Emotional mode ' + (enabled ? 'enabled' : 'disabled') + ' for ' + token.slice(0, 12) + '…</span>';
+            perAccResult.innerHTML = '<span style="color:var(--accent-green);">✓ Emotional Mode ' + (data.emotional_mode ? 'ENABLED' : 'DISABLED') + ' for ' + token.slice(0, 12) + '…</span>';
+            // Update dropdown to reflect confirmed server state
+            var emSel = document.getElementById('settEmotional');
+            if (emSel) emSel.value = data.emotional_mode ? '1' : '0';
+            // Refresh global status overview
+            loadEmotionalModeStatus();
         } else {
-            document.getElementById('perAccResult').innerHTML = '<span style="color:var(--accent-red);">Error: ' + (data && data.error || 'unknown') + '</span>';
+            perAccResult.innerHTML = '<span style="color:var(--accent-red);">Error: ' + (data && data.error || 'unknown') + '</span>';
         }
+    }).catch(function(e) {
+        if (perAccResult) perAccResult.innerHTML = '<span style="color:var(--accent-red);">Error: ' + e.message + '</span>';
     });
 }
 function setEmotionalModeGlobal(enabled) {
@@ -1432,6 +1957,36 @@ function loadEmotionalModeStatus() {
         }
     }).catch(function(e) {
         document.getElementById('emotionalGlobalStatus').innerHTML = '<span style="color:var(--accent-red);">' + e.message + '</span>';
+    });
+}
+// ── SAFE MODE ──
+function setSafeMode(active) {
+    var msg = document.getElementById('safeModeMsg').value.trim() || '';
+    var resEl = document.getElementById('safeModeResult');
+    if (resEl) resEl.innerHTML = '<span style="color:var(--text-muted);">' + (active ? 'Activating...' : 'Deactivating...') + '</span>';
+    callAdmin({ command: 'admin_set_safe_mode', active: active ? '1' : '0', message: msg }).then(function(data) {
+        if (data && data.status === 'ok') {
+            if (resEl) resEl.innerHTML = '<span style="color:' + (data.safe_mode_active ? 'var(--accent-yellow)' : 'var(--accent-green)') + ';">✓ Safe Mode ' + (data.safe_mode_active ? 'ACTIVATED' : 'DEACTIVATED') + '</span>';
+            checkSafeModeStatus();
+        } else {
+            if (resEl) resEl.innerHTML = '<span style="color:var(--accent-red);">Error: ' + (data && data.error || 'unknown') + '</span>';
+        }
+    }).catch(function(e) {
+        if (resEl) resEl.innerHTML = '<span style="color:var(--accent-red);">Error: ' + e.message + '</span>';
+    });
+}
+function checkSafeModeStatus() {
+    var statusEl = document.getElementById('safeModeStatus');
+    callAdmin({ command: 'get_safe_mode_status' }).then(function(data) {
+        if (data && data.status === 'ok') {
+            var color = data.safe_mode_active ? 'var(--accent-yellow)' : 'var(--accent-green)';
+            var icon = data.safe_mode_active ? '⚡' : '✓';
+            statusEl.innerHTML = '<span style="color:' + color + ';font-weight:700;">' + icon + ' ' + (data.safe_mode_active ? 'ACTIVE — Banner is showing on live stream page' : 'INACTIVE — No banner shown') + '</span>';
+        } else {
+            statusEl.innerHTML = '<span style="color:var(--text-muted);">Could not check status</span>';
+        }
+    }).catch(function() {
+        statusEl.innerHTML = '<span style="color:var(--text-muted);">Could not check status</span>';
     });
 }
 function setDailyTarget() {
@@ -1524,7 +2079,7 @@ function _startChatNotificationPoll() {
 
     _chatCheckUnread(); // Check immediately
     if (_chatNotifTimer) clearInterval(_chatNotifTimer);
-    _chatNotifTimer = setInterval(_chatCheckUnread, 15000);
+    _chatNotifTimer = setInterval(_chatCheckUnread, 2000);
 }
 
 function _chatPlayNotifSound() {
@@ -2410,6 +2965,729 @@ function createBackup() {
         document.getElementById('backupResult').innerHTML = '<p style="color:var(--accent-red);">Failed: ' + e.message + '</p>';
     });
 }
+</script>
+
+<!-- RELAY SERVER INTEGRATION + PHASE 2 ENTERPRISE FEATURES -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="pdf-report.js"></script>
+<script src="relay-client.js"></script>
+<script>
+(function() {
+    var RELAY_URL = 'ws://localhost:8080/ws';
+    var _relayInitDone = false;
+    function initRelay() {
+        if (_relayInitDone) return;
+        if (!_masterToken || _masterToken.length < 8) { setTimeout(initRelay, 3000); return; }
+        _relayInitDone = true;
+        FalconRelay.connect(RELAY_URL, _masterToken, 'desktop_console');
+    }
+    FalconRelay.onEvent('authenticated', function(data) { var dot=document.getElementById('serverDot'); var st=document.getElementById('serverStatus'); if(dot)dot.className='status-dot online'; if(st)st.textContent='Relay Connected ('+data.connected_eas+' EAs)'; });
+    FalconRelay.onEvent('ea_heartbeat', function(msg) { if(!window._relayEAStates)window._relayEAStates={}; window._relayEAStates[msg.token_key]=msg.data; });
+    FalconRelay.onEvent('cmd_ack', function(msg) { _chatShowToast('⚡ '+msg.action+' → '+msg.pending_eas+' EAs'); });
+    FalconRelay.onEvent('cmd_delivered', function(msg) { _chatShowToast('✓ '+msg.action+' in '+msg.latency_ms+'ms'); });
+    FalconRelay.onEvent('connection', function(data) { var dot=document.getElementById('serverDot'); var st=document.getElementById('serverStatus'); if(data.status==='disconnected'){if(dot)dot.className='status-dot offline';if(st)st.textContent='Disconnected';}else if(data.status==='reconnecting'){if(dot)dot.className='status-dot offline';if(st)st.textContent='Reconnecting...';} });
+    FalconRelay.onEvent('state_snapshot', function(msg) { if(msg.global){var el=document.getElementById('kpiEAs');if(el)el.textContent=msg.global.total_eas_online||0;} });
+    FalconRelay.onEvent('EXPOSURE_ALERT', function(msg) { var d=document.getElementById('fleetAlerts'); if(d&&msg.alerts&&msg.alerts.length>0){d.style.display='block';d.innerHTML='<div style="color:#ff4444;font-weight:700;font-size:12px;">⚠️ THRESHOLD BREACH</div>'+msg.alerts.map(function(a){return '<div style="font-size:11px;color:#ff6b6b;">• '+a.symbol+': '+(a.lots||a.value)+' (limit: '+a.threshold+')</div>';}).join('');} });
+    window.relaySendCommand = function(a,t,p) { if(FalconRelay.isConnected())return FalconRelay.sendCommand(a,t,p); return false; };
+    var _rw = setInterval(function() { if(_masterToken&&_masterToken.length>=8){clearInterval(_rw);initRelay();} }, 1000);
+
+    // Kill Switch
+    window.killSwitchSuspend = function() { if(!confirm('⏸ SUSPEND SYSTEM?\n\nBlocks new trades. Positions stay open.\n\nProceed?'))return; relaySendCommand('SUSPEND_SYSTEM','*',{})||callAdmin({command:'admin_set_emotional_mode_global',enabled:false}); document.getElementById('killSwitchStatus').innerHTML='<span style="color:#ffc107;">⏸ SUSPENDED — '+new Date().toLocaleTimeString()+'</span>'; };
+    window.killSwitchFlatten = function() { var b=document.getElementById('flattenBtn'); if(!b._c){b._c=true;b.innerHTML='☢ TAP AGAIN<br><span style="font-size:10px;">CLOSES ALL!</span>';b.style.background='rgba(255,0,0,0.3)';setTimeout(function(){b._c=false;b.innerHTML='☢ FLATTEN ALL<br><span style="font-size:10px;opacity:0.7;">Close ALL + freeze</span>';b.style.background='rgba(255,68,68,0.15)';},5000);return;} b._c=false; relaySendCommand('FLATTEN_ALL','*',{}); document.getElementById('killSwitchStatus').innerHTML='<span style="color:#ff4444;">☢ FLATTEN EXECUTED — '+new Date().toLocaleTimeString()+'</span>'; b.innerHTML='☢ FLATTEN ALL<br><span style="font-size:10px;opacity:0.7;">Close ALL + freeze</span>';b.style.background='rgba(255,68,68,0.15)'; };
+
+    // Thresholds
+    window.saveThresholds = function() { var t={XAUUSD:Number(document.getElementById('thresh_XAUUSD').value)||50,EURUSD:Number(document.getElementById('thresh_EURUSD').value)||30,GBPUSD:Number(document.getElementById('thresh_GBPUSD').value)||30,BTCUSD:Number(document.getElementById('thresh_BTCUSD').value)||10}; fetch('http://localhost:8080/exposure/thresholds',{method:'POST',headers:{'Content-Type':'application/json','X-Master-Token':_masterToken},body:JSON.stringify({thresholds:t})}).then(function(r){return r.json();}).then(function(){document.getElementById('thresholdResult').innerHTML='<span style="color:var(--accent-green);">✓ Saved</span>';}).catch(function(e){document.getElementById('thresholdResult').innerHTML='<span style="color:var(--accent-red);">'+e.message+'</span>';}); };
+
+    // Exposure Panel
+    function renderExp(d){var g=document.getElementById('fleetExposureGrid');var t=document.getElementById('fleetTotals');if(!d||!g)return;var h='<table style="width:100%;font-size:11px;border-collapse:collapse;"><tr style="color:var(--text-muted);"><th style="text-align:left;padding:6px;">Symbol</th><th>Lots</th><th>Pos</th><th>Limit</th><th>Status</th></tr>';Object.keys(d.exposure||{}).forEach(function(s){var e=d.exposure[s];h+='<tr style="border-top:1px solid var(--border);"><td style="padding:6px;font-weight:600;">'+s+'</td><td style="text-align:center;">'+(e.lots||0).toFixed(2)+'</td><td style="text-align:center;">'+(e.positions||0)+'</td><td style="text-align:center;">'+(e.threshold||'-')+'</td><td style="text-align:center;color:'+(e.breached?'var(--accent-red)':'var(--accent-green)')+';font-weight:700;">'+(e.breached?'⚠ BREACH':'✓ OK')+'</td></tr>';});h+='</table>';g.innerHTML=h;if(t&&d.totals)t.innerHTML='<div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;"><div style="font-size:9px;color:var(--text-muted);">EQUITY</div><div style="font-size:14px;font-weight:700;color:var(--accent);">$'+(d.totals.equity||0).toLocaleString()+'</div></div><div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;"><div style="font-size:9px;color:var(--text-muted);">POSITIONS</div><div style="font-size:14px;font-weight:700;">'+(d.totals.positions||0)+'</div></div><div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;"><div style="font-size:9px;color:var(--text-muted);">DD</div><div style="font-size:14px;font-weight:700;color:'+((d.avg_drawdown||0)>5?'var(--accent-red)':'var(--accent-green)')+';">'+(d.avg_drawdown||0).toFixed(1)+'%</div></div><div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;"><div style="font-size:9px;color:var(--text-muted);">ONLINE</div><div style="font-size:14px;font-weight:700;color:var(--accent-green);">'+(d.totals.online_eas||0)+'</div></div>';}
+    window._renderFleetExp = renderExp; // Expose globally for nav handler
+    setInterval(function(){var p=document.getElementById('panel-fleet-risk');if(p&&p.classList.contains('active'))fetch('http://localhost:8080/exposure?master_token='+encodeURIComponent(_masterToken)).then(function(r){return r.json();}).then(renderExp).catch(function(){});},5000);
+
+    // PDF
+    window.generatePDFReport = function() { document.getElementById('pdfStatus').innerHTML='<span style="color:var(--text-muted);">Generating...</span>'; fetch('http://localhost:8080/exposure?master_token='+encodeURIComponent(_masterToken)).then(function(r){return r.json();}).then(function(exp){callAdmin({command:'admin_get_audit_log',limit:100}).then(function(a){FalconReport.generate(exp,(a&&a.entries)||[]);document.getElementById('pdfStatus').innerHTML='<span style="color:var(--accent-green);">✓ Downloaded</span>';}).catch(function(){FalconReport.generate(exp,[]);document.getElementById('pdfStatus').innerHTML='<span style="color:var(--accent-green);">✓ Downloaded</span>';});}).catch(function(){document.getElementById('pdfStatus').innerHTML='<span style="color:var(--accent-red);">Relay offline</span>';}); };
+
+    // ── Execution Telemetry ──
+    var _execMetrics = []; // Rolling last 50
+
+    FalconRelay.onEvent('EXEC_METRIC', function(msg) {
+        var m = msg.metric || {};
+        m.login = msg.login || '';
+        _execMetrics.unshift(m);
+        if (_execMetrics.length > 50) _execMetrics.length = 50;
+        renderExecGrid();
+    });
+
+    FalconRelay.onEvent('EXEC_ALERT', function(msg) {
+        _chatShowToast('🔴 EXEC ALERT: ' + msg.message);
+    });
+
+    function renderExecGrid() {
+        var tbody = document.getElementById('execTelemetryBody');
+        if (!tbody) return;
+        if (_execMetrics.length === 0) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">Waiting for execution data...</td></tr>'; return; }
+
+        var html = '';
+        var totalLat = 0, totalSlip = 0, posCount = 0, negCount = 0;
+        _execMetrics.forEach(function(m) {
+            var lat = Number(m.latency_ms) || 0;
+            var slip = Number(m.slippage_pips) || 0;
+            totalLat += lat; totalSlip += slip;
+            if (m.slippage_dir === 'positive') posCount++;
+            if (m.slippage_dir === 'negative') negCount++;
+
+            var sevColor = lat > 300 || Math.abs(slip) > 1.5 ? 'var(--accent-red)' : lat > 150 || Math.abs(slip) > 0.5 ? 'var(--accent-yellow)' : 'var(--accent-green)';
+            var slipColor = m.slippage_dir === 'positive' ? 'var(--accent)' : m.slippage_dir === 'negative' ? 'var(--accent-red)' : 'var(--text-muted)';
+            var timeStr = m.ts ? new Date(m.ts * 1000).toLocaleTimeString() : '--';
+
+            html += '<tr>';
+            html += '<td>' + timeStr + '</td>';
+            html += '<td>' + (m.login || '--') + '</td>';
+            html += '<td style="font-weight:600;">' + (m.symbol || '--') + '</td>';
+            html += '<td>' + (m.direction || '--') + '</td>';
+            html += '<td>' + (m.volume || '--') + '</td>';
+            html += '<td style="color:' + sevColor + ';font-weight:700;">' + lat + 'ms</td>';
+            html += '<td style="color:' + slipColor + ';font-weight:700;">' + slip.toFixed(1) + ' pips</td>';
+            html += '<td style="color:' + slipColor + ';">' + (m.slippage_dir || '--') + '</td>';
+            html += '<td style="color:' + sevColor + ';">●</td>';
+            html += '</tr>';
+        });
+        tbody.innerHTML = html;
+
+        // Summary
+        var n = _execMetrics.length;
+        var avgLatEl = document.getElementById('execAvgLatency');
+        var avgSlipEl = document.getElementById('execAvgSlippage');
+        var posEl = document.getElementById('execPosSlips');
+        var negEl = document.getElementById('execNegSlips');
+        if (avgLatEl) { var avg = n > 0 ? (totalLat / n).toFixed(0) : '--'; avgLatEl.textContent = avg + 'ms'; avgLatEl.style.color = Number(avg) > 300 ? 'var(--accent-red)' : Number(avg) > 150 ? 'var(--accent-yellow)' : 'var(--accent-green)'; }
+        if (avgSlipEl) { var avgS = n > 0 ? (totalSlip / n).toFixed(1) : '--'; avgSlipEl.textContent = avgS + ' pips'; }
+        if (posEl) posEl.textContent = posCount;
+        if (negEl) negEl.textContent = negCount;
+    }
+
+    window.saveExecThresholds = function() {
+        var lat = Number(document.getElementById('execThreshLatency').value) || 300;
+        var slip = Number(document.getElementById('execThreshSlippage').value) || 1.5;
+        if (FalconRelay.isConnected()) {
+            // Send via WebSocket
+            FalconRelay.sendCommand && true; // dummy check
+            // Use raw WS message type
+            var ws = FalconRelay;
+            fetch('http://localhost:8080/exposure/thresholds', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Master-Token': _masterToken }, body: JSON.stringify({ exec_thresholds: { latency_degraded: lat, slippage_degraded: slip } }) }).catch(function(){});
+        }
+        document.getElementById('execThreshResult').innerHTML = '<span style="color:var(--accent-green);">✓</span>';
+    };
+})();
+</script>
+</body>
+</html>
+<script>
+(function() {
+    // Relay server configuration
+    var RELAY_URL = 'ws://localhost:8080/ws'; // Change to wss://your-vps.com/ws in production
+    var _relayInitDone = false;
+
+    function initRelay() {
+        if (_relayInitDone) return;
+        if (!_masterToken || _masterToken.length < 8) {
+            // Retry — admin hasn't logged in yet
+            setTimeout(initRelay, 3000);
+            return;
+        }
+        _relayInitDone = true;
+        FalconRelay.connect(RELAY_URL, _masterToken, 'desktop_console');
+    }
+
+    // Event handlers
+    FalconRelay.onEvent('authenticated', function(data) {
+        console.log('[Relay] Admin Console connected — ' + data.connected_eas + ' EAs online');
+        // Update sidebar footer status
+        var dot = document.getElementById('serverDot');
+        var status = document.getElementById('serverStatus');
+        if (dot) dot.className = 'status-dot online';
+        if (status) status.textContent = 'Relay Connected (' + data.connected_eas + ' EAs)';
+    });
+
+    FalconRelay.onEvent('ea_heartbeat', function(msg) {
+        // Store latest heartbeat data for any panel that needs it
+        if (!window._relayEAStates) window._relayEAStates = {};
+        window._relayEAStates[msg.token_key] = msg.data;
+    });
+
+    FalconRelay.onEvent('cmd_ack', function(msg) {
+        // Show toast notification
+        _chatShowToast('⚡ ' + msg.action + ' queued for ' + msg.pending_eas + ' EA(s)');
+    });
+
+    FalconRelay.onEvent('cmd_delivered', function(msg) {
+        _chatShowToast('✓ ' + msg.action + ' delivered in ' + msg.latency_ms + 'ms');
+    });
+
+    FalconRelay.onEvent('connection', function(data) {
+        var dot = document.getElementById('serverDot');
+        var status = document.getElementById('serverStatus');
+        if (data.status === 'disconnected') {
+            if (dot) dot.className = 'status-dot offline';
+            if (status) status.textContent = 'Relay Disconnected';
+        } else if (data.status === 'reconnecting') {
+            if (dot) dot.className = 'status-dot offline';
+            if (status) status.textContent = 'Reconnecting...';
+        }
+    });
+
+    FalconRelay.onEvent('state_snapshot', function(msg) {
+        // Update KPIs if on dashboard panel
+        if (msg.global) {
+            var el = document.getElementById('kpiEAs');
+            if (el) el.textContent = msg.global.total_eas_online || 0;
+        }
+    });
+
+    // Expose relay command helper globally
+    window.relaySendCommand = function(action, target, params) {
+        if (FalconRelay.isConnected()) {
+            return FalconRelay.sendCommand(action, target, params);
+        }
+        return false;
+    };
+
+    // Initialize after login completes (watch for _masterToken)
+    var _relayWatcher = setInterval(function() {
+        if (_masterToken && _masterToken.length >= 8) {
+            clearInterval(_relayWatcher);
+            initRelay();
+        }
+    }, 1000);
+})();
+</script>
+
+<!-- AGGRESSIVENESS CONTROL MODULE -->
+<script>
+(function() {
+    // Multiplier lookup tables (must mirror the EA-side tables exactly)
+    var CONF_TBL = [1.050, 1.035, 1.020, 1.010, 1.000, 0.990, 0.975, 0.960, 0.945, 0.930];
+    var RISK_TBL = [0.50, 0.65, 0.80, 0.90, 1.00, 1.15, 1.35, 1.55, 1.75, 2.00];
+    var COOL_TBL = [2.00, 1.70, 1.40, 1.15, 1.00, 0.85, 0.70, 0.55, 0.42, 0.33];
+    var DIST_TBL = [1.50, 1.35, 1.20, 1.10, 1.00, 0.90, 0.80, 0.70, 0.60, 0.50];
+    var POS_TBL  = [0.50, 0.625, 0.75, 0.875, 1.00, 1.125, 1.25, 1.375, 1.50, 1.50];
+
+    function updateAggrPreview(level) {
+        var idx = Math.max(0, Math.min(9, level - 1));
+        document.getElementById('aggrLevelDisplay').textContent = level;
+        document.getElementById('aggrM_conf').textContent = '×' + CONF_TBL[idx].toFixed(3);
+        document.getElementById('aggrM_risk').textContent = '×' + RISK_TBL[idx].toFixed(2);
+        document.getElementById('aggrM_cool').textContent = '×' + COOL_TBL[idx].toFixed(2);
+        document.getElementById('aggrM_dist').textContent = '×' + DIST_TBL[idx].toFixed(2);
+        document.getElementById('aggrM_pos').textContent  = '×' + POS_TBL[idx].toFixed(3);
+
+        // Color the level display based on aggressiveness
+        var display = document.getElementById('aggrLevelDisplay');
+        if (level <= 3) display.style.color = '#4caf50';
+        else if (level <= 7) display.style.color = level === 5 ? '#00d9ff' : '#ffc107';
+        else display.style.color = '#ff4444';
+    }
+
+    // Slider event
+    var slider = document.getElementById('aggrSlider');
+    if (slider) {
+        slider.addEventListener('input', function() {
+            updateAggrPreview(parseInt(this.value));
+        });
+    }
+
+    // Apply button
+    window.applyAggressiveness = function() {
+        var level = parseInt(document.getElementById('aggrSlider').value);
+        var target = document.getElementById('aggrTarget').value;
+        var resultEl = document.getElementById('aggrResult');
+
+        if (level < 1 || level > 10) {
+            resultEl.innerHTML = '<span style="color:#ff4444;">Invalid level</span>';
+            return;
+        }
+
+        var levelNames = ['','Ultra Conservative','Conservative','Moderate Conservative','Slightly Conservative','Balanced','Slightly Aggressive','Moderate Aggressive','Aggressive','Very Aggressive','Maximum Aggressive'];
+        if (!confirm('Set Aggressiveness Level to ' + level + ' (' + levelNames[level] + ')' +
+            '\nTarget: ' + (target === '*' ? 'ALL EAs' : target) +
+            '\n\nThis will affect trade frequency, position sizing, and entry criteria.\nProceed?')) return;
+
+        resultEl.innerHTML = '<span style="color:var(--accent);">Sending...</span>';
+
+        // Try relay first, fall back to GAS
+        var sent = false;
+        if (window.FalconRelay && window.FalconRelay.connected) {
+            try {
+                window.FalconRelay.ws.send(JSON.stringify({
+                    type: 'SET_AGGRESSIVENESS',
+                    level: level,
+                    target: target
+                }));
+                sent = true;
+                resultEl.innerHTML = '<span style="color:#4caf50;">✓ Level ' + level + ' sent via Relay (EAs will apply within 2s)</span>';
+            } catch(e) { sent = false; }
+        }
+
+        if (!sent) {
+            // Fallback to GAS
+            callAdmin({ command: 'admin_set_aggressiveness', level: String(level), target: target }).then(function(r) {
+                if (r && r.status === 'ok') {
+                    resultEl.innerHTML = '<span style="color:#4caf50;">✓ Level ' + level + ' saved via GAS (EAs apply on next poll)</span>';
+                } else {
+                    resultEl.innerHTML = '<span style="color:#ff4444;">Error: ' + (r && r.error || 'unknown') + '</span>';
+                }
+            }).catch(function(e) {
+                resultEl.innerHTML = '<span style="color:#ff4444;">Network error</span>';
+            });
+        }
+    };
+
+    // Listen for AGGRESSIVENESS_UPDATED broadcasts from relay
+    if (window.FalconRelay) {
+        FalconRelay.onEvent('AGGRESSIVENESS_UPDATED', function(data) {
+            updateAggrPreview(data.level || 5);
+            document.getElementById('aggrSlider').value = data.level || 5;
+            var resultEl = document.getElementById('aggrResult');
+            resultEl.innerHTML = '<span style="color:#4caf50;">✓ Confirmed Level ' + data.level + ' (set by ' + (data.set_by || 'admin') + ')</span>';
+        });
+    }
+
+    // Generate Power Token (admin)
+    window.generatePowerToken = function() {
+        var level = parseInt(document.getElementById('ptGenLevel').value);
+        var days = parseInt(document.getElementById('ptGenDays').value);
+        var target = (document.getElementById('ptGenTarget').value || '').trim();
+        var resultEl = document.getElementById('ptGenResult');
+
+        if (level < 1 || level > 10) { resultEl.innerHTML = '<span style="color:#ff4444;">Level must be 1-10</span>'; return; }
+        if (days < 1) { resultEl.innerHTML = '<span style="color:#ff4444;">Days must be at least 1</span>'; return; }
+
+        resultEl.innerHTML = '<span style="color:var(--accent);">Generating...</span>';
+
+        callAdmin({ command: 'admin_generate_power_token', level: String(level), days: String(days), target: target }).then(function(r) {
+            if (r && r.status === 'ok') {
+                resultEl.innerHTML = '<div style="background:var(--bg-primary);border:1px solid rgba(0,217,255,0.3);border-radius:6px;padding:10px;margin-top:6px;">' +
+                    '<div style="font-size:9px;color:var(--text-muted);margin-bottom:4px;">POWER TOKEN (give to customer):</div>' +
+                    '<div style="font-size:14px;font-weight:900;color:var(--accent);font-family:monospace;word-break:break-all;cursor:pointer;" onclick="navigator.clipboard.writeText(this.textContent);this.style.color=\'#4caf50\';" title="Click to copy">' + r.power_code + '</div>' +
+                    '<div style="font-size:10px;color:var(--text-muted);margin-top:6px;">Level ' + r.level + ' | Valid ' + r.days + ' days | Expires: ' + new Date(r.expires_at).toLocaleDateString() + '</div>' +
+                    '</div>';
+            } else {
+                resultEl.innerHTML = '<span style="color:#ff4444;">Error: ' + (r && r.error || 'unknown') + '</span>';
+            }
+        }).catch(function() {
+            resultEl.innerHTML = '<span style="color:#ff4444;">Network error</span>';
+        });
+    };
+
+    // Initial state
+    updateAggrPreview(5);
+
+    // Populate EA target dropdown when state snapshot arrives
+    var _aggrPopulated = false;
+    var _aggrPopInterval = setInterval(function() {
+        if (!window.FalconRelay || !window.FalconRelay.connected) return;
+        if (_aggrPopulated) { clearInterval(_aggrPopInterval); return; }
+        // Attempt to get state
+        try {
+            var sel = document.getElementById('aggrTarget');
+            if (sel && sel.options.length <= 1) {
+                // We'll populate from state snapshots when they arrive
+                FalconRelay.onEvent('state_snapshot', function(snap) {
+                    if (_aggrPopulated) return;
+                    _aggrPopulated = true;
+                    var eas = snap.eas || {};
+                    Object.keys(eas).forEach(function(token) {
+                        var ea = eas[token];
+                        if (ea.online) {
+                            var opt = document.createElement('option');
+                            opt.value = token;
+                            opt.textContent = (ea.login || token.slice(0,12)) + ' (' + (ea.server || '?') + ')';
+                            sel.appendChild(opt);
+                        }
+                    });
+                });
+            }
+        } catch(e) {}
+    }, 2000);
+})();
+</script>
+
+<!-- USER CONTROL CENTER (God-Mode) -->
+<script>
+(function() {
+    window.loadUserControl = function() {
+        callAdmin({ command: 'copy_admin_get_users' }).then(function(r) {
+            if (r && r.status === 'ok' && r.users) {
+                var body = document.getElementById('userControlBody');
+                if (r.users.length === 0) { body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">No users</td></tr>'; return; }
+                body.innerHTML = r.users.map(function(u) {
+                    var sColor = u.status==='active'?'#4caf50':u.status==='blacklisted'?'#ff4444':u.status==='pending'?'#ffc107':'#ff9800';
+                    var flags = '';
+                    if (u.fee_exempt) flags += '<span style="color:#00d9ff;font-size:8px;margin-right:3px;">FREE</span>';
+                    if (u.deposit_bypassed) flags += '<span style="color:#ffc107;font-size:8px;margin-right:3px;">WL</span>';
+                    if (u.blacklisted) flags += '<span style="color:#ff4444;font-size:8px;" title="'+u.blacklist_reason+'">BAN</span>';
+                    return '<tr>' +
+                        '<td>' + u.client_id + '</td>' +
+                        '<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;">' + (u.email||'—') + '</td>' +
+                        '<td style="color:'+sColor+';font-weight:700;">' + (u.status||'?').toUpperCase() + '</td>' +
+                        '<td>' + (u.fee_exempt ? 'EXEMPT' : Math.round(u.fee_rate*100)+'%') + '</td>' +
+                        '<td>' + (u.wallet_balance||0).toFixed(0) + ' USDT</td>' +
+                        '<td>' + (flags||'—') + '</td>' +
+                        '<td style="white-space:nowrap;">' +
+                            '<button style="padding:2px 5px;font-size:8px;background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);color:#00ff88;border-radius:3px;cursor:pointer;margin-right:2px;" onclick="ucActivate('+u.client_id+')">✓</button>' +
+                            '<button style="padding:2px 5px;font-size:8px;background:rgba(255,193,7,0.1);border:1px solid rgba(255,193,7,0.3);color:#ffc107;border-radius:3px;cursor:pointer;margin-right:2px;" onclick="ucSuspend('+u.client_id+')">⏸</button>' +
+                            '<button style="padding:2px 5px;font-size:8px;background:rgba(0,217,255,0.1);border:1px solid rgba(0,217,255,0.3);color:#00d9ff;border-radius:3px;cursor:pointer;margin-right:2px;" onclick="ucWhitelist('+u.client_id+')">WL</button>' +
+                            '<button style="padding:2px 5px;font-size:8px;background:rgba(255,68,68,0.1);border:1px solid rgba(255,68,68,0.3);color:#ff4444;border-radius:3px;cursor:pointer;" onclick="ucBanQuick('+u.client_id+')">BAN</button>' +
+                        '</td></tr>';
+                }).join('');
+            }
+        });
+    };
+
+    window.ucActivate = function(id) {
+        if (!confirm('Activate client '+id+'?')) return;
+        callAdmin({ command: 'copy_admin_activate', client_id: String(id) }).then(function(r) {
+            document.getElementById('ucActionResult').innerHTML = r&&r.status==='ok' ? '<span style="color:#4caf50;">✓ Client '+id+' activated</span>' : '<span style="color:#ff4444;">Error</span>';
+            loadUserControl();
+        });
+    };
+
+    window.ucSuspend = function(id) {
+        var reason = prompt('Reason for suspension (optional):', 'admin_manual');
+        if (reason === null) return;
+        callAdmin({ command: 'copy_admin_suspend', client_id: String(id), reason: reason }).then(function(r) {
+            document.getElementById('ucActionResult').innerHTML = r&&r.status==='ok' ? '<span style="color:#ffc107;">⏸ Client '+id+' suspended</span>' : '<span style="color:#ff4444;">Error</span>';
+            loadUserControl();
+        });
+    };
+
+    window.ucWhitelist = function(id) {
+        if (!confirm('Whitelist client '+id+'? (bypasses deposit requirement, auto-activates)')) return;
+        callAdmin({ command: 'copy_admin_whitelist', client_id: String(id) }).then(function(r) {
+            document.getElementById('ucActionResult').innerHTML = r&&r.status==='ok' ? '<span style="color:#00d9ff;">✓ Client '+id+' whitelisted</span>' : '<span style="color:#ff4444;">Error</span>';
+            loadUserControl();
+        });
+    };
+
+    window.ucBanQuick = function(id) {
+        var reason = prompt('Reason for blacklisting (REQUIRED):', '');
+        if (!reason) { alert('Reason is required for blacklisting.'); return; }
+        callAdmin({ command: 'copy_admin_blacklist', client_id: String(id), reason: reason }).then(function(r) {
+            document.getElementById('ucActionResult').innerHTML = r&&r.status==='ok' ? '<span style="color:#ff4444;">🚫 Client '+id+' BANNED: '+reason+'</span>' : '<span style="color:#ff4444;">Error</span>';
+            loadUserControl();
+        });
+    };
+
+    window.ucSetFee = function() {
+        var id = document.getElementById('ucFeeId').value.trim();
+        var rate = document.getElementById('ucFeeRate').value;
+        if (!id) { alert('Enter Client ID'); return; }
+        callAdmin({ command: 'copy_admin_set_fee', client_id: id, fee_rate: rate }).then(function(r) {
+            document.getElementById('ucActionResult').innerHTML = r&&r.status==='ok' ? '<span style="color:#4caf50;">✓ Fee set to '+Math.round(rate*100)+'% for client '+id+'</span>' : '<span style="color:#ff4444;">'+(r&&r.error||'Error')+'</span>';
+            loadUserControl();
+        });
+    };
+
+    window.ucBlacklist = function() {
+        var id = document.getElementById('ucBanId').value.trim();
+        var reason = document.getElementById('ucBanReason').value.trim();
+        if (!id || !reason) { alert('Both Client ID and Reason are required'); return; }
+        callAdmin({ command: 'copy_admin_blacklist', client_id: id, reason: reason }).then(function(r) {
+            document.getElementById('ucActionResult').innerHTML = r&&r.status==='ok' ? '<span style="color:#ff4444;">🚫 BANNED: '+reason+'</span>' : '<span style="color:#ff4444;">'+(r&&r.error||'Error')+'</span>';
+            loadUserControl();
+        });
+    };
+})();
+</script>
+
+<!-- COPY TRADING PANEL LOGIC -->
+<script>
+(function() {
+    window.showAddCopyClient = function() { document.getElementById('copyAddForm').style.display = 'block'; document.getElementById('copyAddForm').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+
+    var _copyAllClients = []; // cached for search/filter
+    var _copyManageClientId = null;
+
+    window.loadCopyFleet = function() {
+        callAdmin({ command: 'copy_get_billing_summary' }).then(function(r) {
+            if (r && r.status === 'ok' && r.summary) {
+                document.getElementById('copyKpiTotal').textContent = r.summary.total_clients || 0;
+                document.getElementById('copyKpiActive').textContent = r.summary.active || 0;
+                document.getElementById('copyKpiSuspended').textContent = r.summary.suspended || 0;
+                document.getElementById('copyKpiFees').textContent = (r.summary.total_fees || 0).toFixed(2) + ' USDT';
+            }
+        });
+        callAdmin({ command: 'copy_get_active_clients' }).then(function(r) {
+            if (r && r.status === 'ok') {
+                _copyAllClients = r.clients || [];
+                renderCopyClients(_copyAllClients);
+                // Show pending applications
+                var pending = _copyAllClients.filter(function(c) { return c.status === 'pending'; });
+                document.getElementById('copyKpiPending').textContent = pending.length;
+                var pendingCard = document.getElementById('copyPendingCard');
+                if (pending.length > 0) {
+                    pendingCard.style.display = 'block';
+                    document.getElementById('copyPendingList').innerHTML = pending.map(function(c) {
+                        return '<div style="background:var(--bg-primary);border:1px solid rgba(0,217,255,0.2);border-radius:8px;padding:14px;margin-bottom:10px;">' +
+                            '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:11px;margin-bottom:10px;">' +
+                            '<div><span style="color:var(--text-muted);">ID:</span> <b>' + c.client_id + '</b></div>' +
+                            '<div><span style="color:var(--text-muted);">Login:</span> <b>' + c.mt5_login + '</b></div>' +
+                            '<div><span style="color:var(--text-muted);">Broker:</span> <b>' + (c.broker_server || c.broker_id || '?') + '</b></div>' +
+                            '<div><span style="color:var(--text-muted);">Email:</span> <b>' + (c.email || '—') + '</b></div>' +
+                            '<div><span style="color:var(--text-muted);">Risk:</span> <b>' + (c.risk_multiplier || 1) + '×</b></div>' +
+                            '<div><span style="color:var(--text-muted);">Wallet:</span> <b>' + (c.wallet_balance || 0) + ' USDT</b></div>' +
+                            '<div><span style="color:var(--text-muted);">Applied:</span> <b>' + (c.created_at || '?').substring(0, 10) + '</b></div>' +
+                            '</div>' +
+                            '<div style="display:flex;gap:8px;">' +
+                            '<button class="btn btn-primary" style="padding:6px 14px;font-size:11px;" onclick="copyApprove(' + c.client_id + ')">✅ Approve</button>' +
+                            '<button class="btn btn-danger" style="padding:6px 14px;font-size:11px;" onclick="copyReject(' + c.client_id + ')">❌ Reject</button>' +
+                            '<button class="btn btn-ghost" style="padding:6px 14px;font-size:11px;" onclick="openCopyManage(' + c.client_id + ')">⚙️ Manage</button>' +
+                            '</div></div>';
+                    }).join('');
+                } else {
+                    pendingCard.style.display = 'none';
+                }
+            }
+        });
+        // Load pending deposits
+        callAdmin({ command: 'copy_admin_get_pending_deposits' }).then(function(r) {
+            var depCard = document.getElementById('copyPendingDepositsCard');
+            if (r && r.status === 'ok' && r.deposits) {
+                var pendingDeps = r.deposits.filter(function(d) { return d.status === 'pending_admin_review'; });
+                if (pendingDeps.length > 0) {
+                    depCard.style.display = 'block';
+                    document.getElementById('copyPendingDepositsList').innerHTML = pendingDeps.map(function(d) {
+                        var v = d.verification || {};
+                        var verBadge = v.verified ? '<span style="color:#00ff88;font-weight:700;">✅ VERIFIED</span>' : '<span style="color:#ffc107;font-weight:700;">⚠️ MANUAL CHECK</span>';
+                        var amtBadge = (v.on_chain_amount > 0 && Math.abs(v.on_chain_amount - d.amount) < 1) ? '<span style="color:#00ff88;">✅ Match</span>' : '<span style="color:#ffc107;">⚠️ ' + (v.on_chain_amount || '?') + ' on-chain</span>';
+                        var recipBadge = v.recipient_match ? '<span style="color:#00ff88;">✅ Your wallet</span>' : '<span style="color:#ffc107;">⚠️ Check manually</span>';
+                        var scanLink = d.network === 'TRC20' ? 'https://tronscan.org/#/transaction/' + d.tx_hash : 'https://etherscan.io/tx/' + d.tx_hash;
+                        return '<div style="background:var(--bg-primary);border:1px solid rgba(0,255,136,0.2);border-radius:8px;padding:14px;margin-bottom:10px;">' +
+                            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+                            '<div><span style="font-weight:700;font-size:13px;">Client #' + d.client_id + '</span> <span style="color:var(--text-muted);font-size:11px;">' + (d.email||'') + '</span></div>' +
+                            '<div style="font-size:18px;font-weight:800;color:var(--accent-green);">+' + d.amount + ' USDT</div></div>' +
+                            '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:10px;margin-bottom:8px;">' +
+                            '<div><span style="color:var(--text-muted);">Network:</span> ' + d.network + '</div>' +
+                            '<div><span style="color:var(--text-muted);">On-chain:</span> ' + verBadge + '</div>' +
+                            '<div><span style="color:var(--text-muted);">Amount:</span> ' + amtBadge + '</div>' +
+                            '<div><span style="color:var(--text-muted);">Recipient:</span> ' + recipBadge + '</div>' +
+                            '<div style="grid-column:span 2;"><span style="color:var(--text-muted);">Submitted:</span> ' + (d.submitted_at||'?').substring(0,16) + '</div>' +
+                            '</div>' +
+                            '<div style="font-size:9px;color:var(--text-muted);margin-bottom:8px;word-break:break-all;">TX: <a href="' + scanLink + '" target="_blank" style="color:var(--accent);">' + d.tx_hash + '</a></div>' +
+                            '<div style="display:flex;gap:8px;">' +
+                            '<button class="btn btn-primary" style="padding:6px 14px;font-size:11px;" onclick="approveDeposit(\'' + d._deposit_key + '\')">✅ Approve & Credit</button>' +
+                            '<button class="btn btn-danger" style="padding:6px 14px;font-size:11px;" onclick="rejectDeposit(\'' + d._deposit_key + '\')">❌ Reject</button>' +
+                            '</div></div>';
+                    }).join('');
+                } else {
+                    depCard.style.display = 'none';
+                }
+            }
+        });
+    };
+
+    function renderCopyClients(clients) {
+        var body = document.getElementById('copyClientBody');
+        if (!clients || clients.length === 0) {
+            body.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:20px;">No copy trading clients</td></tr>';
+            return;
+        }
+        body.innerHTML = clients.map(function(c) {
+            var statusColor = c.status === 'active' ? '#4caf50' : c.status === 'pending' ? '#00d9ff' : c.status === 'suspended' ? '#ffc107' : '#ff4444';
+            var feeDisplay = c.fee_exempt ? '<span style="color:#00ff88;">EXEMPT</span>' : (Math.round((c.custom_fee_rate || 0.30) * 100) + '%');
+            return '<tr>' +
+                '<td>' + c.client_id + '</td>' +
+                '<td>' + c.mt5_login + '</td>' +
+                '<td>' + (c.broker_id || c.broker_server || '?') + '</td>' +
+                '<td style="font-size:10px;">' + (c.email || '—') + '</td>' +
+                '<td>' + (c.risk_multiplier || 1).toFixed(1) + '×</td>' +
+                '<td>' + (c.wallet_balance || 0).toFixed(2) + ' <small style="color:var(--text-muted);">USDT</small></td>' +
+                '<td>$' + (c.high_water_mark || 0).toFixed(0) + '</td>' +
+                '<td style="font-size:10px;">' + feeDisplay + '</td>' +
+                '<td style="color:' + statusColor + ';font-weight:700;">' + (c.status || '?').toUpperCase() + '</td>' +
+                '<td><button class="btn btn-ghost" style="padding:2px 8px;font-size:9px;" onclick="openCopyManage(' + c.client_id + ')">⚙️ Manage</button></td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    window.filterCopyClients = function() {
+        var q = document.getElementById('copyClientSearch').value.toLowerCase();
+        if (!q) { renderCopyClients(_copyAllClients); return; }
+        var filtered = _copyAllClients.filter(function(c) {
+            return String(c.mt5_login).includes(q) || (c.broker_server || '').toLowerCase().includes(q) ||
+                   (c.broker_id || '').toLowerCase().includes(q) || (c.email || '').toLowerCase().includes(q) ||
+                   String(c.client_id).includes(q);
+        });
+        renderCopyClients(filtered);
+    };
+
+    window.openCopyManage = function(clientId) {
+        var c = _copyAllClients.find(function(x) { return x.client_id === clientId; });
+        if (!c) return;
+        _copyManageClientId = clientId;
+        document.getElementById('copyManagePanel').style.display = 'block';
+        document.getElementById('copyManageTitle').textContent = '#' + clientId + ' — ' + c.mt5_login;
+        document.getElementById('copyManageId').textContent = clientId;
+        document.getElementById('copyManageLogin').textContent = c.mt5_login;
+        document.getElementById('copyManageBroker').textContent = c.broker_server || c.broker_id || '?';
+        document.getElementById('copyManageEmail').textContent = c.email || '—';
+        document.getElementById('copyManageWallet').textContent = (c.wallet_balance || 0).toFixed(2) + ' USDT';
+        var sColor = c.status === 'active' ? 'var(--accent-green)' : c.status === 'pending' ? 'var(--accent)' : 'var(--accent-yellow)';
+        document.getElementById('copyManageStatus').innerHTML = '<span style="color:' + sColor + ';">' + (c.status || '?').toUpperCase() + '</span>';
+        document.getElementById('copyManageRisk').value = c.risk_multiplier || 1.0;
+        document.getElementById('copyManageFee').value = Math.round((c.custom_fee_rate || 0.30) * 100);
+        document.getElementById('copyManageResult').textContent = '';
+        document.getElementById('copyManagePanel').scrollIntoView({ behavior: 'smooth' });
+    };
+
+    window.copyApprove = function(clientId) {
+        if (!confirm('Approve client ' + clientId + '? This will activate their copy trading.')) return;
+        callAdmin({ command: 'copy_admin_activate', client_id: String(clientId) }).then(function(r) {
+            if (r && r.status === 'ok') { alert('✅ Client ' + clientId + ' approved and activated!'); loadCopyFleet(); }
+            else alert('Error: ' + (r && r.error || 'Unknown'));
+        });
+    };
+
+    window.copyReject = function(clientId) {
+        var reason = prompt('Reason for rejection (optional):');
+        callAdmin({ command: 'copy_admin_blacklist', client_id: String(clientId), reason: reason || 'Application rejected by admin' }).then(function(r) {
+            if (r && r.status === 'ok') { alert('❌ Client ' + clientId + ' rejected.'); loadCopyFleet(); }
+            else alert('Error: ' + (r && r.error || 'Unknown'));
+        });
+    };
+
+    window.copySetRisk = function() {
+        var val = document.getElementById('copyManageRisk').value;
+        callAdmin({ command: 'copy_set_risk_multiplier', client_id: String(_copyManageClientId), risk_multiplier: val }).then(function(r) {
+            document.getElementById('copyManageResult').innerHTML = (r && r.status === 'ok')
+                ? '<span style="color:#4caf50;">✓ Risk set to ' + val + '×</span>'
+                : '<span style="color:#ff4444;">' + (r && r.error || 'Error') + '</span>';
+            loadCopyFleet();
+        });
+    };
+
+    window.copySetFee = function() {
+        var val = document.getElementById('copyManageFee').value;
+        var decimalRate = parseFloat(val) / 100; // Convert 30 → 0.30 for GAS backend
+        callAdmin({ command: 'copy_admin_set_fee', client_id: String(_copyManageClientId), fee_rate: String(decimalRate) }).then(function(r) {
+            document.getElementById('copyManageResult').innerHTML = (r && r.status === 'ok')
+                ? '<span style="color:#4caf50;">✓ Fee rate set to ' + val + '%</span>'
+                : '<span style="color:#ff4444;">' + (r && r.error || 'Error') + '</span>';
+            loadCopyFleet();
+        });
+    };
+
+    window.copyFeeExempt = function(exempt) {
+        callAdmin({ command: 'copy_admin_fee_exempt', client_id: String(_copyManageClientId), exempt: exempt ? 'true' : 'false' }).then(function(r) {
+            document.getElementById('copyManageResult').innerHTML = (r && r.status === 'ok')
+                ? '<span style="color:#4caf50;">✓ Fee exempt: ' + (exempt ? 'ENABLED (zero fees)' : 'DISABLED') + '</span>'
+                : '<span style="color:#ff4444;">' + (r && r.error || 'Error') + '</span>';
+            loadCopyFleet();
+        });
+    };
+
+    window.copyWalletAction = function(action) {
+        var amt = document.getElementById('copyManageWalletAmt').value;
+        // GAS expects "credit" for deposit and "debit" for withdrawal
+        var gasAction = (action === 'deposit') ? 'credit' : 'debit';
+        callAdmin({ command: 'copy_update_wallet', client_id: String(_copyManageClientId), action: gasAction, amount: amt }).then(function(r) {
+            document.getElementById('copyManageResult').innerHTML = (r && r.status === 'ok')
+                ? '<span style="color:#4caf50;">✓ Wallet ' + action + ': ' + amt + ' USDT | New balance: ' + (r.wallet_balance || 0).toFixed(2) + ' USDT</span>'
+                : '<span style="color:#ff4444;">' + (r && r.error || 'Error') + '</span>';
+            loadCopyFleet();
+        });
+    };
+
+    window.copyAdminAction = function(cmd) {
+        var reason = '';
+        if (cmd === 'copy_admin_blacklist') reason = prompt('Reason for blacklisting:') || 'Admin action';
+        if (cmd === 'copy_admin_suspend') reason = prompt('Reason for suspension (optional):') || '';
+        callAdmin({ command: cmd, client_id: String(_copyManageClientId), reason: reason }).then(function(r) {
+            document.getElementById('copyManageResult').innerHTML = (r && r.status === 'ok')
+                ? '<span style="color:#4caf50;">✓ Action completed: ' + cmd.replace('copy_admin_', '') + '</span>'
+                : '<span style="color:#ff4444;">' + (r && r.error || 'Error') + '</span>';
+            loadCopyFleet();
+        });
+    };
+
+    // ── Deposit Approve/Reject ──
+    window.approveDeposit = function(depositKey) {
+        if (!confirm('Approve this deposit and credit the client\'s USDT wallet?')) return;
+        callAdmin({ command: 'copy_admin_approve_deposit', deposit_key: depositKey }).then(function(r) {
+            if (r && r.status === 'ok') {
+                alert('✅ Deposit approved! ' + r.amount_credited + ' USDT credited to Client #' + r.client_id + '\nNew balance: ' + r.new_balance.toFixed(2) + ' USDT\nClient has been emailed.');
+                loadCopyFleet();
+            } else {
+                alert('Error: ' + (r && r.error || 'Unknown'));
+            }
+        });
+    };
+
+    window.rejectDeposit = function(depositKey) {
+        var reason = prompt('Reason for rejection (will be emailed to client):');
+        if (reason === null) return; // User clicked Cancel
+        callAdmin({ command: 'copy_admin_reject_deposit', deposit_key: depositKey, reason: reason || 'Transaction could not be verified' }).then(function(r) {
+            if (r && r.status === 'ok') {
+                alert('❌ Deposit rejected. Client has been notified.');
+                loadCopyFleet();
+            } else {
+                alert('Error: ' + (r && r.error || 'Unknown'));
+            }
+        });
+    };
+
+    window.addCopyClient = function() {
+        var resultEl = document.getElementById('copyAddResult');
+        resultEl.innerHTML = '<span style="color:var(--accent);">Adding...</span>';
+        callAdmin({
+            command: 'copy_add_client',
+            broker_server: document.getElementById('copyNewBroker').value,
+            mt5_login: document.getElementById('copyNewLogin').value,
+            encrypted_password: document.getElementById('copyNewPass').value,
+            broker_id: document.getElementById('copyNewBrokerId').value,
+            risk_multiplier: document.getElementById('copyNewRisk').value,
+            wallet_balance: document.getElementById('copyNewWallet').value,
+            initial_balance: document.getElementById('copyNewWallet').value
+        }).then(function(r) {
+            if (r && r.status === 'ok') {
+                resultEl.innerHTML = '<span style="color:#4caf50;">✓ Client ' + r.client.client_id + ' added</span>';
+                document.getElementById('copyAddForm').style.display = 'none';
+                loadCopyFleet();
+            } else {
+                resultEl.innerHTML = '<span style="color:#ff4444;">' + (r && r.error || 'Error') + '</span>';
+            }
+        });
+    };
+
+    window.removeCopyClient = function(id) {
+        if (!confirm('Remove client ' + id + '? This will terminate their copy trading.')) return;
+        callAdmin({ command: 'copy_remove_client', client_id: String(id) }).then(function(r) {
+            if (r && r.status === 'ok') loadCopyFleet();
+        });
+    };
+
+    window.runBilling = function() {
+        var el = document.getElementById('copyBillingResult');
+        el.innerHTML = '<span style="color:var(--accent);">Running HWM billing...</span>';
+        callAdmin({ command: 'copy_run_billing', client_id: '*' }).then(function(r) {
+            if (r && r.status === 'ok') {
+                var results = r.results || [];
+                var fees = results.filter(function(x) { return x.fee > 0; });
+                var alerts = results.filter(function(x) { return x.status === 'alert' || x.status === 'disconnect'; });
+                el.innerHTML = '<div style="color:#4caf50;font-weight:700;">✓ Billing complete</div>' +
+                    '<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">' +
+                    'Processed: ' + results.length + ' | Fees charged: ' + fees.length + 
+                    ' | Alerts/Disconnects: ' + alerts.length + '</div>';
+                if (fees.length > 0) {
+                    var totalFee = fees.reduce(function(s, x) { return s + x.fee; }, 0);
+                    el.innerHTML += '<div style="font-size:11px;color:#ffc107;margin-top:4px;">Total fees collected: ' + totalFee.toFixed(2) + ' USDT</div>';
+                }
+                loadCopyFleet();
+            } else {
+                el.innerHTML = '<span style="color:#ff4444;">' + (r && r.error || 'Error') + '</span>';
+            }
+        });
+    };
+})();
 </script>
 </body>
 </html>
