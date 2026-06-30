@@ -37,7 +37,10 @@
         .security-badge { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: rgba(0,255,136,0.04); border: 1px solid rgba(0,255,136,0.15); border-radius: 6px; margin-top: 16px; }
         .security-badge span { font-size: 11px; color: #66bb6a; }
         .hidden { display: none; }
-        select.form-input { appearance: none; cursor: pointer; }
+        select.form-input { -webkit-appearance: none; -moz-appearance: none; appearance: none; cursor: pointer; background-color: #1a1f28; color: #e6e8eb; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b94a8' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+        select.form-input option { background-color: #1a1f28; color: #e6e8eb; padding: 10px 8px; }
+        select.form-input option:checked { background-color: #00d9ff; color: #0a0e14; }
+        select.form-input option:hover { background-color: #2a3142; }
     </style>
 </head>
 <body>
@@ -77,14 +80,23 @@
         </div>
         <div class="form-group">
             <label class="form-label">Broker Name</label>
-            <select class="form-input" id="obBrokerId">
-                <option value="">Select your broker...</option>
-                <option value="ICMarkets">IC Markets</option>
-                <option value="Exness">Exness</option>
-                <option value="Pepperstone">Pepperstone</option>
-                <option value="XM">XM</option>
-                <option value="FXTM">FXTM</option>
-                <option value="Other">Other</option>
+            <select class="form-input" id="obBrokerId" style="background-color:#1a1f28;color:#e6e8eb;">
+                <option value="" style="background:#1a1f28;color:#e6e8eb;">— Select your broker —</option>
+                <option value="ICMarkets" style="background:#1a1f28;color:#e6e8eb;">IC Markets</option>
+                <option value="Exness" style="background:#1a1f28;color:#e6e8eb;">Exness</option>
+                <option value="Pepperstone" style="background:#1a1f28;color:#e6e8eb;">Pepperstone</option>
+                <option value="XM" style="background:#1a1f28;color:#e6e8eb;">XM</option>
+                <option value="FXTM" style="background:#1a1f28;color:#e6e8eb;">FXTM</option>
+                <option value="FBS" style="background:#1a1f28;color:#e6e8eb;">FBS</option>
+                <option value="RoboForex" style="background:#1a1f28;color:#e6e8eb;">RoboForex</option>
+                <option value="Tickmill" style="background:#1a1f28;color:#e6e8eb;">Tickmill</option>
+                <option value="Vantage" style="background:#1a1f28;color:#e6e8eb;">Vantage Markets</option>
+                <option value="FPMarkets" style="background:#1a1f28;color:#e6e8eb;">FP Markets</option>
+                <option value="LQDFX" style="background:#1a1f28;color:#e6e8eb;">LQDFX</option>
+                <option value="HFM" style="background:#1a1f28;color:#e6e8eb;">HF Markets (HotForex)</option>
+                <option value="Admirals" style="background:#1a1f28;color:#e6e8eb;">Admirals (Admiral Markets)</option>
+                <option value="OctaFX" style="background:#1a1f28;color:#e6e8eb;">OctaFX</option>
+                <option value="Other" style="background:#1a1f28;color:#e6e8eb;">Other (enter server name above)</option>
             </select>
         </div>
 
@@ -100,7 +112,7 @@
     <!-- STEP 2: Risk & Wallet -->
     <div class="card hidden" id="step2">
         <div class="step-title">Step 2: Risk Settings & Wallet</div>
-        <div class="step-desc">Choose your risk level and fund your internal wallet. The wallet is used to pay performance fees (30% of profits above your high-water mark).</div>
+        <div class="step-desc">Choose your risk level and fund your FalconAI USDT wallet. The wallet is used for your security deposit and performance fee settlements.</div>
 
         <div class="form-group">
             <label class="form-label">Risk Multiplier</label>
@@ -113,14 +125,35 @@
             </select>
         </div>
 
+        <div class="info-box" style="border-color:rgba(255,193,7,0.3);background:rgba(255,193,7,0.04);">
+            <p><span class="icon">⚠️</span> <b>Two requirements to activate copy trading:</b></p>
+            <p style="margin-top:6px;">1. <b>MT5 Broker Account:</b> Minimum $1,000 USD (or £1,000 GBP) for trading.</p>
+            <p>2. <b>FalconAI USDT Wallet:</b> Minimum 100 USDT for security deposit & fee settlements.</p>
+        </div>
+
         <div class="form-group">
-            <label class="form-label">Initial Wallet Deposit (USDT)</label>
-            <input type="number" class="form-input" id="obWallet" value="1000" min="1000" step="100" placeholder="Minimum: £1,000 USDT">
-            <span style="font-size:10px;color:#8b94a8;margin-top:4px;display:block;">Minimum investment: £1,000. Falcon is designed for serious capital management.</span>
+            <label class="form-label">FalconAI Wallet Deposit (USDT)</label>
+            <input type="number" class="form-input" id="obWallet" value="100" min="100" step="10" placeholder="Minimum: 100 USDT">
+            <span style="font-size:10px;color:#8b94a8;margin-top:4px;display:block;">Minimum 100 USDT. Deposited via TRC-20 or ERC-20. Used for security deposit + 30% performance fee deductions.</span>
+        </div>
+
+        <div style="background:rgba(0,217,255,0.04);border:1px solid rgba(0,217,255,0.2);border-radius:8px;padding:12px;margin-bottom:16px;text-align:center;">
+            <div style="font-size:9px;color:#8b94a8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Official Deposit Address — TRC-20 (Tron)</div>
+            <div style="font-family:monospace;font-size:13px;color:#00d9ff;font-weight:700;letter-spacing:0.5px;word-break:break-all;padding:8px;background:rgba(0,0,0,0.3);border-radius:6px;user-select:all;">TKvk5be3EtzmomMcoQfGnYvkc8TKA2vCuq</div>
+            <div style="margin-top:8px;background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.25);border-radius:4px;padding:6px;">
+                <span style="font-size:9px;color:#ff6b6b;font-weight:700;">⚠️ Only send Tether USDT (TRC20) assets to this address. Other assets will be lost forever.</span>
+            </div>
+            <p style="font-size:9px;color:#5b6580;margin-top:6px;">After sending, you will submit your TX hash in your dashboard for automated verification.</p>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">MT5 Broker Account Balance (USD/GBP)</label>
+            <input type="number" class="form-input" id="obBrokerBalance" value="1000" min="1000" step="100" placeholder="Minimum: $1,000">
+            <span style="font-size:10px;color:#8b94a8;margin-top:4px;display:block;">Minimum $1,000. This is your trading capital in your broker account. We never access these funds directly.</span>
         </div>
 
         <div class="info-box">
-            <p><span class="icon">💡</span> <b>How billing works:</b> We charge 30% of NET profits only when your account makes new highs (High-Water Mark model). If you're in drawdown, zero fees are taken until you recover. Wallet below £10 = copy trading pauses until topped up.</p>
+            <p><span class="icon">💡</span> <b>How billing works:</b> We charge 30% of NET profits (measured in USD/GBP from your MT5 account) and deduct the equivalent in USDT from your FalconAI wallet at 1:1 rate. If you're in drawdown, zero fees are taken. Wallet below 100 USDT = copy trading pauses until topped up.</p>
         </div>
 
         <button class="btn btn-primary" onclick="goToStep3()">Continue →</button>
@@ -205,13 +238,26 @@ function goToStep2() {
 }
 
 function goToStep3() {
+    var walletVal = parseFloat(document.getElementById('obWallet').value);
+    var brokerVal = parseFloat(document.getElementById('obBrokerBalance').value);
+    if (!walletVal || walletVal < 100) {
+        alert('⚠️ Minimum FalconAI wallet deposit is 100 USDT.\n\nThis is required as a security deposit to join the copy trading system.');
+        document.getElementById('obWallet').focus();
+        return;
+    }
+    if (!brokerVal || brokerVal < 1000) {
+        alert('⚠️ Minimum MT5 broker account balance is $1,000 USD (or £1,000 GBP).\n\nThis is required for proper trade execution and risk management.');
+        document.getElementById('obBrokerBalance').focus();
+        return;
+    }
     onboardData.risk_multiplier = document.getElementById('obRisk').value;
     onboardData.wallet = document.getElementById('obWallet').value;
+    onboardData.broker_balance = document.getElementById('obBrokerBalance').value;
     
     document.getElementById('confirmBroker').textContent = onboardData.broker_server;
     document.getElementById('confirmLogin').textContent = onboardData.mt5_login;
     document.getElementById('confirmRisk').textContent = onboardData.risk_multiplier + '×';
-    document.getElementById('confirmWallet').textContent = '$' + onboardData.wallet;
+    document.getElementById('confirmWallet').textContent = onboardData.wallet + ' USDT';
     
     document.getElementById('step2').classList.add('hidden');
     document.getElementById('step3').classList.remove('hidden');
@@ -265,6 +311,7 @@ function submitOnboarding() {
         broker_id: onboardData.broker_id,
         risk_multiplier: onboardData.risk_multiplier,
         wallet_deposit: onboardData.wallet,
+        broker_balance: onboardData.broker_balance,
         email: onboardData.email
     };
     

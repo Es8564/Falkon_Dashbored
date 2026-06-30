@@ -32,13 +32,17 @@
     <h1>◈ FalconAI Copy Trading</h1>
     <p class="subtitle">Frequently Asked Questions — Everything You Need to Know</p>
 
+    <div style="background:rgba(0,217,255,0.04);border:1px solid rgba(0,217,255,0.15);border-radius:8px;padding:12px 16px;margin-bottom:24px;">
+        <p style="font-size:11px;color:#8bb8cc;line-height:1.5;margin:0;"><b>ℹ️ Note:</b> This page covers the <b>Copy Trading</b> service (we trade for you). If you're looking for information about the <b>21-Day Expert Demo Trial</b> (testing the EA yourself on a demo account), please visit your <a href="account.html" style="color:#00d9ff;">Account page</a>. These are two separate services.</p>
+    </div>
+
     <!-- GETTING STARTED -->
     <div class="faq-section">
         <div class="faq-section-title">🚀 Getting Started</div>
         
         <div class="faq-item">
             <div class="faq-q" onclick="toggleFaq(this)">How do I connect my MT5 account?<span class="arrow">▼</span></div>
-            <div class="faq-a">Visit the <a href="copy-trading-onboard.html" style="color:#00d9ff;">onboarding page</a>, enter your MT5 broker server name, login number, and investor password. Select your risk level, fund your wallet (minimum £1,000), and submit. Your account will be activated within 24 hours after admin verification.</div>
+            <div class="faq-a">Visit the <a href="copy-trading-onboard.html" style="color:#00d9ff;">onboarding page</a>, enter your MT5 broker server name, login number, and investor password. Select your risk level, fund your USDT wallet (minimum 100 USDT), ensure your broker account has at least $1,000, and submit. Your account will be activated within 24 hours after admin verification.</div>
         </div>
 
         <div class="faq-item">
@@ -48,7 +52,7 @@
 
         <div class="faq-item">
             <div class="faq-q" onclick="toggleFaq(this)">What is the minimum investment?<span class="arrow">▼</span></div>
-            <div class="faq-a">The minimum wallet deposit is <span class="highlight">£1,000 USDT</span>. FalconAI is designed for serious capital management. Accounts below this threshold cannot sustain proper position sizing and risk management.</div>
+            <div class="faq-a">The minimum requirements are: <span class="highlight">100 USDT</span> in your FalconAI wallet (for security deposit and fee settlements) AND <span class="highlight">$1,000 USD/GBP</span> in your MT5 broker account (for trading). Both must be satisfied before copy trading activates.</div>
         </div>
 
         <div class="faq-item">
@@ -66,24 +70,24 @@
             <div class="faq-a">We use the <span class="highlight">High-Water Mark (HWM) model</span>:<br><br>
             • We ONLY charge 30% of <b>net new profits</b> above your account's all-time high.<br>
             • If your account drops (drawdown), <b>zero fees</b> are charged until you fully recover AND make new profit.<br>
-            • Example: Account goes $10,000 → $10,500 (new high). Fee = $500 × 30% = <span class="highlight">$150</span>.<br>
+            • Example: Account goes $10,000 → $10,500 (new high). Fee = $500 × 30% = <span class="highlight">150 USDT</span> deducted from your USDT wallet.<br>
             • If it drops to $9,800, NO fee until it exceeds $10,500 again.<br><br>
             This model ensures we only earn when YOU earn.</div>
         </div>
 
         <div class="faq-item">
             <div class="faq-q" onclick="toggleFaq(this)">When are fees charged?<span class="arrow">▼</span></div>
-            <div class="faq-a">Fees are calculated and deducted <b>daily at 00:05 UTC</b>. The system checks your account balance, compares it to your High-Water Mark, and if there's new profit, 30% is deducted from your USDT wallet. You'll receive an email notification with a detailed invoice for every fee charge.</div>
+            <div class="faq-a">Fees are calculated and deducted <b>daily at 00:05 UTC</b>. The system checks your MT5 account balance (USD/GBP), compares it to your High-Water Mark, and if there's new profit, 30% is deducted from your <b>USDT wallet</b> at a 1:1 rate. You'll receive an email notification with a detailed invoice for every fee charge.</div>
         </div>
 
         <div class="faq-item">
             <div class="faq-q" onclick="toggleFaq(this)">What happens if my wallet runs out?<span class="arrow">▼</span></div>
-            <div class="faq-a"><span class="warn">⚠️ Important:</span> If your wallet drops below £10 USDT after a fee deduction, you receive a <b>24-hour alert</b> to top up. If the wallet is not funded within 24 hours, copy trading is automatically paused — no new trades are copied. Your existing positions remain open for manual management. To resume, simply top up your wallet.</div>
+            <div class="faq-a"><span class="warn">⚠️ Important:</span> If your USDT wallet drops below 100 USDT after a fee deduction, you receive a <b>24-hour alert</b> to top up. If the wallet is not funded within 24 hours, copy trading is automatically paused — no new trades are copied. Your existing positions remain open for manual management. To resume, simply top up your USDT wallet via TRC-20 or ERC-20.</div>
         </div>
 
         <div class="faq-item">
             <div class="faq-q" onclick="toggleFaq(this)">How do I deposit to my wallet?<span class="arrow">▼</span></div>
-            <div class="faq-a">USDT deposits are accepted via <span class="highlight">TRC-20 (Tron)</span> or <span class="highlight">ERC-20 (Ethereum)</span>. Contact support for your unique deposit address. Manual bank transfers are also accepted — reach out via the live chat for details.</div>
+            <div class="faq-a">Send USDT via <span class="highlight">TRC-20 (Tron Network)</span> to our official address:<br><br><code style="background:rgba(0,217,255,0.1);padding:6px 10px;border-radius:4px;font-size:12px;display:block;text-align:center;color:#00d9ff;letter-spacing:0.5px;">TKvk5be3EtzmomMcoQfGnYvkc8TKA2vCuq</code><br>⚠️ <b style="color:#ff6b6b;">Only send Tether USDT (TRC20) assets to this address. Other assets will be lost forever.</b><br><br>After sending, go to your Client Dashboard → Copy Trading → Deposit section and paste your TX hash. The system will verify your transaction on the blockchain and your balance will be credited once approved by admin (typically within 1 hour).</div>
         </div>
     </div>
 
@@ -121,6 +125,21 @@
     <!-- ACCOUNT MANAGEMENT -->
     <div class="faq-section">
         <div class="faq-section-title">⚙️ Account Management</div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">What happens if the system goes down?<span class="arrow">▼</span></div>
+            <div class="faq-a">If our system experiences downtime: <b>No new trades are opened</b> on your account. Your existing positions remain untouched and your funds are always safe in your broker. The system auto-reconnects when service is restored. You'll receive an email notification if downtime exceeds 30 minutes. Our infrastructure runs on dedicated London servers with 99.8% uptime.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">How do I withdraw my USDT from the wallet?<span class="arrow">▼</span></div>
+            <div class="faq-a">Contact support via the live chat in your dashboard or email. Provide your TRC-20 USDT receiving address. Withdrawals are processed within 24 hours. <b>Note:</b> You must first disconnect from copy trading before requesting a full wallet withdrawal. Minimum withdrawal: 10 USDT.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">What does "Pending" status mean?<span class="arrow">▼</span></div>
+            <div class="faq-a">After submitting your onboarding application, your account enters "Pending" status while the admin team reviews your details and verifies your credentials. Activation typically happens within 24 hours. You'll receive an email confirmation once approved.</div>
+        </div>
 
         <div class="faq-item">
             <div class="faq-q" onclick="toggleFaq(this)">Can I disconnect at any time?<span class="arrow">▼</span></div>
