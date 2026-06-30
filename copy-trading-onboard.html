@@ -80,24 +80,49 @@
         </div>
         <div class="form-group">
             <label class="form-label">Broker Name</label>
-            <select class="form-input" id="obBrokerId" style="background-color:#1a1f28;color:#e6e8eb;">
-                <option value="" style="background:#1a1f28;color:#e6e8eb;">— Select your broker —</option>
-                <option value="ICMarkets" style="background:#1a1f28;color:#e6e8eb;">IC Markets</option>
-                <option value="Exness" style="background:#1a1f28;color:#e6e8eb;">Exness</option>
-                <option value="Pepperstone" style="background:#1a1f28;color:#e6e8eb;">Pepperstone</option>
-                <option value="XM" style="background:#1a1f28;color:#e6e8eb;">XM</option>
-                <option value="FXTM" style="background:#1a1f28;color:#e6e8eb;">FXTM</option>
-                <option value="FBS" style="background:#1a1f28;color:#e6e8eb;">FBS</option>
-                <option value="RoboForex" style="background:#1a1f28;color:#e6e8eb;">RoboForex</option>
-                <option value="Tickmill" style="background:#1a1f28;color:#e6e8eb;">Tickmill</option>
-                <option value="Vantage" style="background:#1a1f28;color:#e6e8eb;">Vantage Markets</option>
-                <option value="FPMarkets" style="background:#1a1f28;color:#e6e8eb;">FP Markets</option>
-                <option value="LQDFX" style="background:#1a1f28;color:#e6e8eb;">LQDFX</option>
-                <option value="HFM" style="background:#1a1f28;color:#e6e8eb;">HF Markets (HotForex)</option>
-                <option value="Admirals" style="background:#1a1f28;color:#e6e8eb;">Admirals (Admiral Markets)</option>
-                <option value="OctaFX" style="background:#1a1f28;color:#e6e8eb;">OctaFX</option>
-                <option value="Other" style="background:#1a1f28;color:#e6e8eb;">Other (enter server name above)</option>
-            </select>
+            <div style="position:relative;" id="brokerDropdownWrap">
+                <div id="brokerSelected" onclick="document.getElementById('brokerOptions').style.display=document.getElementById('brokerOptions').style.display==='block'?'none':'block'" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#fff;font-size:14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+                    <span id="brokerText" style="color:rgba(255,255,255,0.4);">— Select your broker —</span>
+                    <span style="color:#8b94a8;">▼</span>
+                </div>
+                <div id="brokerOptions" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:100;background:#1a1f28;border:1px solid rgba(0,217,255,0.3);border-radius:8px;margin-top:4px;max-height:250px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+                    <div class="broker-opt" data-val="" style="padding:10px 14px;color:rgba(255,255,255,0.4);cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);">— Select your broker —</div>
+                    <div class="broker-opt" data-val="ICMarkets" style="padding:10px 14px;color:#e6e8eb;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);">IC Markets</div>
+                    <div class="broker-opt" data-val="Exness" style="padding:10px 14px;color:#e6e8eb;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);">Exness</div>
+                    <div class="broker-opt" data-val="Pepperstone" style="padding:10px 14px;color:#e6e8eb;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);">Pepperstone</div>
+                    <div class="broker-opt" data-val="XM" style="padding:10px 14px;color:#e6e8eb;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);">XM</div>
+                    <div class="broker-opt" data-val="FXTM" style="padding:10px 14px;color:#e6e8eb;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);">FXTM</div>
+                    <div class="broker-opt" data-val="FBS" style="padding:10px 14px;color:#e6e8eb;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);">FBS</div>
+                    <div class="broker-opt" data-val="RoboForex" style="padding:10px 14px;color:#e6e8eb;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);">RoboForex</div>
+                    <div class="broker-opt" data-val="Tickmill" style="padding:10px 14px;color:#e6e8eb;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);">Tickmill</div>
+                    <div class="broker-opt" data-val="Vantage" style="padding:10px 14px;color:#e6e8eb;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);">Vantage Markets</div>
+                    <div class="broker-opt" data-val="FPMarkets" style="padding:10px 14px;color:#e6e8eb;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);">FP Markets</div>
+                    <div class="broker-opt" data-val="LQDFX" style="padding:10px 14px;color:#e6e8eb;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);">LQDFX</div>
+                    <div class="broker-opt" data-val="HFM" style="padding:10px 14px;color:#e6e8eb;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);">HF Markets (HotForex)</div>
+                    <div class="broker-opt" data-val="Admirals" style="padding:10px 14px;color:#e6e8eb;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);">Admirals (Admiral Markets)</div>
+                    <div class="broker-opt" data-val="OctaFX" style="padding:10px 14px;color:#e6e8eb;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);">OctaFX</div>
+                    <div class="broker-opt" data-val="Other" style="padding:10px 14px;color:#e6e8eb;cursor:pointer;">Other (enter server name above)</div>
+                </div>
+                <input type="hidden" id="obBrokerId" value="">
+            </div>
+            <script>
+            document.querySelectorAll('.broker-opt').forEach(function(opt) {
+                opt.addEventListener('mouseover', function() { this.style.background = 'rgba(0,217,255,0.15)'; });
+                opt.addEventListener('mouseout', function() { this.style.background = 'transparent'; });
+                opt.addEventListener('click', function() {
+                    var val = this.getAttribute('data-val');
+                    document.getElementById('obBrokerId').value = val;
+                    document.getElementById('brokerText').textContent = this.textContent;
+                    document.getElementById('brokerText').style.color = val ? '#fff' : 'rgba(255,255,255,0.4)';
+                    document.getElementById('brokerOptions').style.display = 'none';
+                });
+            });
+            document.addEventListener('click', function(e) {
+                if (!document.getElementById('brokerDropdownWrap').contains(e.target)) {
+                    document.getElementById('brokerOptions').style.display = 'none';
+                }
+            });
+            </script>
         </div>
 
         <button class="btn btn-primary" onclick="goToStep2()">Continue →</button>
