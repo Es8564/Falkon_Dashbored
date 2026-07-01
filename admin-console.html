@@ -33,8 +33,8 @@
             font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
+            overflow: auto;
             display: flex;
         }
 
@@ -126,7 +126,7 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow: auto;
         }
         .topbar {
             height: 52px;
@@ -1086,6 +1086,12 @@
             </div>
             <div class="card">
                 <div class="card-title">Blessed Builds Registry</div>
+                <div class="form-row" style="margin-bottom:12px;">
+                    <div class="form-group"><label class="form-label">Build ID</label><input type="text" class="form-input" id="integBlessId" placeholder="e.g. 2026.05.24-r1"></div>
+                    <div class="form-group"><label class="form-label">Build Hash (SHA-256)</label><input type="text" class="form-input" id="integBlessHash" placeholder="sha-256 hex"></div>
+                    <div class="form-group"><label class="form-label">Notes</label><input type="text" class="form-input" id="integBlessNotes" placeholder="optional, ≤500 chars"></div>
+                    <button class="btn btn-primary" onclick="blessBuild()">✅ Bless Build</button>
+                </div>
                 <div id="integBuildsList"><div class="loading">Loading...</div></div>
             </div>
             <div class="card">
@@ -2363,8 +2369,9 @@ function loadIntegrity(filter) {
                 var statusClass = st === 'trusted' ? 'active' : (st === 'pending_attestation' ? 'trial' : (st === 'tampered' ? 'expired' : 'suspended'));
                 var who = (r.last_server || '') + '|' + (r.last_login || '');
                 var actions = '';
-                if (st === 'pending_attestation') actions = '<button class="btn btn-primary" style="padding:3px 8px;font-size:9px;" onclick="attestInstall(\'' + k.replace(/'/g, "\\'") + '\')">✓ Attest</button>';
-                else if (st === 'trusted') actions = '<button class="btn btn-danger" style="padding:3px 8px;font-size:9px;" onclick="revokeInstall(\'' + k.replace(/'/g, "\\'") + '\')">Revoke</button>';
+                if (st === 'pending_attestation') actions = '<button class="btn btn-primary" style="padding:3px 8px;font-size:9px;" onclick="attestInstall(\'' + k.replace(/'/g, "\\'") + '\')">✓ Attest</button> ';
+                else if (st === 'trusted') actions = '<button class="btn btn-danger" style="padding:3px 8px;font-size:9px;" onclick="revokeInstall(\'' + k.replace(/'/g, "\\'") + '\')">Revoke</button> ';
+                actions += '<button class="btn btn-ghost" style="padding:3px 8px;font-size:9px;" onclick="deleteInstall(\'' + k.replace(/'/g, "\\'") + '\')">🗑️ Delete</button>';
                 installsHtml += '<tr><td style="font-family:monospace;font-size:10px;">' + k.slice(0, 20) + '…</td><td><span class="status-badge ' + statusClass + '">' + stLabel + '</span></td><td style="font-size:11px;">' + who + '</td><td style="font-family:monospace;font-size:10px;">' + (r.last_build_id || '—') + '</td><td>' + (r.last_seen || '').slice(0, 16).replace('T', ' ') + '</td><td>' + actions + '</td></tr>';
             });
             installsHtml += '</tbody></table>';
@@ -2388,6 +2395,25 @@ function revokeInstall(key) {
     if (!confirm('Revoke trust for install ' + key.slice(0, 20) + '…?')) return;
     callAdmin({ command: 'admin_revoke_install', install_key: key }).then(function(data) {
         if (data && data.status === 'ok') { alert('✓ Install revoked.'); loadIntegrity('all'); }
+        else alert('Error: ' + (data && data.error || 'unknown'));
+    });
+}
+
+function deleteInstall(key) {
+    if (!confirm('Permanently delete install ' + key.slice(0, 20) + '…? This cannot be undone.')) return;
+    callAdmin({ command: 'admin_delete_install', install_key: key }).then(function(data) {
+        if (data && data.status === 'ok') { alert('✓ Install deleted.'); loadIntegrity('all'); }
+        else alert('Error: ' + (data && data.error || 'unknown'));
+    });
+}
+
+function blessBuild() {
+    var buildId = document.getElementById('integBlessId').value.trim();
+    var buildHash = document.getElementById('integBlessHash').value.trim();
+    var notes = document.getElementById('integBlessNotes').value.trim();
+    if (!buildId || !buildHash) { alert('Build ID and Build Hash are required'); return; }
+    callAdmin({ command: 'admin_register_build', build_id: buildId, build_hash: buildHash, notes: notes }).then(function(data) {
+        if (data && data.status === 'ok') { alert('✓ Build blessed: ' + buildId); loadIntegrity('all'); document.getElementById('integBlessId').value = ''; document.getElementById('integBlessHash').value = ''; document.getElementById('integBlessNotes').value = ''; }
         else alert('Error: ' + (data && data.error || 'unknown'));
     });
 }
